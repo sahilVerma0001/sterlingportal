@@ -6,6 +6,10 @@ import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 import { savePDFToStorage } from "@/lib/services/pdf/storage";
+import { sendEmail } from "@/lib/services/email/EmailService";
+
+
+
 
 /**
  * Generate unique application number
@@ -39,6 +43,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
+
+    // 🔒 Required client contact validation
+    if (
+      !formData?.phone ||
+      !formData?.email ||
+      !formData?.streetAddress ||
+      !formData?.city
+    ) {
+      return NextResponse.json(
+        {
+          error: "Missing required client contact details",
+          missingFields: {
+            phone: !formData?.phone,
+            email: !formData?.email,
+            streetAddress: !formData?.streetAddress,
+            city: !formData?.city,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+
+    if (!programId || !formData) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
     // Get agency details
@@ -53,21 +87,23 @@ export async function POST(req: NextRequest) {
     // Prepare client contact from form data
     const clientContact = {
       name: formData.companyName || "Unknown",
-      phone: formData.phone || "",
-      email: formData.email || "",
+      phone: formData.phone.trim(),
+      email: formData.email.trim(),
       EIN: formData.companyFEIN || "",
       businessAddress: {
-        street: formData.streetAddress || "",
-        city: formData.city || "",
-        state: formData.state || "",
-        zip: formData.zipCode || "00000", // Default zip if not provided
+        street: formData.streetAddress.trim(),
+        city: formData.city.trim(),
+        state: formData.state || "CA",
+        zip: formData.zipCode || "00000",
       },
     };
 
+
     // Create submission (application)
     const submission = await Submission.create({
+      applicationNumber,
       agencyId: user.agencyId,
-      templateId: null, // No template for this form
+      templateId: null,
       payload: formData,
       files: [],
       status: "SUBMITTED",
@@ -76,17 +112,34 @@ export async function POST(req: NextRequest) {
       state: formData.state || "CA",
       programId,
       programName: programName || "Advantage Contractor GL",
-      carrierEmail: carrierEmail || process.env.DEFAULT_CARRIER_EMAIL || "carrier@example.com",
+      carrierEmail:
+        carrierEmail ||
+        process.env.DEFAULT_CARRIER_EMAIL ||
+        "carrier@example.com",
       submittedToCarrierAt: new Date(),
     });
+
+    // ✅ THIS IS CORRECT
+    await sendEmail({
+      to: "krishanlal7770@gmail.com",
+      subject: "🔥 Application Submitted Successfully",
+      html: `
+    <h2>Application Submitted</h2>
+    <p>Application #: ${applicationNumber}</p>
+    <p>Company: ${formData.companyName}</p>
+  `,
+      text: `Application ${applicationNumber} submitted successfully`,
+    });
+
+
 
     // Generate Application PDF and send to carrier
     let pdfUrl = "";
     let pdfBuffer: Buffer | undefined;
-    
+
     try {
       console.log("📄 Starting PDF generation...");
-      
+
       // Load Capital & Co logo SVG
       const capitalCoLogoSVG = await loadCapitalCoLogo();
 
@@ -185,7 +238,7 @@ export async function POST(req: NextRequest) {
     // Send email to carrier with PDF attachment
     try {
       const { sendApplicationToCarrier } = await import("@/lib/services/email/EmailService");
-      
+
       await sendApplicationToCarrier({
         carrierEmail: submission.carrierEmail || "",
         agencyName: agency.name || "Unknown Agency",
@@ -211,7 +264,7 @@ export async function POST(req: NextRequest) {
         status: submission.status,
         submittedAt: submission.createdAt,
         pdfUrl: pdfUrl || null,
-        pdfGenerated: !!pdfUrl,
+        pdfGenerated: !!pdfBuffer,
       },
     });
   } catch (error: any) {

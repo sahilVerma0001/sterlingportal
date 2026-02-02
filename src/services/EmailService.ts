@@ -33,7 +33,6 @@ export class EmailService {
       return this.transporter;
     }
 
-    // Check if email is configured
     const emailEnabled = process.env.EMAIL_ENABLED === 'true';
     const emailHost = process.env.EMAIL_HOST;
     const emailPort = process.env.EMAIL_PORT;
@@ -41,11 +40,13 @@ export class EmailService {
     const emailPass = process.env.EMAIL_PASS;
     const emailFrom = process.env.EMAIL_FROM || 'noreply@sterlingportal.com';
 
+    // 🔍 DEBUG LOGS (TEMPORARY)
+    console.log("EMAIL_ENABLED:", process.env.EMAIL_ENABLED);
+    console.log("EMAIL_HOST:", process.env.EMAIL_HOST);
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+
     if (!emailEnabled || !emailHost || !emailUser || !emailPass) {
-      console.log('⚠️  Email not configured - using mock mode');
-      console.log('💡 To enable email:');
-      console.log('   1. Set EMAIL_ENABLED=true in .env.local');
-      console.log('   2. Add EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM');
+      console.log('⚠️ Email not configured - using mock mode');
       return null;
     }
 
@@ -53,7 +54,7 @@ export class EmailService {
       this.transporter = nodemailer.createTransport({
         host: emailHost,
         port: parseInt(emailPort || '587'),
-        secure: parseInt(emailPort || '587') === 465, // true for 465, false for other ports
+        secure: parseInt(emailPort || '587') === 465,
         auth: {
           user: emailUser,
           pass: emailPass,
@@ -66,6 +67,48 @@ export class EmailService {
       console.error('❌ Failed to initialize email transporter:', error);
       return null;
     }
+  }
+
+  /**
+ * Universal raw email sender (used by all systems)
+ */
+  static async sendRawEmail({
+    to,
+    subject,
+    html,
+    text,
+    attachments,
+  }: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    attachments?: Array<{
+      filename: string;
+      content: Buffer | string;
+    }>;
+  }): Promise<boolean> {
+    const transporter = this.getTransporter();
+    const emailFrom = process.env.EMAIL_FROM || "noreply@sterlingportal.com";
+
+    if (!transporter) {
+      console.log("📧 MOCK MODE: Email not actually sent");
+      console.log("📧 To:", to);
+      console.log("📧 Subject:", subject);
+      return true;
+    }
+
+    await transporter.sendMail({
+      from: `"Sterling Portal" <${emailFrom}>`,
+      to,
+      subject,
+      html,
+      text,
+      attachments,
+    });
+
+    console.log("✅ Email SENT to:", to);
+    return true;
   }
 
   /**
@@ -206,7 +249,7 @@ This is an automated message from Sterling Insurance Portal
       console.log('📧 Content:');
       console.log(textContent);
       console.log('📧 ═══════════════════════════════════════════════════════════════\n');
-      
+
       return { success: true };
     }
 
@@ -222,12 +265,12 @@ This is an automated message from Sterling Insurance Portal
 
       console.log('✅ Email sent to carrier:', carrier.email);
       console.log('📧 Message ID:', info.messageId);
-      
+
       return { success: true };
     } catch (error: any) {
       console.error('❌ Failed to send email to carrier:', carrier.email);
       console.error('Error:', error.message);
-      
+
       // Fallback to mock mode if sending fails
       console.log('\n📧 ═══════════════════════════════════════════════════════════════');
       console.log('📧 EMAIL FAILED - Falling back to MOCK mode');
@@ -235,10 +278,10 @@ This is an automated message from Sterling Insurance Portal
       console.log(`📧 To: ${carrier.email} (${carrier.name})`);
       console.log(`📧 Subject: ${subject}`);
       console.log('📧 ═══════════════════════════════════════════════════════════════\n');
-      
-      return { 
-        success: false, 
-        error: error.message 
+
+      return {
+        success: false,
+        error: error.message
       };
     }
   }
@@ -307,7 +350,7 @@ This is an automated message from Sterling Insurance Portal
       console.log(`📧 Subject: ${subject}`);
       console.log(`📧 Quote ID: ${quoteId}`);
       console.log('📧 ═══════════════════════════════════════════════════════════════\n');
-      
+
       return { success: true };
     }
 
@@ -327,6 +370,9 @@ This is an automated message from Sterling Insurance Portal
     }
   }
 }
+
+
+
 
 export default EmailService;
 

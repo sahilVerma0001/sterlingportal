@@ -1,3 +1,5 @@
+import nodemailer from "nodemailer";
+
 /**
  * Email Service
  * Handles sending emails for quotes, notifications, etc.
@@ -38,41 +40,37 @@ interface QuoteEmailData {
  * Send email using configured email service
  * This is a mock implementation - replace with actual email service
  */
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // In production, use actual email service:
-    /*
-    // Example with SendGrid:
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    await sgMail.send({
+    if (process.env.EMAIL_ENABLED !== "true") {
+      console.log("⚠️ EMAIL DISABLED — skipping real send");
+      return true;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT || 587),
+      secure: Number(process.env.EMAIL_PORT) === 465,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Sterling Portal" <${process.env.EMAIL_FROM}>`,
       to: options.to,
-      from: process.env.FROM_EMAIL,
       subject: options.subject,
       html: options.html,
       text: options.text,
+      attachments: options.attachments,
     });
-    */
 
-    // Example with Resend:
-    /*
-    const { Resend } = require('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: process.env.FROM_EMAIL,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    });
-    */
-
-    console.log("📧 Email would be sent to:", options.to);
-    console.log("📧 Subject:", options.subject);
-    console.log("📧 Mock email sent successfully");
-    
+    console.log("✅ REAL EMAIL SENT TO:", options.to);
     return true;
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("❌ EMAIL SEND FAILED:", error);
     return false;
   }
 }
