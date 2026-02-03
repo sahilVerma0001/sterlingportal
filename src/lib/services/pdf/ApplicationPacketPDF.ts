@@ -11,7 +11,13 @@ interface ApplicationPacketData {
   applicationId: string;
   submissionId: string;
   formDate: string;
-  
+
+  // Optional Additional Coverages
+  addInlandMarineEquipment?: boolean;
+  addBuildersRisk?: boolean;
+  addEnvironmentalCoverage?: boolean;
+
+
   // Agency Information
   agencyName: string;
   agencyContactName: string;
@@ -22,7 +28,7 @@ interface ApplicationPacketData {
   agencyPhone: string;
   agencyEmail: string;
   capitalCoLogoSVG?: string; // SVG content for Capital & Co logo
-  
+
   // Applicant/Insured Information
   companyName: string;
   dba?: string;
@@ -41,13 +47,13 @@ interface ApplicationPacketData {
   workIn5Boroughs: boolean;
   otherBusinessNames?: string;
   paymentOption: string;
-  
+
   // Quote Information
   quoteType: string;
   carrierName: string;
   coverageType: string;
   desiredCoverageDates: string;
-  
+
   // General Liability Coverages
   aggregateLimit: string;
   occurrenceLimit: string;
@@ -56,18 +62,18 @@ interface ApplicationPacketData {
   fireLegalLimit: string;
   medPayLimit: string;
   selfInsuredRetention: string;
-  
+
   // Class Code & Gross Receipts
   classCode: string;
   grossReceipts: string;
-  
+
   // Current Exposures
   estimatedTotalGrossReceipts: string;
   estimatedSubContractingCosts: string;
   estimatedMaterialCosts: string;
   estimatedTotalPayroll: string;
   numberOfFieldEmployees: string; // Format: "Owner + X"
-  
+
   // Work Performed
   workDescription: string;
   percentageResidential: number;
@@ -81,7 +87,7 @@ interface ApplicationPacketData {
   ocipReceipts?: string;
   nonOCIPReceipts?: string;
   lossesInLast5Years: number;
-  
+
   // Work Experience Questions (Yes/No with explanations)
   performHazardousWork?: boolean;
   hazardousWorkExplanation?: string;
@@ -114,7 +120,7 @@ interface ApplicationPacketData {
   lawsuitsExplanation?: string;
   awareOfPotentialClaims?: boolean;
   potentialClaimsExplanation?: string;
-  
+
   // Written Contract Questions
   haveWrittenContract?: boolean;
   contractHasStartDate?: boolean;
@@ -140,34 +146,34 @@ interface ApplicationPacketData {
   holdHarmlessExplanation?: string;
   requireSubsWorkersComp?: boolean;
   subsWorkersCompExplanation?: string;
-  
+
   // Policy Endorsements
   policyEndorsements?: string;
-  
+
   // Application Agreement - Signatures
   applicantSignature?: string;
   applicantSignatureDate?: string;
   applicantTitle?: string;
   producerSignature?: string;
   producerSignatureDate?: string;
-  
+
   // Page 9: Disclosure of Premium
   terrorismCoveragePremium?: string;
   rejectionStatementSignature?: string;
   rejectionStatementDate?: string;
   rejectionStatementPrintedName?: string;
-  
+
   // Page 10: Surplus Lines Compliance
   policyNumber?: string;
   surplusLinesSignature?: string;
   surplusLinesDate?: string;
-  
+
   // Page 11: Loss Warranty Letter
   lossWarrantyCompanySignature?: string;
   lossWarrantyDate?: string;
   lossWarrantySignature?: string;
   lossWarrantyTitle?: string;
-  
+
   // Page 12: Invoice Statement
   programName?: string;
   premium?: string;
@@ -216,7 +222,7 @@ function formatYesNo(value: boolean | null | undefined, defaultValue?: boolean):
       : '<span class="yes-option">Yes</span><span class="no-option selected">No</span>';
   }
   // Value is explicitly true or false
-  return value 
+  return value
     ? '<span class="yes-option selected">Yes</span><span class="no-option">No</span>'
     : '<span class="yes-option">Yes</span><span class="no-option selected">No</span>';
 }
@@ -234,14 +240,14 @@ function generateCapitalCoLogoHTML(svgContent?: string, size: string = '100%', l
       .replace(/\s+/g, ' ') // Collapse whitespace
       .replace(/>\s+</g, '><') // Remove space between tags
       .trim();
-    
+
     // Extract viewBox if present, or use default
     const viewBoxMatch = optimizedSVG.match(/viewBox=["']([^"']+)["']/);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 100 120';
-    
+
     // Remove existing width/height/style attributes
     optimizedSVG = optimizedSVG.replace(/<svg([^>]*)>/, `<svg$1>`);
-    
+
     // Create optimized inline SVG with proper sizing
     return `<svg viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:${size};height:${size};" preserveAspectRatio="xMidYMid meet">${optimizedSVG.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}</svg>`;
   }
@@ -284,7 +290,7 @@ function generateQRCodeHTML(qrCodeDataUrl: string): string {
 function generatePage1(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P1`;
-  
+
   return `
     <div class="page page1-specific" style="page-break-after: always;">
       <div class="sidebar sidebar-page1">
@@ -361,7 +367,7 @@ function generatePage1(data: ApplicationPacketData): string {
 function generatePage2(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P2`;
-  
+
   return `
     <div class="page page2-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page2">
@@ -483,7 +489,7 @@ function generatePage2(data: ApplicationPacketData): string {
 function generatePage3(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P3`;
-  
+
   return `
     <div class="page page3-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page3">
@@ -585,7 +591,7 @@ function generatePage3(data: ApplicationPacketData): string {
 function generatePage4(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P4`;
-  
+
   return `
     <div class="page page4-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page4">
@@ -687,7 +693,7 @@ function generatePage4(data: ApplicationPacketData): string {
 function generatePage5(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P5`;
-  
+
   return `
     <div class="page page5-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page5">
@@ -711,7 +717,40 @@ function generatePage5(data: ApplicationPacketData): string {
         </div>
       </div>
       <div class="main-content main-content-page5">
-        <div class="section-title-uppercase-page5">WRITTEN CONTRACT</div>
+
+      <div class="section-title-uppercase-page5">ADDITIONAL COVERAGES</div>
+
+      <div class="written-contract-questions-page5">
+        <div class="question-item-page5">
+          <div class="question-text-page5">
+            <strong>Add Inland Marine Equipment Coverage</strong>
+          </div>
+          <div class="yes-no-options-page5">
+            ${formatYesNo(data.addInlandMarineEquipment)}
+          </div>
+        </div>
+        <div class="question-item-page5">
+          <div class="question-text-page5">
+            <strong>Add Inland Marine Builder's Risk Coverage</strong>
+          </div>
+          <div class="yes-no-options-page5">
+            ${formatYesNo(data.addBuildersRisk)}
+          </div>
+        </div>
+
+        <div class="question-item-page5">
+          <div class="question-text-page5">
+            <strong>Add Environmental Coverage</strong>
+          </div>
+          <div class="yes-no-options-page5">
+            ${formatYesNo(data.addEnvironmentalCoverage)}
+          </div>
+        </div>
+      </div>
+
+
+
+      <div class="section-title-uppercase-page5">WRITTEN CONTRACT</div>
         
         <div class="written-contract-questions-page5">
           <div class="question-item-page5">
@@ -750,17 +789,17 @@ function generatePage5(data: ApplicationPacketData): string {
           <div class="question-item-page5">
             <div class="question-text-page5"><strong>Do you subcontract work?</strong></div>
             <div class="yes-no-options-page5">${formatYesNo(data.doSubcontractWork)}</div>
-            ${data.doSubcontractWork ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}
-            ${data.doSubcontractWork ? `
+            ${data.doSubcontractWork === true ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}${data.doSubcontractWork ? `
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you always collect certificates of insurance from subcontractors?</strong></div>
               <div class="yes-no-options-page5">${formatYesNo(data.alwaysCollectCertificatesFromSubs, true)}</div>
-              ${!data.alwaysCollectCertificatesFromSubs ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.collectCertificatesExplanation || ''}</div>` : ''}
+              ${data.alwaysCollectCertificatesFromSubs === false ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong>${data.collectCertificatesExplanation || ''}</div>` : ''}
             </div>
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you require subcontractors to have insurance limits equal to your own?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsEqualInsuranceLimits, true)}</div>
-              ${!data.requireSubsEqualInsuranceLimits ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.subsEqualLimitsExplanation || ''}</div>` : ''}
+              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsEqualInsuranceLimits)}</div>
+              ${data.requireSubsEqualInsuranceLimits === false ? `<div class="explanation-field-page5"><strong>If "No", pleaseexplain:</strong>${data.subsEqualLimitsExplanation || ''}</div>` : ''}
+
             </div>
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you always require subcontractors to name you as additional insured?</strong></div>
@@ -803,7 +842,7 @@ function generatePage5(data: ApplicationPacketData): string {
 function generatePage6(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P6`;
-  
+
   return `
     <div class="page page6-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page6">
@@ -867,7 +906,7 @@ function generatePage6(data: ApplicationPacketData): string {
 function generatePage7(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P7`;
-  
+
   return `
     <div class="page page7-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page7">
@@ -976,7 +1015,7 @@ function generatePage7(data: ApplicationPacketData): string {
 function generatePage8(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P8`;
-  
+
   return `
     <div class="page page8-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page8">
@@ -1072,7 +1111,7 @@ function generatePage8(data: ApplicationPacketData): string {
 function generatePage9(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P9`;
-  
+
   return `
     <div class="page page9-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page9">
@@ -1151,7 +1190,7 @@ function generatePage9(data: ApplicationPacketData): string {
 function generatePage10(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P10`;
-  
+
   return `
     <div class="page page10-isc" style="page-break-after: always;">
       <div class="main-content main-content-page10">
@@ -1198,7 +1237,7 @@ function generatePage10(data: ApplicationPacketData): string {
 function generatePage11(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P11`;
-  
+
   return `
     <div class="page page11-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page11">
@@ -1291,7 +1330,7 @@ function generatePage11(data: ApplicationPacketData): string {
 function generatePage12(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P12`;
-  
+
   return `
     <div class="page page12-isc" style="page-break-after: always;">
       <div class="sidebar sidebar-page12">
@@ -1450,7 +1489,7 @@ export async function loadCapitalCoLogo(): Promise<string | undefined> {
     const fs = await import('fs');
     const path = await import('path');
     const logoPath = path.join(process.cwd(), 'public', 'logos', 'capital-co-logo.svg');
-    
+
     if (fs.existsSync(logoPath)) {
       const logoSVG = fs.readFileSync(logoPath, 'utf-8');
       return logoSVG;
@@ -1474,47 +1513,47 @@ export function mapFormDataToPacketData(
   const classCodes = Object.keys(classCodeWork);
   const firstClassCode = classCodes[0] || '';
   const classCodeDescription = formData.carrierApprovedDescription || firstClassCode;
-  
+
   // Calculate field employees
   const activeOwners = formData.activeOwnersInField || 0;
   const fieldEmployees = formData.fieldEmployees || 0;
-  const numberOfFieldEmployees = activeOwners > 0 
-    ? `Owner + ${fieldEmployees}` 
+  const numberOfFieldEmployees = activeOwners > 0
+    ? `Owner + ${fieldEmployees}`
     : `${fieldEmployees}`;
-  
+
   // Format dates
-  const formDate = formData.effectiveDate 
+  const formDate = formData.effectiveDate
     ? new Date(formData.effectiveDate).toLocaleDateString()
     : new Date().toLocaleDateString();
-  
+
   const coverageDates = formData.effectiveDate && formData.expirationDate
     ? `${new Date(formData.effectiveDate).toLocaleDateString()} - ${new Date(formData.expirationDate).toLocaleDateString()}`
     : formData.effectiveDate
-    ? `${new Date(formData.effectiveDate).toLocaleDateString()} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
-    : '';
-  
+      ? `${new Date(formData.effectiveDate).toLocaleDateString()} - ${new Date(new Date(formData.effectiveDate).setFullYear(new Date(formData.effectiveDate).getFullYear() + 1)).toLocaleDateString()}`
+      : '';
+
   // Format states of operation
   const statesOfOperation = Array.isArray(formData.statesOfOperation)
     ? formData.statesOfOperation.join(', ')
     : (formData.statesOfOperation || formData.state || '');
-  
+
   // Format address
-  const applicantAddress = formData.streetAddress 
+  const applicantAddress = formData.streetAddress
     ? `${formData.streetAddress}${formData.aptSuite ? ', ' + formData.aptSuite : ''}`
     : '';
-  
+
   // Format agency address
   const agencyAddress = agency?.address?.street || '';
   const agencyCity = agency?.address?.city || '';
   const agencyState = agency?.address?.state || '';
   const agencyZip = agency?.address?.zip || '';
-  
+
   return {
     // Application Metadata
     applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
     submissionId: submissionId,
     formDate: formDate,
-    
+
     // Agency Information
     agencyName: agency?.name || 'Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services',
     agencyContactName: formData.agencyContactName || 'Eidan Gamaty',
@@ -1524,7 +1563,9 @@ export function mapFormDataToPacketData(
     agencyZip: agencyZip,
     agencyPhone: agency?.phone || '(310) 284-2136',
     agencyEmail: agency?.email || 'eidan@capcoinsurance.com',
-    
+
+
+
     // Applicant/Insured Information
     companyName: formData.companyName || formData.business_name || '',
     dba: formData.dba,
@@ -1543,13 +1584,13 @@ export function mapFormDataToPacketData(
     workIn5Boroughs: formData.workIn5Boroughs || false,
     otherBusinessNames: formData.otherBusinessNames || 'No',
     paymentOption: formData.paymentOption || '3rd Party Finance',
-    
+
     // Quote Information
     quoteType: quote?.type || 'General Liability',
     carrierName: quote?.carrierName || 'Richmond National Insurance',
     coverageType: quote?.coverageType || 'Manuscript Occurrence',
     desiredCoverageDates: coverageDates,
-    
+
     // General Liability Coverages
     aggregateLimit: formData.generalLiabilityLimit || '$1,000,000',
     occurrenceLimit: formData.generalLiabilityLimit || '$1,000,000',
@@ -1558,18 +1599,18 @@ export function mapFormDataToPacketData(
     fireLegalLimit: formData.fireLegalLimit || '$50,000',
     medPayLimit: formData.medicalExpenseLimit || '$5,000',
     selfInsuredRetention: formData.deductible || '$2,500',
-    
+
     // Class Code & Gross Receipts
     classCode: classCodeDescription || firstClassCode,
     grossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
-    
+
     // Current Exposures
     estimatedTotalGrossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
     estimatedSubContractingCosts: formData.estimatedSubcontractingCosts ? `$${parseInt(formData.estimatedSubcontractingCosts).toLocaleString()}` : '$0',
     estimatedMaterialCosts: formData.estimatedMaterialCosts ? `$${parseInt(formData.estimatedMaterialCosts).toLocaleString()}` : '$0',
     estimatedTotalPayroll: formData.totalPayrollAmount || '0',
     numberOfFieldEmployees: numberOfFieldEmployees,
-    
+
     // Work Performed
     workDescription: formData.carrierApprovedDescription || '',
     percentageResidential: formData.residentialPercent || 0,
@@ -1583,7 +1624,7 @@ export function mapFormDataToPacketData(
     ocipReceipts: formData.ocipReceipts,
     nonOCIPReceipts: formData.nonOCIPReceipts,
     lossesInLast5Years: formData.lossesInLast5Years || 0,
-    
+
     // Work Experience Questions
     performHazardousWork: formData.performHazardousWork,
     hazardousWorkExplanation: formData.hazardousWorkExplanation,
@@ -1616,7 +1657,10 @@ export function mapFormDataToPacketData(
     lawsuitsExplanation: formData.lawsuitsExplanation,
     awareOfPotentialClaims: formData.awareOfPotentialClaims,
     potentialClaimsExplanation: formData.potentialClaimsExplanation,
-    
+
+
+
+
     // Written Contract Questions
     haveWrittenContract: formData.haveWrittenContract,
     contractHasStartDate: formData.contractHasStartDate,
@@ -1629,47 +1673,61 @@ export function mapFormDataToPacketData(
     contractSetPriceExplanation: formData.contractSetPriceExplanation,
     contractSignedByAllParties: formData.contractSignedByAllParties,
     contractSignedExplanation: formData.contractSignedExplanation,
-    doSubcontractWork: formData.doSubcontractWork || formData.hasSubcontractors,
-    alwaysCollectCertificatesFromSubs: formData.alwaysCollectCertificatesFromSubs,
-    collectCertificatesExplanation: formData.collectCertificatesExplanation,
-    requireSubsEqualInsuranceLimits: formData.requireSubsEqualInsuranceLimits,
-    subsEqualLimitsExplanation: formData.subsEqualLimitsExplanation,
-    requireSubsNameAsAdditionalInsured: formData.requireSubsNameAsAdditionalInsured,
-    subsAdditionalInsuredExplanation: formData.subsAdditionalInsuredExplanation,
-    haveStandardFormalAgreementWithSubs: formData.haveStandardFormalAgreementWithSubs,
-    standardAgreementExplanation: formData.standardAgreementExplanation,
     agreementHasHoldHarmless: formData.agreementHasHoldHarmless,
     holdHarmlessExplanation: formData.holdHarmlessExplanation,
-    requireSubsWorkersComp: formData.requireSubsWorkersComp,
-    subsWorkersCompExplanation: formData.subsWorkersCompExplanation,
-    
+    doSubcontractWork: formData.useSubcontractors,
+
+    alwaysCollectCertificatesFromSubs: formData.collectSubCertificates,
+    collectCertificatesExplanation: formData.collectSubCertificatesExplanation,
+
+    requireSubsEqualInsuranceLimits: formData.requireSubInsuranceEqual,
+    subsEqualLimitsExplanation: formData.requireSubInsuranceEqualExplanation,
+
+    requireSubsNameAsAdditionalInsured: formData.requireAdditionalInsured,
+    subsAdditionalInsuredExplanation: formData.requireAdditionalInsuredExplanation,
+
+    haveStandardFormalAgreementWithSubs: formData.haveWrittenSubContracts,
+    standardAgreementExplanation: formData.haveWrittenSubContractsExplanation,
+
+    requireSubsWorkersComp: formData.requireWorkersComp,
+    subsWorkersCompExplanation: formData.requireWorkersCompExplanation,
+
+
     // Policy Endorsements
     policyEndorsements: formData.policyEndorsements || 'Blanket AI + PW + WOS',
-    
+
     // Application Agreement - Signatures
     applicantSignature: formData.applicantSignature,
     applicantSignatureDate: formData.applicantSignatureDate || formDate,
     applicantTitle: formData.applicantTitle,
     producerSignature: formData.producerSignature,
     producerSignatureDate: formData.producerSignatureDate || formDate,
-    
+
+    // Optional Additional Coverages
+    addInlandMarineEquipment: formData.addInlandMarineEquipment,
+    addBuildersRisk: formData.addBuildersRisk,
+    addEnvironmentalCoverage: formData.addEnvironmentalCoverage,
+
+
+
+
     // Page 9: Disclosure of Premium
     terrorismCoveragePremium: formData.terrorismCoveragePremium || '$126.66',
     rejectionStatementSignature: formData.rejectionStatementSignature,
     rejectionStatementDate: formData.rejectionStatementDate,
     rejectionStatementPrintedName: formData.rejectionStatementPrintedName,
-    
+
     // Page 10: Surplus Lines Compliance
     policyNumber: formData.policyNumber || quote?.policyNumber,
     surplusLinesSignature: formData.surplusLinesSignature,
     surplusLinesDate: formData.surplusLinesDate || formDate,
-    
+
     // Page 11: Loss Warranty Letter
     lossWarrantyCompanySignature: formData.lossWarrantyCompanySignature,
     lossWarrantyDate: formData.lossWarrantyDate || formDate,
     lossWarrantySignature: formData.lossWarrantySignature,
     lossWarrantyTitle: formData.lossWarrantyTitle || formData.applicantTitle,
-    
+
     // Page 12: Invoice Statement
     programName: formData.programName || submission?.programName || 'Standard GL A-Rated',
     premium: formData.premium || (quote?.finalAmountUSD ? `$${parseFloat(quote.finalAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
@@ -1737,17 +1795,17 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
   // Generate QR codes for all pages upfront (base64 data URLs, no external API calls)
   const qrCodeText = data.applicationId;
   let qrCodeDataUrl: string;
-  
+
   try {
     qrCodeDataUrl = await generateQRCodeBase64(qrCodeText, 200);
   } catch (error) {
     console.error('[Application Packet] Error generating QR code, using placeholder:', error);
     qrCodeDataUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5RUiBDb2RlPC90ZXh0Pjwvc3ZnPg==';
   }
-  
+
   // Add QR code data URL to data object for page generation
   const dataWithQR = { ...data, qrCodeDataUrl };
-  
+
   // Generate all pages first
   const pages = [
     generatePage1(dataWithQR),
@@ -1763,7 +1821,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     generatePage11(dataWithQR),
     generatePage12(dataWithQR)
   ].join('');
-  
+
   const cssContent = `
     /* ============================================
        PROFESSIONAL DESIGN SYSTEM - CSS VARIABLES
@@ -5516,11 +5574,11 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       }
     }
   `;
-  
+
   // Optimize CSS and minify HTML to reduce size for PDFShift
   const optimizedCSS = optimizeCSS(cssContent);
   const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${optimizedCSS}</style></head><body>${pages}</body></html>`;
-  
+
   // Minify the final HTML
   return minifyHTML(fullHTML);
 }

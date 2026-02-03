@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -20,13 +20,15 @@ export default function Topbar() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
+
 
   // ✅ Single Icon Helper (ISC Active Style)
   const iconClass = (active = false) =>
     `w-5 h-5 cursor-pointer transition-all duration-150
      ${active
-       ? "bg-black text-white p-1.5 rounded-md"
-       : "text-gray-500 hover:text-black"}`;
+      ? "bg-black text-white p-1.5 rounded-md"
+      : "text-gray-500 hover:text-black"}`;
 
   // ✅ Close dropdown on outside click
   useEffect(() => {
@@ -68,7 +70,10 @@ export default function Topbar() {
         <Home
           className={iconClass(pathname === "/agency/dashboard")}
         />
-        <BarChart3 className={iconClass()} />
+        <BarChart3
+          onClick={() => router.push("/agency/broker-center")}
+          className={iconClass(pathname === "/agency/broker-center")}
+        />
         <ListChecks className={iconClass()} />
         <Shield className={iconClass()} />
         <Heart className={iconClass()} />
@@ -90,8 +95,8 @@ export default function Topbar() {
           className={`absolute right-0 top-12 w-64 bg-white rounded-md shadow-lg border z-50 text-gray-800
           transition-all duration-150 ease-out
           ${open
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 translate-y-1 pointer-events-none"}`}
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 translate-y-1 pointer-events-none"}`}
         >
           <div className="px-4 py-3 border-b">
             <p className="font-medium text-sm text-gray-900">

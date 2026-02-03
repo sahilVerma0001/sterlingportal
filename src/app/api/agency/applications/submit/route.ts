@@ -21,6 +21,73 @@ function generateApplicationNumber(): string {
   return `${prefix}-${timestamp}-${random}`;
 }
 
+function normalizeSubcontractors(formData: any) {
+  // Case 1: user does NOT use subcontractors
+  if (formData?.useSubcontractors === false) {
+    return {
+      ...formData,
+      subcontractors: {
+        useSubcontractors: false,
+        collectCertificates: false,
+        requireEqualLimits: false,
+        requireAdditionalInsured: false,
+        haveWrittenContracts: false,
+        requireWorkersComp: false,
+        collectCertificatesExplanation: "I do not use subcontractors.",
+        requireEqualLimitsExplanation: "I do not use subcontractors.",
+        requireAdditionalInsuredExplanation: "I do not use subcontractors.",
+        haveWrittenContractsExplanation: "I do not use subcontractors.",
+        requireWorkersCompExplanation: "I do not use subcontractors.",
+      },
+    };
+  }
+
+  // Case 2: user DOES use subcontractors
+  if (formData?.useSubcontractors === true) {
+    return {
+      ...formData,
+      subcontractors: {
+        useSubcontractors: true,
+
+        collectCertificates: formData.collectSubCertificates ?? false,
+        collectCertificatesExplanation:
+          formData.collectSubCertificatesExplanation || "",
+
+        requireEqualLimits: formData.requireSubInsuranceEqual ?? false,
+        requireEqualLimitsExplanation:
+          formData.requireSubInsuranceEqualExplanation || "",
+
+        requireAdditionalInsured: formData.requireAdditionalInsured ?? false,
+        requireAdditionalInsuredExplanation:
+          formData.requireAdditionalInsuredExplanation || "",
+
+        haveWrittenContracts: formData.haveWrittenSubContracts ?? false,
+        haveWrittenContractsExplanation:
+          formData.haveWrittenSubContractsExplanation || "",
+
+        requireWorkersComp: formData.requireWorkersComp ?? false,
+        requireWorkersCompExplanation:
+          formData.requireWorkersCompExplanation || "",
+      },
+    };
+  }
+
+  // Case 3: user hasn't answered yet
+  return formData;
+}
+
+
+function normalizeAdditionalCoverages(formData: any) {
+  return {
+    ...formData,
+      inlandMarineEquipment: formData.addInlandMarineEquipment ?? false,
+      buildersRisk: formData.addBuildersRisk ?? false,
+      environmentalCoverage: formData.addEnvironmentalCoverage ?? false,
+  };
+}
+
+
+
 /**
  * POST /api/agency/applications/submit
  * Submit application (no premium calculation)
@@ -98,13 +165,16 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    let normalizedPayload = normalizeSubcontractors(formData);
+    normalizedPayload = normalizeAdditionalCoverages(normalizedPayload);
+
 
     // Create submission (application)
     const submission = await Submission.create({
       applicationNumber,
       agencyId: user.agencyId,
       templateId: null,
-      payload: formData,
+      payload: normalizedPayload,
       files: [],
       status: "SUBMITTED",
       clientContact,
@@ -146,14 +216,15 @@ export async function POST(req: NextRequest) {
       // Map form data to packet data format (no quote yet for new submissions)
       let packetData;
       try {
-        packetData = mapFormDataToPacketData(
-          formData,
+        mapFormDataToPacketData(
+          submission.payload,
           submission._id.toString(),
           agency,
-          undefined, // No quote yet for new submissions
+          undefined,
           submission,
           capitalCoLogoSVG
         );
+
         console.log("✅ Form data mapped successfully");
       } catch (mapError: any) {
         console.error("❌ Error mapping form data:", mapError?.message);

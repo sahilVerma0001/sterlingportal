@@ -36,24 +36,24 @@ export default function MarketplacePage() {
       featured: true,
       featuredText: "New Lower Rates for Standard GL!",
       programs: [
-        { 
-          id: "advantage-contractor", 
+        {
+          id: "advantage-contractor",
           name: "Advantage Contractor General Liability",
           badge: "NEW All 50 States!",
           badgeColor: "teal"
         },
-        { 
-          id: "plus-contractor", 
+        {
+          id: "plus-contractor",
           name: "Plus Contractor General Liability"
         },
-        { 
-          id: "standard-contractor", 
+        {
+          id: "standard-contractor",
           name: "Standard Contractor General Liability",
           badge: "NEW Lower Rates!",
           badgeColor: "teal"
         },
-        { 
-          id: "builders-risk", 
+        {
+          id: "builders-risk",
           name: "Builders Risk"
         }
       ]
@@ -151,48 +151,48 @@ export default function MarketplacePage() {
           <div className="relative mb-3">
             {/* Outer Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
-            
+
             {/* Logo Container */}
             <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#00BCD4]/20 group-hover:border-[#00BCD4]/40 transition-all overflow-hidden">
               {/* Animated Background Pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent"></div>
               </div>
-              
+
               {/* Premium Logo Design - Abstract Geometric */}
               <svg className="relative w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Outer Shield Shape */}
-                <path 
-                  d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" 
-                  fill="url(#logoGradient1)" 
+                <path
+                  d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z"
+                  fill="url(#logoGradient1)"
                   className="drop-shadow-lg"
                 />
-                
+
                 {/* Inner Diamond */}
-                <path 
-                  d="M50 25 L65 40 L50 70 L35 40 Z" 
+                <path
+                  d="M50 25 L65 40 L50 70 L35 40 Z"
                   fill="url(#logoGradient2)"
                   className="drop-shadow-md"
                 />
-                
+
                 {/* Center Accent Line */}
-                <path 
-                  d="M50 30 L50 65" 
-                  stroke="#FFFFFF" 
-                  strokeWidth="3" 
+                <path
+                  d="M50 30 L50 65"
+                  stroke="#FFFFFF"
+                  strokeWidth="3"
                   strokeLinecap="round"
                   className="drop-shadow-sm"
                 />
-                
+
                 {/* Horizontal Accent */}
-                <path 
-                  d="M40 47 L60 47" 
-                  stroke="#FFFFFF" 
-                  strokeWidth="2.5" 
+                <path
+                  d="M40 47 L60 47"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   opacity="0.8"
                 />
-                
+
                 {/* Gradients */}
                 <defs>
                   <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -234,29 +234,46 @@ export default function MarketplacePage() {
         </button>
 
         {/* Bottom Links */}
+        {/* Bottom Links */}
         <div className="flex flex-col gap-6 mt-auto">
-          <a
-            href="https://onlinemga.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            <span className="text-[9px] font-medium">OMGA</span>
-          </a>
 
+          {/* OMGA → Dashboard */}
           <Link
             href="/agency/dashboard"
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            <span className="text-[9px] font-medium">OMGA</span>
+          </Link>
+
+          {/* Broker Center */}
+          <a
+            href="/agency/broker-center"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
+          >
+
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
             </svg>
             <span className="text-[9px] font-medium">Broker Center</span>
-          </Link>
+          </a>
+
         </div>
+
       </aside>
 
       {/* Main Content */}
@@ -292,22 +309,20 @@ export default function MarketplacePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 {industries.map((industry) => {
                   const isExpanded = expandedIndustry === industry.id;
-                  
+
                   return (
                     <div
                       key={industry.id}
-                      className={`relative transition-all duration-300 ${
-                        isExpanded ? 'col-span-1' : ''
-                      }`}
+                      className={`relative transition-all duration-300 ${isExpanded ? 'col-span-1' : ''
+                        }`}
                     >
                       {/* Industry Card Header */}
                       <div
                         onClick={() => handleIndustryClick(industry.id)}
-                        className={`cursor-pointer bg-white border-2 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${
-                          isExpanded
-                            ? 'border-[#00BCD4] shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`cursor-pointer bg-white border-2 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
+                          ? 'border-[#00BCD4] shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         {/* Featured Banner */}
                         {industry.featured && !isExpanded && (
@@ -380,11 +395,10 @@ export default function MarketplacePage() {
                                     {program.name}
                                   </span>
                                   {program.badge && (
-                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                      program.badgeColor === 'teal'
-                                        ? 'bg-[#00BCD4] text-white'
-                                        : 'bg-blue-100 text-blue-700'
-                                    }`}>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${program.badgeColor === 'teal'
+                                      ? 'bg-[#00BCD4] text-white'
+                                      : 'bg-blue-100 text-blue-700'
+                                      }`}>
                                       {program.badge}
                                     </span>
                                   )}
@@ -406,11 +420,10 @@ export default function MarketplacePage() {
             <button
               onClick={handleContinue}
               disabled={!selectedProgram}
-              className={`px-8 py-3 rounded-lg text-base font-semibold transition-all ${
-                selectedProgram
-                  ? 'bg-[#00BCD4] text-white hover:bg-[#00ACC1]'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
+              className={`px-8 py-3 rounded-lg text-base font-semibold transition-all ${selectedProgram
+                ? 'bg-[#00BCD4] text-white hover:bg-[#00ACC1]'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
             >
               Continue
             </button>
