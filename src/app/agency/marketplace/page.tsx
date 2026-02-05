@@ -1,5 +1,5 @@
 "use client";
-
+import MarketplaceSidebar from "@/components/layout/MarketolaceSidebar";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -144,144 +144,14 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-white flex">
       {/* Sidebar - Matching Dashboard */}
-      <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
-        {/* Sterling Premium Logo */}
-        <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
-          {/* Logo Icon */}
-          <div className="relative mb-3">
-            {/* Outer Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
-
-            {/* Logo Container */}
-            <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#00BCD4]/20 group-hover:border-[#00BCD4]/40 transition-all overflow-hidden">
-              {/* Animated Background Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent"></div>
-              </div>
-
-              {/* Premium Logo Design - Abstract Geometric */}
-              <svg className="relative w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Outer Shield Shape */}
-                <path
-                  d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z"
-                  fill="url(#logoGradient1)"
-                  className="drop-shadow-lg"
-                />
-
-                {/* Inner Diamond */}
-                <path
-                  d="M50 25 L65 40 L50 70 L35 40 Z"
-                  fill="url(#logoGradient2)"
-                  className="drop-shadow-md"
-                />
-
-                {/* Center Accent Line */}
-                <path
-                  d="M50 30 L50 65"
-                  stroke="#FFFFFF"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  className="drop-shadow-sm"
-                />
-
-                {/* Horizontal Accent */}
-                <path
-                  d="M40 47 L60 47"
-                  stroke="#FFFFFF"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  opacity="0.8"
-                />
-
-                {/* Gradients */}
-                <defs>
-                  <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00BCD4" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#0097A7" stopOpacity="0.95" />
-                  </linearGradient>
-                  <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.1" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              {/* Corner Accents */}
-              <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-              <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-            </div>
-          </div>
-
-          {/* Company Name */}
-          <div className="text-center px-2">
-            <p className="text-[9px] font-semibold text-gray-400 leading-tight tracking-wide uppercase group-hover:text-gray-300 transition-colors" style={{ letterSpacing: '0.05em' }}>
-              Sterling
-            </p>
-            <p className="text-[8px] font-medium text-gray-500 leading-tight group-hover:text-gray-400 transition-colors">
-              Wholesale Insurance
-            </p>
-          </div>
-        </Link>
-
-        {/* Toggle Arrow */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="mb-auto p-2 text-[#00BCD4] hover:bg-[#00BCD4]/10 rounded-lg transition-all"
-        >
-          <svg className={`w-6 h-6 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Bottom Links */}
-        {/* Bottom Links */}
-        <div className="flex flex-col gap-6 mt-auto">
-
-          {/* OMGA → Dashboard */}
-          <Link
-            href="/agency/dashboard"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              />
-            </svg>
-            <span className="text-[9px] font-medium">OMGA</span>
-          </Link>
-
-          {/* Broker Center */}
-          <a
-            href="/agency/broker-center"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-          >
-
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-            <span className="text-[9px] font-medium">Broker Center</span>
-          </a>
-
-        </div>
-
-      </aside>
+      <MarketplaceSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-[70px] overflow-auto">
+      <main className="flex-1 overflow-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 p-3">
               <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -306,7 +176,8 @@ export default function MarketplacePage() {
           {/* Industry Cards Grid */}
           <div className="flex-1">
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {industries.map((industry) => {
                   const isExpanded = expandedIndustry === industry.id;
 
@@ -378,7 +249,7 @@ export default function MarketplacePage() {
                           {industry.programs.map((program) => (
                             <label
                               key={program.id}
-                              className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-[#00BCD4] hover:bg-gray-50 transition-all group"
+                              className="flex items-start gap-3 p-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-[#00BCD4] hover:bg-gray-50 transition-all group"
                             >
                               {/* Checkbox (acts as radio) */}
                               <input
@@ -416,13 +287,15 @@ export default function MarketplacePage() {
           </div>
 
           {/* Continue Button */}
-          <div className="flex justify-end mt-6">
+          <div className="fixed bottom-6 right-6 z-50">
             <button
               onClick={handleContinue}
               disabled={!selectedProgram}
-              className={`px-8 py-3 rounded-lg text-base font-semibold transition-all ${selectedProgram
-                ? 'bg-[#00BCD4] text-white hover:bg-[#00ACC1]'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              className={`px-8 py-3 rounded-lg text-base font-semibold shadow-lg transition-all
+                ${
+                  selectedProgram
+                    ? "bg-[#9A8B7A] text-[#111827] hover:bg-[#7A6F64]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
             >
               Continue

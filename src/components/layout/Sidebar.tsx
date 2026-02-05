@@ -62,17 +62,28 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`bg-[#2F3133] text-white h-screen flex flex-col transition-all duration-300
+      className={`bg-[#2E2E2E] text-[#CFC6BD] h-screen flex flex-col transition-all duration-300
       ${collapsed ? "w-14" : "w-64"}`}
     >
+
       {/* LOGO */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-cyan-400 rounded flex items-center justify-center">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-[#4A4A4A]">
+        <Link href="/agency/dashboard" className="flex items-center gap-2">
+
+          {/* COLLAPSED — SHOW S */}
+          {collapsed && (
+            <div className="w-10 h-10 bg-[#9A8B7A] rounded flex items-center justify-center shadow">
               <span className="text-black font-extrabold text-lg">S</span>
             </div>
-            {!collapsed && (
+          )}
+          {/* EXPANDED — SHOW FULL LOGO */}
+          {!collapsed && (
+            <div className="flex items-center gap-3">
+                <img
+                  src="/sterling-logo.JPG"
+                  alt="Sterling Insurance Services"
+                  className="h-8 w-auto object-contain bg-[#3A3632] p-1 rounded"
+                />
               <div>
                 <div className="text-white font-bold text-lg leading-none">
                   Sterling
@@ -81,9 +92,9 @@ export default function Sidebar() {
                   Wholesale Insurance
                 </div>
               </div>
-            )}
-        </div>
-      </div>
+            </div>
+          )}
+        </Link>
 
         {/* COLLAPSE BUTTON */}
         <button
@@ -120,11 +131,10 @@ export default function Sidebar() {
                     : null
                 }
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all
-                ${
-                  isOpen
-                    ? "bg-cyan-400 text-black"
-                    : "hover:bg-white/10 text-gray-300"
-                }`}
+                ${isOpen
+                    ? "bg-[#8F8376] text-black"
+                    : "hover:bg-[#3A3A3A] text-[#CFC6BD]"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <Icon size={18} />
@@ -132,7 +142,7 @@ export default function Sidebar() {
                     <span className="text-sm font-medium">{item.label}</span>
                   )}
                   {!collapsed && item.badge && (
-                    <span className="ml-1 bg-cyan-300 text-black text-[10px] px-2 rounded-full">
+                    <span className="ml-1 bg-[#8F8376] text-black text-[10px] px-2 rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -141,9 +151,8 @@ export default function Sidebar() {
                 {!collapsed && item.children && (
                   <ChevronDown
                     size={16}
-                    className={`transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                    className={`transition-transform ${isOpen ? "rotate-180" : ""
+                      }`}
                   />
                 )}
               </button>
@@ -163,7 +172,7 @@ export default function Sidebar() {
                       >
                         <span>{child.label}</span>
                         {"badge" in child && child.badge && (
-                          <span className="bg-cyan-300 text-black text-[10px] px-2 rounded-full">
+                          <span className="bg-[#9A8B7A] text-black text-[10px] px-2 rounded-full">
                             {child.badge}
                           </span>
                         )}
@@ -182,7 +191,7 @@ export default function Sidebar() {
         <div className="p-3">
           <Link
             href="/agency/marketplace"
-            className="block text-center bg-cyan-400 text-black py-2 rounded font-semibold hover:bg-cyan-300 transition"
+            className="block text-center bg-[#9A8B7A] text-black hover:bg-[#7A6F64] py-2 rounded font-semibold hover:bg-cyan-300 transition"
           >
             Sterling Marketplace
           </Link>
