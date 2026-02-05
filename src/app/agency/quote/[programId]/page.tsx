@@ -20,6 +20,7 @@ const YesNoRadio = ({
   label: string;
   value: boolean | null | undefined;
   onChange: (val: boolean | null) => void;
+  disabled?: boolean;
   required?: boolean;
   onInteraction?: () => void;
 }) => (
@@ -56,26 +57,6 @@ const YesNoRadio = ({
   </div>
 );
 
-// option for showing template quote add-ons
-const options = [
-  {
-    icon: <DollarSign size={18} />,
-    text: "$ Limit Options - $100k for as low as $442",
-  },
-  {
-    icon: <Umbrella size={18} />,
-    text: "Add Excess Coverage for as low as $530.45",
-  },
-  {
-    icon: <Hammer size={18} />,
-    text: "Add $10k in Tools Coverage for as low as $400",
-  },
-  {
-    icon: <Home size={18} />,
-    text: "Add Builders Risk Coverage for as low as $515",
-  },
-];
-
 export default function QuoteFormPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -104,7 +85,6 @@ export default function QuoteFormPage() {
     }
   );
 
-  const [showAIRequiredAlert, setShowAIRequiredAlert] = useState(false);
   const [formData, setFormData] = useState<any>({
     // Indication Information
     companyName: "",
@@ -133,37 +113,26 @@ export default function QuoteFormPage() {
     medicalExpenseLimit: "$5,000",
     selfInsuredRetention: "$2,500",
     lossesLast5Years: "0",
-    effectiveDate: "",
+    generalLiabilityLosses: [],
+    effectiveDate: new Date().toISOString().split("T")[0],
     selectedStates: [],
     willPerformStructuralWork: false,
 
     // Endorsements
-    blanketAI_PW_WOS: null,
-    blanketPerProjectAggregate: null,
-    blanketCompletedOperationsCommercial: null,
-    blanketYourWorkCommercial: null,
-    multiUnitResidentialNew: null,
-    multiUnitResidentialRemodel: null,
-    openStructureWaterDamage: null,
-    openStructureWaterDamageLimit: "", // "50K" | "100K" | "250K"
-    actsOfTerrorism: null,
-    schoolOrRecreationalFacility: null,
-    heatingDevices: null,
-    hospitalMedicalCareFacilities: null,
-    buildingsExceedingThreeStories: null,
-    snowPlowSnowRemoval: null,
-    residentialProjectSizeRestrictionExclusion: null,
-    commercialMixedUseSizeRestrictionExclusion: null,
-    museumsAndHistoricBuildings: null,
-    houseOfWorship: null,
-    overspray: null,
+    blanketAdditionalInsured: false,
+    blanketWaiverOfSubrogation: false,
+    blanketPrimaryWording: false,
+    blanketPerProjectAggregate: false,
+    blanketCompletedOperations: false,
+    noticeOfCancellationThirdParties: false,
+
 
 
 
     // Payment Options
     brokerFee: "0",
     displayBrokerFee: false,
-    paymentOption: "Full Pay",
+    paymentOption: "",
 
     // Company Information
     contractorsLicense: false,
@@ -232,6 +201,8 @@ export default function QuoteFormPage() {
     condoRepairExplanation: "",
     condoRepairUnits25OrMore: false,
     performOCIPWork: false,
+    ocipWrapUpReceipts: "",
+    nonOcipReceipts: "",
     performHazardousWork: false,
     hazardousWorkExplanation: "",
     performMedicalFacilities: false,
@@ -273,7 +244,7 @@ export default function QuoteFormPage() {
 
 
     // Subcontractors
-    useSubcontractors: true,
+    useSubcontractors: false,
 
     collectSubCertificates: false,
     collectSubCertificatesExplanation: "",
@@ -294,6 +265,11 @@ export default function QuoteFormPage() {
     // Excess Liability
     addExcessLiability: false,
     excessLiabilityLimit: "", // 1M-5M dropdown
+    employersLiabilityWC: false,
+    employersLiabilityWCLimit: "",
+    combinedUnderlyingLosses: "0",
+    auto: false,
+
 
 
     // Inland Marine Equipment 
@@ -317,6 +293,7 @@ export default function QuoteFormPage() {
     }));
   }, []);
 
+  const [showAdditionalLimits, setShowAdditionalLimits] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [calculatedPremium, setCalculatedPremium] = useState<number | null>(null);
@@ -333,19 +310,99 @@ export default function QuoteFormPage() {
     setTimeout(() => setIsProcessing(false), 2000);
   };
 
-  // endrosements that require limit selection
-  const endorsementsWithLimits = [
-    "multiUnitResidentialRemodel",
-    "openStructureWaterDamage",
-    "schoolOrRecreationalFacility",
-    "heatingDevices",
-    "hospitalMedicalCareFacilities",
-    "buildingsExceedingThreeStories",
-    "residentialProjectSizeRestrictionExclusion",
-    "commercialMixedUseSizeRestrictionExclusion",
-    "houseOfWorship",
-    "overspray",
-  ];
+
+  const EndorsementCheckbox = ({
+    label,
+    value,
+    onChange,
+  }: {
+    label: string;
+    value: boolean;
+    onChange: (val: boolean) => void;
+  }) => {
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded border text-sm text-left transition
+        ${value
+            ? "bg-[#E6FAFD] border-[#00BCD4]"
+            : "bg-white border-gray-300 hover:bg-gray-50"
+          }`}
+      >
+        <span
+          className={`w-4 h-4 flex items-center justify-center rounded border ${value
+            ? "bg-[#00BCD4] border-[#00BCD4] text-white"
+            : "border-gray-400 bg-white"
+            }`}
+        >
+          {value && "✓"}
+        </span>
+
+        <span className="text-gray-900">{label}</span>
+      </button>
+    );
+  };
+
+
+  // Parse currency fields for validation
+  const totalGross = parseCurrency(formData.estimatedGrossReceipts || "0");
+  const subcontractingCost = parseCurrency(
+    formData.estimatedSubcontractingCosts || "0"
+  );
+  const materialCost = parseCurrency(
+    formData.estimatedMaterialCosts || "0"
+  );
+
+  // Individual rules
+  const subcontractingError =
+    subcontractingCost > 0 && subcontractingCost > totalGross;
+
+  const materialCostError =
+    materialCost > 0 && materialCost > totalGross;
+
+  // Combined rule
+  const combinedCostError =
+    subcontractingCost + materialCost >= totalGross &&
+    totalGross > 0;
+
+
+
+  const handleUseSubcontractorsChange = (val: boolean) => {
+    if (val === true) {
+      // User DOES use subcontractors → auto YES everything
+      setFormData((prev: any) => ({
+        ...prev,
+        useSubcontractors: true,
+
+        collectSubCertificates: true,
+        requireSubInsuranceEqual: true,
+        requireAdditionalInsured: true,
+        haveWrittenSubContracts: true,
+        requireWorkersComp: true,
+
+        // optional: clear explanations
+        collectSubCertificatesExplanation: "",
+        requireSubInsuranceEqualExplanation: "",
+        requireAdditionalInsuredExplanation: "",
+        haveWrittenSubContractsExplanation: "",
+        requireWorkersCompExplanation: "",
+      }));
+    } else {
+      // User does NOT use subcontractors → auto NO everything
+      setFormData((prev: any) => ({
+        ...prev,
+        useSubcontractors: false,
+
+        collectSubCertificates: false,
+        requireSubInsuranceEqual: false,
+        requireAdditionalInsured: false,
+        haveWrittenSubContracts: false,
+        requireWorkersComp: false,
+      }));
+    }
+  };
+
 
 
 
@@ -840,9 +897,9 @@ export default function QuoteFormPage() {
             </div>
 
             {/* Program Name - Absolute positioned at bottom right like ISC */}
-            <div className="absolute bottom-0 right-0">
+            {/* <div className="absolute bottom-0 right-0">
               <h1 className="text-xl font-bold text-gray-800">Advantage</h1>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -874,7 +931,7 @@ export default function QuoteFormPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900">Zip</label>
                   <div></div>
                   <div className="flex justify-end">
@@ -885,7 +942,7 @@ export default function QuoteFormPage() {
                       maxLength={5}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm]"
                     />
-                    {/* <select
+                    <select
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
                       className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm flex-1"
@@ -893,9 +950,9 @@ export default function QuoteFormPage() {
                       {statesList.map(state => (
                         <option key={state} value={state}>{state}</option>
                       ))}
-                    </select> */}
+                    </select>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Estimated Total Gross Receipts</label>
@@ -918,24 +975,46 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Estimated Subcontracting Costs</label>
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  <label className="text-sm font-medium text-gray-900">
+                    Estimated Subcontracting Costs
+                  </label>
                   <div></div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                    <input
-                      type="text"
-                      value={formData.estimatedSubcontractingCosts ? formatCurrencyInput(formData.estimatedSubcontractingCosts) : ''}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        handleInputChange('estimatedSubcontractingCosts', formatted);
-                      }}
-                      onBlur={(e) => {
-                        const parsed = parseCurrency(e.target.value);
-                        handleInputChange('estimatedSubcontractingCosts', parsed > 0 ? parsed.toString() : '');
-                      }}
-                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    />
+                  <div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.estimatedSubcontractingCosts
+                            ? formatCurrencyInput(formData.estimatedSubcontractingCosts)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("estimatedSubcontractingCosts", formatted);
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "estimatedSubcontractingCosts",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError || combinedCostError
+                          ? "border-red-500 focus:ring-red-400"
+                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                          }`}
+                      />
+                    </div>
+
+                    {(subcontractingError || combinedCostError) && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {subcontractingError
+                          ? "Subcontracting costs cannot exceed total gross receipts."
+                          : "Subcontracting + material costs must be less than total gross receipts."}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -956,43 +1035,54 @@ export default function QuoteFormPage() {
                 </div> */}
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2"># of Field Employees</label>
+                  <label className="text-sm font-medium text-gray-900 pt-2">
+                    # of Field Employees
+                  </label>
                   <div></div>
                   <div>
                     <select
                       value={formData.fieldEmployees}
-                      onChange={(e) => handleInputChange('fieldEmployees', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("fieldEmployees", e.target.value)
+                      }
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
                     >
                       {Array.from({ length: 21 }, (_, i) => (
-                        <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
+                        <option key={i} value={i}>
+                          {i >= 19 ? "19+" : i}
+                        </option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Including leased workers, temporary workers, volunteer workers, and any individuals for which a 1099 is provided.
-                    </p>
                   </div>
                 </div>
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Total Payroll Amount</label>
-                  <div></div>
-                  <select
-                    value={formData.totalPayroll}
-                    onChange={(e) => handleInputChange('totalPayroll', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] bg-white text-sm"
-                  >
-                    <option value="">Select Payroll Range</option>
-                    <option value="Under 15k">Under 15k</option>
-                    <option value="15k-30k">15k-30k</option>
-                    <option value="30k-50k">30k-50k</option>
-                    <option value="50k-70k">50k-70k</option>
-                    <option value="70k-90k">70k-90k</option>
-                    <option value="90k-110k">90k-110k</option>
-                    <option value="110k-150k">110k-150k</option>
-                    <option value="Over 150k">Over 150k</option>
-                  </select>
-                </div> */}
+
+                {Number(formData.fieldEmployees) > 0 && (
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Estimated Total Payroll
+                    </label>
+                    <div></div>
+                    <select
+                      value={formData.totalPayroll}
+                      onChange={(e) =>
+                        handleInputChange("totalPayroll", e.target.value)
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] bg-white text-sm"
+                    >
+                      <option value="">Select Payroll Range</option>
+                      <option value="Under 15k">Under 15k</option>
+                      <option value="15k-30k">15k-30k</option>
+                      <option value="30k-50k">30k-50k</option>
+                      <option value="50k-70k">50k-70k</option>
+                      <option value="70k-90k">70k-90k</option>
+                      <option value="90k-110k">90k-110k</option>
+                      <option value="110k-150k">110k-150k</option>
+                      <option value="Over 150k">Over 150k</option>
+                    </select>
+                  </div>
+                )}
+
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Years in Business</label>
@@ -1017,12 +1107,12 @@ export default function QuoteFormPage() {
                   />
                 </div> */}
 
-                <YesNoRadio
+                {/* <YesNoRadio
                   label="Is this a premise only policy?"
                   value={formData.isPremiseOnlyPolicy}
                   onChange={(val) => handleInputChange('isPremiseOnlyPolicy', val)}
                   onInteraction={triggerAnimation}
-                />
+                /> */}
 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-900 mb-2">Class Code</label>
@@ -1090,19 +1180,85 @@ export default function QuoteFormPage() {
 
 
 
+                {/* Limits header row */}
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Limits</label>
+                  <label className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    Limits
+                    <button
+                      type="button"
+                      onClick={() => setShowAdditionalLimits((prev) => !prev)}
+                      className="text-[#00BCD4] font-bold text-lg leading-none"
+                    >
+                      {showAdditionalLimits ? "−" : "+"}
+                    </button>
+                  </label>
+
                   <div></div>
-                  <select
-                    value={formData.coverageLimits}
-                    onChange={(e) => handleInputChange('coverageLimits', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>1M / 1M / 1M</option>
-                    <option>1M / 2M / 1M</option>
-                    <option>1M / 2M / 2M</option>
-                  </select>
+
+                  <div>
+                    <select
+                      value={formData.coverageLimits}
+                      onChange={(e) =>
+                        handleInputChange("coverageLimits", e.target.value)
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    >
+                      <option value="1M / 1M / 1M">1M / 1M / 1M</option>
+                      <option value="1M / 2M / 1M">1M / 2M / 1M</option>
+                      <option value="1M / 2M / 2M">1M / 2M / 2M</option>
+                      <option value="100k / 100k / 100k">100k / 100k / 100k</option>
+                      <option value="250k / 250k / 250k">250k / 250k / 250k</option>
+                      <option value="500k / 500k / 500k">500k / 500k / 500k</option>
+                    </select>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      * Higher limits can be obtained by adding an Excess policy
+                    </p>
+                  </div>
                 </div>
+
+                {/* Expanded section */}
+                {showAdditionalLimits && (
+                  <div className="mt-6 space-y-5">
+
+                    {/* Fire Legal Limit */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Fire Legal Limit
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.fireLegalLimit}
+                        onChange={(e) =>
+                          handleInputChange("fireLegalLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      >
+                        <option value="$50,000">$50,000</option>
+                        <option value="$100,000">$100,000</option>
+                      </select>
+                    </div>
+
+                    {/* Med Pay Limit */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Med Pay Limit
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.medicalExpenseLimit}
+                        onChange={(e) =>
+                          handleInputChange("medicalExpenseLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      >
+                        <option value="$5,000">$5,000</option>
+                        <option value="$10,000">$10,000</option>
+                      </select>
+                    </div>
+
+                  </div>
+                )}
 
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
@@ -1122,42 +1278,95 @@ export default function QuoteFormPage() {
 
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900"># Losses in last 5 years</label>
+                  <label className="text-sm font-medium text-gray-900">
+                    # Losses in last 5 years
+                  </label>
                   <div></div>
                   <select
                     value={formData.lossesLast5Years}
-                    onChange={(e) => handleInputChange('lossesLast5Years', e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // If user selects 0 → clear losses
+                      if (value === "0") {
+                        handleInputChange("lossesLast5Years", "0");
+                        handleInputChange("generalLiabilityLosses", []);
+                        return;
+                      }
+
+                      // If user selects non-zero and no loss exists → add one by default
+                      if (
+                        value !== "0" &&
+                        formData.generalLiabilityLosses.length === 0
+                      ) {
+                        handleInputChange("lossesLast5Years", value);
+                        handleInputChange("generalLiabilityLosses", [
+                          { dateOfLoss: "", amountOfLoss: "" },
+                        ]);
+                        return;
+                      }
+
+                      handleInputChange("lossesLast5Years", value);
+                    }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                   >
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4+</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4+">4+</option>
                   </select>
+
                 </div>
 
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Estimated Material Costs</label>
+
+
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  <label className="text-sm font-medium text-gray-900">
+                    Estimated Material Costs
+                  </label>
                   <div></div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                    <input
-                      type="text"
-                      value={formData.estimatedMaterialCosts ? formatCurrencyInput(formData.estimatedMaterialCosts) : ''}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        handleInputChange('estimatedMaterialCosts', formatted);
-                      }}
-                      onBlur={(e) => {
-                        const parsed = parseCurrency(e.target.value);
-                        handleInputChange('estimatedMaterialCosts', parsed > 0 ? parsed.toString() : '');
-                      }}
-                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    />
+                  <div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.estimatedMaterialCosts
+                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("estimatedMaterialCosts", formatted);
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "estimatedMaterialCosts",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
+                            ? "border-red-500 focus:ring-red-400"
+                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                          }`}
+                      />
+                    </div>
+
+                    {(materialCostError || combinedCostError) && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {materialCostError
+                          ? "Material costs cannot exceed total gross receipts."
+                          : "Subcontracting + material costs must be less than total gross receipts."}
+                      </p>
+                    )}
                   </div>
                 </div>
+
+
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
@@ -1171,376 +1380,89 @@ export default function QuoteFormPage() {
                 </div>
 
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
+                {/* state */}
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  <label className="text-sm font-medium text-gray-900 pt-2">
                     States in which you do business for which you are currently applying for insurance:
                   </label>
+
                   <div></div>
-                  <select
-                    value={formData.selectedStates?.[0] || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "selectedStates",
-                        e.target.value ? [e.target.value] : []
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm bg-white"
-                  >
-                    <option value="">Select state</option>
-                    {statesList.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </select>
+
+                  <div className="w-full border border-gray-300 rounded px-2 py-2 focus-within:ring-1 focus-within:ring-[#00BCD4]">
+
+                    {/* Selected state chips */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {formData.selectedStates.map((state: string) => (
+                        <span
+                          key={state}
+                          className="flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded"
+                        >
+                          {state}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // prevent removing last state
+                              if (formData.selectedStates.length === 1) return;
+
+                              handleInputChange(
+                                "selectedStates",
+                                formData.selectedStates.filter((s: string) => s !== state)
+                              );
+                            }}
+                            className="text-gray-600 hover:text-red-500 font-bold"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* State dropdown */}
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (!value) return;
+
+                        if (!formData.selectedStates.includes(value)) {
+                          handleInputChange("selectedStates", [
+                            ...formData.selectedStates,
+                            value,
+                          ]);
+                        }
+                      }}
+                      className="w-full border-none outline-none text-sm bg-white"
+                    >
+                      <option value="">Select state</option>
+
+                      {statesList
+                        .filter(
+                          (state) => !formData.selectedStates.includes(state)
+                        )
+                        .map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 </div>
 
 
-                <YesNoRadio
+
+                {/* <YesNoRadio
                   label="Will you perform structural work?"
                   value={formData.willPerformStructuralWork}
                   onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
                   onInteraction={triggerAnimation}
-                />
-
-
-                <div className="space-y-2 ">
-                  {options.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 bg-[#EAFBFC] px-4 py-2.5 rounded text-sm text-gray-900"
-                    >
-                      <span className="text-gray-700">{item.icon}</span>
-                      <span className="font-medium">{item.text}</span>
-                    </div>
-                  ))}
-
-                  {/* Pollution Risk (NEW) */}
-                  <div className="flex items-center gap-3 bg-[#EAFBFC] px-4 py-2.5 rounded text-sm text-gray-900">
-                    <span className="relative">
-
-                      <span className="absolute -top-4 -left-2 bg-teal-400 text-white text-[10px] px-1 rounded">
-                        NEW
-                      </span>
-                      <AlertTriangle size={18} className="text-gray-700 ml-1" />
-                    </span>
-                    <span className="font-medium">
-                      Your client is exposed to unexpected Pollution Risks. Pollution
-                      coverage starting at $25.
-                    </span>
-                  </div>
-                </div>
+                /> */}
 
               </div>
             </div>
           </div>
 
-          {/* Class Code Section */}
-          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Class Code</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-900 mb-2">Class Code</label>
-                <select
-                  value=""
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
-                  onChange={(e) => {
-                    const selectedCode = e.target.value;
-                    if (selectedCode) {
-                      // Only allow ONE class code at a time - set to 100%
-                      handleClassCodeChange(selectedCode, "100");
-                    } else {
-                      // "Select Class Code" option chosen - clear everything
-                      console.log("[Select Change] Clearing class code and description");
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        classCodeWork: {},
-                        carrierApprovedDescription: ""
-                      }));
-                    }
-                  }}
-                >
-                  <option value="">Select Class Code</option>
-                  {classCodeOptions.map((code) => (
-                    <option key={code} value={code}>{code}</option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="text-right mb-4">
-                <span className="text-sm font-semibold text-gray-700">Total: {calculateTotalClassCodePercent()}%</span>
-              </div>
-
-              // Display selected class codes  
-               {Object.keys(formData.classCodeWork).length > 0 && (
-                <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                  {Object.entries(formData.classCodeWork).map(([code, percentage]) => (
-                    <div key={code} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                      <span className="text-sm text-gray-700">{code}</span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value="100"
-                          readOnly
-                          className="w-20 px-2 py-1 border border-gray-300 rounded bg-gray-50 text-sm text-center text-gray-600"
-                          min="100"
-                          max="100"
-                        />
-                        <span className="text-sm text-gray-500">%</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            // Clear class code and reset description to empty
-                            handleInputChange('classCodeWork', {});
-                            handleInputChange('carrierApprovedDescription', "");
-                          }}
-                          className="text-red-500 hover:text-red-700 text-sm font-semibold"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="space-y-6 mt-6">
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of work performed on New Construction Projects
-                  </label>
-                  <div></div>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.newConstructionPercent}
-                      onChange={(e) => {
-                        const newVal = e.target.value;
-                        const numVal = parseFloat(newVal) || 0;
-                        if (numVal <= 100) {
-                          handleInputChange('newConstructionPercent', newVal);
-                          handleInputChange('remodelPercent', (100 - numVal).toString());
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      min="0"
-                      max="100"
-                    />
-                    <span className="absolute right-3 top-2.5 text-gray-500">%</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Remodel/Service/Repair work performed
-                  </label>
-                  <div></div>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.remodelPercent}
-                      onChange={(e) => {
-                        const newVal = e.target.value;
-                        const numVal = parseFloat(newVal) || 0;
-                        if (numVal <= 100) {
-                          handleInputChange('remodelPercent', newVal);
-                          handleInputChange('newConstructionPercent', (100 - numVal).toString());
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      min="0"
-                      max="100"
-                    />
-                    <span className="absolute right-3 top-2.5 text-gray-500">%</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Residential work performed
-                  </label>
-                  <div></div>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.residentialPercent}
-                      onChange={(e) => {
-                        const newVal = e.target.value;
-                        const numVal = parseFloat(newVal) || 0;
-                        if (numVal <= 100) {
-                          handleInputChange('residentialPercent', newVal);
-                          handleInputChange('commercialPercent', (100 - numVal).toString());
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      min="0"
-                      max="100"
-                    />
-                    <span className="absolute right-3 top-2.5 text-gray-500">%</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Commercial work performed
-                  </label>
-                  <div></div>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.commercialPercent}
-                      onChange={(e) => {
-                        const newVal = e.target.value;
-                        const numVal = parseFloat(newVal) || 0;
-                        if (numVal <= 100) {
-                          handleInputChange('commercialPercent', newVal);
-                          handleInputChange('residentialPercent', (100 - numVal).toString());
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      min="0"
-                      max="100"
-                    />
-                    <span className="absolute right-3 top-2.5 text-gray-500">%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>  */}
-
-          {/* Limits Section */}
-          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Limits</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
-
-              <div className="space-y-6 mt-1">
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Coverage Limits</label>
-                  <div></div>
-                  <select
-                    value={formData.coverageLimits}
-                    onChange={(e) => handleInputChange('coverageLimits', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>1M / 1M / 1M</option>
-                    <option>1M / 2M / 1M</option>
-                    <option>1M / 2M / 2M</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Fire Legal Limit</label>
-                  <div></div>
-                  <select
-                    value={formData.fireLegalLimit}
-                    onChange={(e) => handleInputChange('fireLegalLimit', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>$100,000</option>
-                    <option>$300,000</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Medical Expense Limit</label>
-                  <div></div>
-                  <select
-                    value={formData.medicalExpenseLimit}
-                    onChange={(e) => handleInputChange('medicalExpenseLimit', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>$5,000</option>
-                    <option>$10,000</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">selfInsuredRetention</label>
-                  <div></div>
-                  <select
-                    value={formData.selfInsuredRetention}
-                    onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>$10,000</option>
-                    <option>$5,000</option>
-                    <option>$2,500</option>
-                    <option>$1,000</option>
-                  </select>
-                </div>
-
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Estimated Material Costs</label>
-                  <div></div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                    <input
-                      type="text"
-                      value={formData.estimatedMaterialCosts ? formatCurrencyInput(formData.estimatedMaterialCosts) : ''}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        handleInputChange('estimatedMaterialCosts', formatted);
-                      }}
-                      onBlur={(e) => {
-                        const parsed = parseCurrency(e.target.value);
-                        handleInputChange('estimatedMaterialCosts', parsed > 0 ? parsed.toString() : '');
-                      }}
-                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
-                  <div></div>
-                  <input
-                    type="date"
-                    value={formData.effectiveDate}
-                    onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    States in which you do business for which you are currently applying for insurance:
-                  </label>
-                  <div></div>
-                  <select
-                    value={formData.selectedStates?.[0] || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "selectedStates",
-                        e.target.value ? [e.target.value] : []
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm bg-white"
-                  >
-                    <option value="">Select state</option>
-                    {statesList.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-
-                <YesNoRadio
-                  label="Will you perform structural work?"
-                  value={formData.willPerformStructuralWork}
-                  onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
-                  onInteraction={triggerAnimation}
-                />
-              </div>
-            </div>
-          </div> */}
 
           {/* Endorsements */}
 
@@ -1549,130 +1471,59 @@ export default function QuoteFormPage() {
               <h2 className="text-lg font-semibold">Endorsements</h2>
             </div>
 
-            <div className="px-8 pt-6 pb-7">
-              <div className="space-y-3">
 
-                {[
-                  { key: "blanketAI_PW_WOS", label: "Blanket AI + PW + WOS" },
-                  { key: "blanketPerProjectAggregate", label: "Blanket Per Project Aggregate" },
-                  { key: "blanketCompletedOperationsCommercial", label: "Blanket Completed Operations (Commercial Only)" },
-                  { key: "blanketYourWorkCommercial", label: "Blanket Your Work (Commercial Only)" },
-                  { key: "multiUnitResidentialNew", label: "Multi-Unit Residential Structures - New" },
-                  { key: "multiUnitResidentialRemodel", label: "Multi-Unit Residential Structures - Remodel" },
-                  { key: "openStructureWaterDamage", label: 'Open Structure "Water" Damage' },
-                  { key: "actsOfTerrorism", label: "Acts of Terrorism" },
-                  { key: "schoolOrRecreationalFacility", label: "School or Recreational Facility" },
-                  { key: "heatingDevices", label: "Heating Devices" },
-                  { key: "hospitalMedicalCareFacilities", label: "Hospital, Medical or Care Facilities" },
-                  { key: "buildingsExceedingThreeStories", label: "Buildings and Structures Exceeding Three Stories" },
-                  { key: "snowPlowSnowRemoval", label: "Snow Plow/Snow Removal Operations" },
-                  { key: "residentialProjectSizeRestrictionExclusion", label: "Residential Project/Structure Size Restriction Exclusion" },
-                  { key: "commercialMixedUseSizeRestrictionExclusion", label: "Commercial or Mixed Use Building/Project Size Restriction Exclusion" },
-                  { key: "museumsAndHistoricBuildings", label: "Museums and Historic Buildings and Structures" },
-                  { key: "houseOfWorship", label: "House of Worship" },
-                  { key: "overspray", label: "Overspray" },
-                ].map((endorsement) => {
-                  const checked = !!formData[endorsement.key];
-                  const hasLimits = endorsementsWithLimits.includes(endorsement.key);
+            <div className="space-y-3 px-8 pt-6 pb-7">
 
-                  return (
-                    <div
-                      key={endorsement.key}
-                      className={`border rounded px-4 py-3 transition${checked ? "bg-[#EAF7F9] border-[#7DD3D7]" : "border-gray-300 hover:bg-gray-50"}`}
-                    >
-                      <div className="flex items-center justify-between">
+              <EndorsementCheckbox
+                label="Blanket Additional Insured"
+                value={formData.blanketAdditionalInsured}
+                onChange={(val) =>
+                  handleInputChange("blanketAdditionalInsured", val)
+                }
+              />
 
-                        {/* Checkbox + label */}
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) => {
-                              const isChecked = e.target.checked;
+              <EndorsementCheckbox
+                label="Blanket Waiver of Subrogation"
+                value={formData.blanketWaiverOfSubrogation}
+                onChange={(val) =>
+                  handleInputChange("blanketWaiverOfSubrogation", val)
+                }
+              />
 
-                              // 🔴 DEPENDENCY RULE (THIS WAS BROKEN BEFORE)
-                              if (
-                                endorsement.key === "blanketCompletedOperationsCommercial" &&
-                                isChecked &&
-                                !formData.blanketAI_PW_WOS
-                              ) {
-                                handleInputChange("blanketAI_PW_WOS", true);
-                                setShowAIRequiredAlert(true);
-                              }
+              <EndorsementCheckbox
+                label="Blanket Primary Wording"
+                value={formData.blanketPrimaryWording}
+                onChange={(val) =>
+                  handleInputChange("blanketPrimaryWording", val)
+                }
+              />
 
-                              handleInputChange(endorsement.key, isChecked);
+              <EndorsementCheckbox
+                label="Blanket Per Project Aggregate"
+                value={formData.blanketPerProjectAggregate}
+                onChange={(val) =>
+                  handleInputChange("blanketPerProjectAggregate", val)
+                }
+              />
 
-                              // 🔵 LIMIT HANDLING
-                              if (hasLimits) {
-                                if (isChecked) {
-                                  handleInputChange(`${endorsement.key}Limit`, "$50K");
-                                } else {
-                                  handleInputChange(`${endorsement.key}Limit`, "");
-                                }
-                              }
-                            }}
-                            className="w-4 h-4 text-black border-2 border-black rounded-sm focus:ring-0"
-                          />
+              <EndorsementCheckbox
+                label="Blanket Completed Operations"
+                value={formData.blanketCompletedOperations}
+                onChange={(val) =>
+                  handleInputChange("blanketCompletedOperations", val)
+                }
+              />
 
-                          <span className="text-sm text-gray-900">
-                            {endorsement.label}
-                          </span>
-                        </label>
+              <EndorsementCheckbox
+                label="Notice of Cancellation to Third Parties"
+                value={formData.noticeOfCancellationThirdParties}
+                onChange={(val) =>
+                  handleInputChange("noticeOfCancellationThirdParties", val)
+                }
+              />
 
-                        {/* Limits */}
-                        {checked && hasLimits && (
-                          <div className="flex items-center gap-4 text-sm">
-                            {["$50K", "$100K", "$250K"].map((limit) => (
-                              <label key={limit} className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  checked={formData[`${endorsement.key}Limit`] === limit}
-                                  onChange={() =>
-                                    handleInputChange(`${endorsement.key}Limit`, limit)
-                                  }
-                                />
-                                <span>{limit}</span>
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-              </div>
             </div>
 
-            {/* 🔔 MODAL ALERT */}
-            {showAIRequiredAlert && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden">
-                  <div className="bg-[#3A3C3F] text-white px-6 py-3">
-                    <h3 className="text-sm font-semibold">
-                      Blanket AI + PW + WOS Required
-                    </h3>
-                  </div>
-
-                  <div className="px-6 py-5 text-sm text-gray-700">
-                    Endorsement <strong>[Blanket AI + PW + WOS]</strong> is required when
-                    you select endorsement{" "}
-                    <strong>[Blanket Your Work (Commercial Only)]</strong>.
-                    <br /><br />
-                    It has been automatically included for you.
-                  </div>
-
-                  <div className="flex justify-end px-6 py-4 border-t">
-                    <button
-                      onClick={() => setShowAIRequiredAlert(false)}
-                      className="px-5 py-2 bg-[#4FD1C5] text-white rounded font-semibold"
-                    >
-                      Ok
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
 
@@ -1747,12 +1598,13 @@ export default function QuoteFormPage() {
                       onChange={(e) => handleInputChange('paymentOption', e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     >
-                      <option value="">Select payment option</option>
+                      <option value="" selected disabled hidden>Select payment option</option>
                       <option value="Full Pay">Full Pay</option>
+                      <option value="3rd Party">3rd Party Finance</option>
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">
+                    {/* <p className="text-xs text-gray-500 mt-1">
                       Note: Financing options will not be available until the zip is filled out and a product is selected.
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               </div>
@@ -1880,7 +1732,7 @@ export default function QuoteFormPage() {
                 </div>
 
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">
                     Applicant SSN
                     <span
@@ -1890,9 +1742,9 @@ export default function QuoteFormPage() {
                       ⓘ
                     </span>
                   </label>
-                  <div></div>
+                  <div></div> */}
 
-                  <div>
+                {/* <div>
                     <input
                       type="text"
                       value={formData.applicantSSN}
@@ -1919,7 +1771,7 @@ export default function QuoteFormPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
 
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
@@ -2166,130 +2018,148 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     />
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Applicant Mailing Address */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Applicant Mailing Address</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
 
-              <label className="flex items-center gap-2 mb-4">
-                <input
-                  type="checkbox"
-                  checked={formData.mailingAddressSame}
-                  onChange={(e) => handleInputChange('mailingAddressSame', e.target.checked)}
-                  className="w-4 h-4 text-[#00BCD4] border-gray-300 rounded"
-                />
-                <span className="text-sm font-semibold text-gray-700">Same as physical location</span>
-              </label>
+                  <div className="grid grid-cols-[10px_1fr_320px] gap-x-6 items-center">
+                    {/* Left label */}
+                    <label className="text-sm font-medium text-gray-900">
+                      Zip
+                    </label>
 
-              {!formData.mailingAddressSame && (
-                <div className="space-y-7 mt-1">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Street Address</label>
-                    <input
-                      type="text"
-                      value={formData.mailingStreet}
-                      onChange={(e) => handleInputChange('mailingStreet', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
+                    {/* Right inputs */}
+                    <div className="flex items-center gap-3">
+                      {/* Zip input */}
                       <input
                         type="text"
-                        value={formData.mailingAptSuite}
-                        onChange={(e) => handleInputChange('mailingAptSuite', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">Zip</label>
-                      <input
-                        type="text"
-                        value={formData.mailingZip}
-                        onChange={(e) => handleInputChange('mailingZip', e.target.value)}
+                        value={formData.zip}
+                        onChange={(e) => handleInputChange("zip", e.target.value)}
                         maxLength={5}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-32 px-4 py-2.5 border border-gray-300 rounded 
+                 focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
                       />
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
-                      <input
-                        type="text"
-                        value={formData.mailingCity}
-                        onChange={(e) => handleInputChange('mailingCity', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      />
+                      {/* State label + dropdown */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          State
+                        </span>
+
+                        <select
+                          value={formData.state}
+                          onChange={(e) => handleInputChange("state", e.target.value)}
+                          className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm w-40">
+                          {statesList.map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">State</label>
-                    <select
-                      value={formData.mailingState}
-                      onChange={(e) => handleInputChange('mailingState', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    >
-                      {statesList.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Resume Questions */}
-          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Resume Questions</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-7 mt-1">
-                <YesNoRadio
-                  label="If applicable, do your employees and sub contractors have at least 3 years experience in the trades they're performing?"
-                  value={formData.employeesHave3YearsExp}
-                  onChange={(val) => handleInputChange('employeesHave3YearsExp', val)}
-                />
+          {/* General Liability Loss Information */}
+          <div>
+            {formData.generalLiabilityLosses.length > 0 && (
+              <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
 
-                <YesNoRadio
-                  label="Do you have experience in a construction-related supervisory/management role?"
-                  value={formData.hasConstructionSupervisionExp}
-                  onChange={(val) => handleInputChange('hasConstructionSupervisionExp', val)}
-                />
+                <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                  <h2 className="text-lg font-semibold">
+                    General Liability Loss Information
+                  </h2>
+                </div>
 
-                <YesNoRadio
-                  label="Do you have any education, training, or certifications pertaining to the construction industry?"
-                  value={formData.hasConstructionCertifications}
-                  onChange={(val) => handleInputChange('hasConstructionCertifications', val)}
-                />
+                <div className="px-8 pt-6 pb-7 space-y-6">
 
-                {formData.hasConstructionCertifications && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.certificationsExplanation}
-                      onChange={(e) => handleInputChange('certificationsExplanation', e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
+                  {/* Header */}
+                  <div className="grid grid-cols-[200px_1fr_200px_200px] gap-x-6 text-sm font-semibold text-gray-900">
+                    <div></div>
+                    <div></div>
+                    <div>Date of Loss</div>
+                    <div>Amount of Loss</div>
                   </div>
-                )}
+
+                  {/* Rows */}
+                  {formData.generalLiabilityLosses.map((loss, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-[100px_1fr_200px_200px] gap-x-6 items-center"
+                    >
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...formData.generalLiabilityLosses];
+                          updated.splice(index, 1);
+
+                          handleInputChange("generalLiabilityLosses", updated);
+
+                          // If no losses left, reset dropdown to 0
+                          if (updated.length === 0) {
+                            handleInputChange("lossesLast5Years", "0");
+                          }
+                        }}
+                        className="text-red-500 text-lg"
+                      >
+                        🗑
+                      </button>
+
+                      <div className="text-sm text-gray-900">
+                        General Liability Loss
+                      </div>
+
+                      <input
+                        type="date"
+                        value={loss.dateOfLoss}
+                        onChange={(e) => {
+                          const updated = [...formData.generalLiabilityLosses];
+                          updated[index].dateOfLoss = e.target.value;
+                          handleInputChange("generalLiabilityLosses", updated);
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded text-sm"
+                      />
+
+                      <input
+                        type="text"
+                        placeholder="$0"
+                        value={loss.amountOfLoss}
+                        onChange={(e) => {
+                          const updated = [...formData.generalLiabilityLosses];
+                          updated[index].amountOfLoss = e.target.value;
+                          handleInputChange("generalLiabilityLosses", updated);
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded text-sm"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Add Loss */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleInputChange("generalLiabilityLosses", [
+                        ...formData.generalLiabilityLosses,
+                        { dateOfLoss: "", amountOfLoss: "" },
+                      ])
+                    }
+                    className="text-[#00BCD4] text-sm font-semibold"
+                  >
+                    + Add Loss Information
+                  </button>
+
+                </div>
               </div>
-            </div>
-          </div> */}
+            )}
+
+
+          </div>
+
 
           {/* Type of Work Performed */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
@@ -2315,9 +2185,13 @@ export default function QuoteFormPage() {
                         value={formData.newConstructionPercent}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, "");
-                          if (Number(value) <= 100) {
-                            handleInputChange("newConstructionPercent", value);
-                          }
+                          const num = Math.min(Number(value), 100);
+
+                          handleInputChange("newConstructionPercent", num.toString());
+                          handleInputChange(
+                            "remodelServiceRepairPercent",
+                            (100 - num).toString()
+                          );
                         }}
                         className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                       />
@@ -2327,11 +2201,13 @@ export default function QuoteFormPage() {
                 </div>
 
 
+
                 {/* % Remodel / Service / Repair */}
                 <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
                   <label className="text-sm font-medium text-gray-900">
                     Percentage of Remodel/Service/Repair work performed
                   </label>
+
                   <div className="flex items-center gap-2 justify-end">
                     <input
                       type="text"
@@ -2339,10 +2215,14 @@ export default function QuoteFormPage() {
                       pattern="[0-9]*"
                       value={formData.remodelServiceRepairPercent}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        if (Number(val) <= 100) {
-                          handleInputChange("remodelServiceRepairPercent", val);
-                        }
+                        const value = e.target.value.replace(/\D/g, "");
+                        const num = Math.min(Number(value), 100);
+
+                        handleInputChange("remodelServiceRepairPercent", num.toString());
+                        handleInputChange(
+                          "newConstructionPercent",
+                          (100 - num).toString()
+                        );
                       }}
                       className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
@@ -2350,11 +2230,13 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
+
                 {/* % Residential */}
                 <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
                   <label className="text-sm font-medium text-gray-900">
                     Percentage of Residential work performed:
                   </label>
+
                   <div className="flex items-center gap-2 justify-end">
                     <input
                       type="text"
@@ -2362,10 +2244,14 @@ export default function QuoteFormPage() {
                       pattern="[0-9]*"
                       value={formData.residentialPercent}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        if (Number(val) <= 100) {
-                          handleInputChange("residentialPercent", val);
-                        }
+                        const value = e.target.value.replace(/\D/g, "");
+                        const num = Math.min(Number(value), 100);
+
+                        handleInputChange("residentialPercent", num.toString());
+                        handleInputChange(
+                          "commercialPercent",
+                          (100 - num).toString()
+                        );
                       }}
                       className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
@@ -2373,11 +2259,13 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
+
                 {/* % Commercial */}
                 <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
                   <label className="text-sm font-medium text-gray-900">
                     Percentage of Commercial work performed:
                   </label>
+
                   <div className="flex items-center gap-2 justify-end">
                     <input
                       type="text"
@@ -2385,16 +2273,21 @@ export default function QuoteFormPage() {
                       pattern="[0-9]*"
                       value={formData.commercialPercent}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        if (Number(val) <= 100) {
-                          handleInputChange("commercialPercent", val);
-                        }
+                        const value = e.target.value.replace(/\D/g, "");
+                        const num = Math.min(Number(value), 100);
+
+                        handleInputChange("commercialPercent", num.toString());
+                        handleInputChange(
+                          "residentialPercent",
+                          (100 - num).toString()
+                        );
                       }}
                       className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
                     <span className="text-sm text-gray-600">%</span>
                   </div>
                 </div>
+
 
                 {/* Max Interior Stories */}
                 <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
@@ -2628,7 +2521,7 @@ export default function QuoteFormPage() {
                   onChange={(val) => handleInputChange('workCondoConstruction', val)}
                 />
 
-                {formData.workCondoConstruction && (
+                {/* {formData.workCondoConstruction && (
                   <div className="space-y-4 pl-4 border-l-2 border-gray-200">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
@@ -2640,13 +2533,13 @@ export default function QuoteFormPage() {
                       />
                     </div>
 
-                    {/* <YesNoRadio
+                    <YesNoRadio
                       label="Will any of the complexes contain 15 or more units?"
                       value={formData.condoUnits15OrMore}
                       onChange={(val) => handleInputChange('condoUnits15OrMore', val)}
-                    /> */}
+                    />
                   </div>
-                )}
+                )} */}
 
                 <YesNoRadio
                   label="Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences? "
@@ -2654,7 +2547,7 @@ export default function QuoteFormPage() {
                   onChange={(val) => handleInputChange('performCondoStructuralRepair', val)}
                 />
 
-                {formData.performCondoStructuralRepair && (
+                {/* {formData.performCondoStructuralRepair && (
                   <div className="space-y-4 pl-4 border-l-2 border-gray-200">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
@@ -2666,19 +2559,89 @@ export default function QuoteFormPage() {
                       />
                     </div>
 
-                    {/* <YesNoRadio
+                    <YesNoRadio
                       label="Will any of the complexes contain 15 or more units?"
                       value={formData.condoRepairUnits25OrMore}
                       onChange={(val) => handleInputChange('condoRepairUnits25OrMore', val)}
-                    /> */}
+                    />
                   </div>
-                )}
+                )} */}
 
                 <YesNoRadio
                   label="Will you perform OCIP (Wrap-up) work?"
                   value={formData.performOCIPWork}
-                  onChange={(val) => handleInputChange('performOCIPWork', val)}
+                  onChange={(val) =>
+                    handleInputChange("performOCIPWork", val)
+                  }
                 />
+
+                {formData.performOCIPWork && (
+                  <div className="space-y-5 mt-4">
+
+                    {/* OCIP / Wrap-up receipts */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        If "Yes", what are the estimated receipts for work covered separately under OCIP/Wrap-up?
+                      </label>
+                      <div></div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                        <input
+                          type="text"
+                          value={
+                            formData.ocipWrapUpReceipts
+                              ? formatCurrencyInput(formData.ocipWrapUpReceipts)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            handleInputChange("ocipWrapUpReceipts", formatted);
+                          }}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            handleInputChange(
+                              "ocipWrapUpReceipts",
+                              parsed > 0 ? parsed.toString() : ""
+                            );
+                          }}
+                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Non-OCIP receipts */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Estimated Receipts for non-Wrap/OCIP:
+                      </label>
+                      <div></div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                        <input
+                          type="text"
+                          value={
+                            formData.nonOcipReceipts
+                              ? formatCurrencyInput(formData.nonOcipReceipts)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            handleInputChange("nonOcipReceipts", formatted);
+                          }}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            handleInputChange(
+                              "nonOcipReceipts",
+                              parsed > 0 ? parsed.toString() : ""
+                            );
+                          }}
+                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+                )}
 
                 <YesNoRadio
                   label="Will you or do you perform or subcontract any work involving the following: blasting operations, hazardous waste, asbestos, mold, PCBs, museums, historic buildings, oil fields, dams/levees, bridges, quarries, railroads, earthquake retrofitting, fuel tanks, pipelines, or foundation repair?"
@@ -3059,270 +3022,308 @@ export default function QuoteFormPage() {
 
             <div className="px-8 pt-6 pb-7 space-y-7">
 
+              {/* Use Subcontractors */}
               <YesNoRadio
                 label="Do you use subcontractors?"
                 value={formData.useSubcontractors}
-                onChange={(val) => handleInputChange("useSubcontractors", val)}
+                onChange={handleUseSubcontractorsChange}
               />
 
-              {formData.useSubcontractors && (
-                <div className="space-y-6 pl-4 border-l-2 border-gray-200">
+              {/* Sub-questions */}
+              <div
+                className={`space-y-6 pl-4 border-l-2 border-gray-200 ${!formData.useSubcontractors ? "opacity-60 pointer-events-none" : ""
+                  }`}
+              >
 
-                  {/* Certificates of Insurance */}
-                  <YesNoRadio
-                    label="Do you always collect certificates of insurance from subcontractors?"
-                    value={formData.collectSubCertificates}
-                    onChange={(val) => handleInputChange("collectSubCertificates", val)}
+                {/* Certificates of Insurance */}
+                <YesNoRadio
+                  label="Do you always collect certificates of insurance from subcontractors?"
+                  value={formData.collectSubCertificates}
+                  disabled={!formData.useSubcontractors}
+                  onChange={(val) =>
+                    handleInputChange("collectSubCertificates", val)
+                  }
+                />
+
+                {formData.collectSubCertificates === false && (
+                  <textarea
+                    placeholder="If No, please explain"
+                    value={formData.collectSubCertificatesExplanation}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "collectSubCertificatesExplanation",
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
                   />
+                )}
 
-                  {formData.collectSubCertificates === false && (
-                    <textarea
-                      placeholder="If No, please explain"
-                      value={formData.collectSubCertificatesExplanation}
-                      onChange={(e) =>
-                        handleInputChange("collectSubCertificatesExplanation", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                    />
-                  )}
+                {/* Insurance Limits */}
+                <YesNoRadio
+                  label="Do you require subcontractors to have insurance limits equal to your own?"
+                  value={formData.requireSubInsuranceEqual}
+                  disabled={!formData.useSubcontractors}
+                  onChange={(val) =>
+                    handleInputChange("requireSubInsuranceEqual", val)
+                  }
+                />
 
-                  {/* Insurance Limits */}
-                  <YesNoRadio
-                    label="Do you require subcontractors to have insurance limits equal to your own?"
-                    value={formData.requireSubInsuranceEqual}
-                    onChange={(val) => handleInputChange("requireSubInsuranceEqual", val)}
+                {formData.requireSubInsuranceEqual === false && (
+                  <textarea
+                    placeholder="If No, please explain"
+                    value={formData.requireSubInsuranceEqualExplanation}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "requireSubInsuranceEqualExplanation",
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
                   />
+                )}
 
-                  {formData.requireSubInsuranceEqual === false && (
-                    <textarea
-                      placeholder="If No, please explain"
-                      value={formData.requireSubInsuranceEqualExplanation}
-                      onChange={(e) =>
-                        handleInputChange("requireSubInsuranceEqualExplanation", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                    />
-                  )}
+                {/* Additional Insured */}
+                <YesNoRadio
+                  label="Do you always require subcontractors to name you as additional insured?"
+                  value={formData.requireAdditionalInsured}
+                  disabled={!formData.useSubcontractors}
+                  onChange={(val) =>
+                    handleInputChange("requireAdditionalInsured", val)
+                  }
+                />
 
-                  {/* Additional Insured */}
-                  <YesNoRadio
-                    label="Do you always require subcontractors to name you as additional insured?"
-                    value={formData.requireAdditionalInsured}
-                    onChange={(val) => handleInputChange("requireAdditionalInsured", val)}
+                {formData.requireAdditionalInsured === false && (
+                  <textarea
+                    placeholder="If No, please explain"
+                    value={formData.requireAdditionalInsuredExplanation}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "requireAdditionalInsuredExplanation",
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
                   />
+                )}
 
-                  {formData.requireAdditionalInsured === false && (
-                    <textarea
-                      placeholder="If No, please explain"
-                      value={formData.requireAdditionalInsuredExplanation}
-                      onChange={(e) =>
-                        handleInputChange("requireAdditionalInsuredExplanation", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                    />
-                  )}
+                {/* Written Contract */}
+                <YesNoRadio
+                  label="Do you have a standard formal written contract with subcontractors?"
+                  value={formData.haveWrittenSubContracts}
+                  disabled={!formData.useSubcontractors}
+                  onChange={(val) =>
+                    handleInputChange("haveWrittenSubContracts", val)
+                  }
+                />
 
-                  {/* Written Contract */}
-                  <YesNoRadio
-                    label="Do you have a standard formal written contract with subcontractors?"
-                    value={formData.haveWrittenSubContracts}
-                    onChange={(val) => handleInputChange("haveWrittenSubContracts", val)}
+                {formData.haveWrittenSubContracts === false && (
+                  <textarea
+                    placeholder="If No, please explain"
+                    value={formData.haveWrittenSubContractsExplanation}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "haveWrittenSubContractsExplanation",
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
                   />
+                )}
 
-                  {formData.haveWrittenSubContracts === false && (
-                    <textarea
-                      placeholder="If No, please explain"
-                      value={formData.haveWrittenSubContractsExplanation}
-                      onChange={(e) =>
-                        handleInputChange("haveWrittenSubContractsExplanation", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                    />
-                  )}
+                {/* Workers Comp */}
+                <YesNoRadio
+                  label="Do you require subcontractors to carry Worker’s Compensation?"
+                  value={formData.requireWorkersComp}
+                  disabled={!formData.useSubcontractors}
+                  onChange={(val) =>
+                    handleInputChange("requireWorkersComp", val)
+                  }
+                />
 
-                  {/* Workers Comp */}
-                  <YesNoRadio
-                    label="Do you require subcontractors to carry Worker’s Compensation?"
-                    value={formData.requireWorkersComp}
-                    onChange={(val) => handleInputChange("requireWorkersComp", val)}
+                {formData.requireWorkersComp === false && (
+                  <textarea
+                    placeholder="If No, please explain"
+                    value={formData.requireWorkersCompExplanation}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "requireWorkersCompExplanation",
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
                   />
+                )}
 
-                  {formData.requireWorkersComp === false && (
-                    <textarea
-                      placeholder="If No, please explain"
-                      value={formData.requireWorkersCompExplanation}
-                      onChange={(e) =>
-                        handleInputChange("requireWorkersCompExplanation", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                    />
-                  )}
-
-                </div>
-              )}
+              </div>
             </div>
           </div>
+
+
 
 
           {/* Excess Liability Coverage */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+
+            {/* Header */}
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Add Excess Liability coverage</h2>
             </div>
-            <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-7 mt-1">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Add Excess Liability</h3>
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Sutton – A-, VII Rated</p>
-                  <p className="text-sm text-gray-600 mb-1">Non-Admitted</p>
-                  <p className="text-sm text-gray-600">Covers General Liability, Auto, Employers Liability</p>
+            <div className="px-8 pt-6 pb-7 space-y-7">
+
+              {/* Product info */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  Add Excess Liability
+                </h3>
+                <p className="text-sm font-semibold text-gray-700 mb-1">
+                  Sutton – A-, VII Rated
+                </p>
+                <p className="text-sm text-gray-600 mb-1">Non-Admitted</p>
+                <p className="text-sm text-gray-600">
+                  Covers General Liability, Auto, Employers Liability
+                </p>
+              </div>
+
+              {/* Yes / No */}
+              <YesNoRadio
+                label=""
+                value={formData.addExcessLiability}
+                onChange={(val) => handleInputChange("addExcessLiability", val)}
+              />
+            </div>
+          </div>
+
+          {/* ================= EXCESS QUESTIONS ================= */}
+          {formData.addExcessLiability && (
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Excess Questions</h2>
+              </div>
+
+              <div className="px-8 pt-6 pb-7 space-y-6">
+
+                {/* Desired Effective Date */}
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
+                    Desired Effective Date
+                  </label>
+                  <div></div>
+                  <input
+                    type="text"
+                    disabled
+                    placeholder="Same as GL effective date"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500"
+                  />
                 </div>
 
-                <YesNoRadio
-                  label=""
-                  value={formData.addExcessLiability}
-                  onChange={(val) => handleInputChange('addExcessLiability', val)}
-                />
+                {/* Excess Limits */}
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
+                    Excess Limits
+                  </label>
+                  <div></div>
+                  <select
+                    value={formData.excessLiabilityLimit || ""}
+                    onChange={(e) =>
+                      handleInputChange("excessLiabilityLimit", e.target.value)
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                  >
+                    <option value="">Select Limit</option>
+                    <option value="1M">$1,000,000 (1M)</option>
+                    <option value="2M">$2,000,000 (2M)</option>
+                    <option value="3M">$3,000,000 (3M)</option>
+                    <option value="4M">$4,000,000 (4M)</option>
+                    <option value="5M">$5,000,000 (5M)</option>
+                  </select>
+                </div>
 
-                {formData.addExcessLiability && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Excess Liability Limit
+                {/* Underlying policies */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    Underlying policies to be covered in addition to underlying GL policy
+                  </p>
+
+                  <YesNoRadio
+                    label="Employer’s Liability (Workers Comp)"
+                    value={formData.employersLiabilityWC}
+                    onChange={(val) =>
+                      handleInputChange("employersLiabilityWC", val)
+                    }
+                  />
+                  <YesNoRadio
+                    label="Auto"
+                    value={formData.auto}
+                    onChange={(val) =>
+                      handleInputChange("auto", val)
+                    }
+                  />
+                </div>
+
+                {/* Combined losses (ALWAYS visible, DISABLED) */}
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
+                    Combined # of losses across all underlying policies in last 5 years
+                  </label>
+                  <div></div>
+                  <select
+                    value={formData.combinedUnderlyingLosses}
+                    disabled={!formData.employersLiabilityWC}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "combinedUnderlyingLosses",
+                        e.target.value
+                      )
+                    }
+                    className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.employersLiabilityWC
+                      ? "bg-white focus:ring-1 focus:ring-[#00BCD4]"
+                      : "bg-gray-100 text-gray-500"
+                      }`}
+                  >
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6+">6+</option>
+                  </select>
+                </div>
+
+
+                {/* Employer’s Liability Limits (ONLY when YES) */}
+                {formData.employersLiabilityWC && (
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Employer’s Liability (Workers Comp) Limits
                     </label>
+                    <div></div>
                     <select
-                      value={formData.excessLiabilityLimit || ""}
-                      onChange={(e) => handleInputChange('excessLiabilityLimit', e.target.value)}
-                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg text-gray-900 font-semibold focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all hover:border-gray-300"
+                      value={formData.employersLiabilityWCLimit || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "employersLiabilityWCLimit",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
                     >
-                      <option value="">Select Limit</option>
-                      <option value="1M">$1,000,000 (1M)</option>
-                      <option value="2M">$2,000,000 (2M)</option>
-                      <option value="3M">$3,000,000 (3M)</option>
-                      <option value="4M">$4,000,000 (4M)</option>
-                      <option value="5M">$5,000,000 (5M)</option>
+                      <option value="">Select Limits</option>
+                      <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
+                      <option value="$500k/$500k/$500k">$500k / $500k / $500k</option>
+                      <option value="$1M/$1M/$1M">$1M / $1M / $1M</option>
                     </select>
                   </div>
                 )}
+
               </div>
             </div>
-          </div>
+          )}
+          {/* ================= END EXCESS QUESTIONS ================= */}
 
-          {/* Inland Marine Equipment */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">
-                Add Inland Marine Equipment Coverage
-              </h2>
-            </div>
-
-            <div className="px-8 pt-6 pb-7 space-y-4">
-              <p className="text-sm text-gray-700">
-                Add Equipment Coverage:
-              </p>
-              <ul className="list-disc pl-5 text-sm text-gray-700">
-                <li>Misc Tools</li>
-                <li>Office Contents</li>
-                <li>Scheduled Equipment</li>
-                <li>Leased Equipment</li>
-                <li>Computer Hardware</li>
-                <li>Installation Floater</li>
-              </ul>
-
-              <YesNoRadio
-                label=""
-                value={formData.addInlandMarineEquipment}
-                onChange={(val) =>
-                  handleInputChange("addInlandMarineEquipment", val)
-                }
-              />
-            </div>
-          </div>
-
-          {/* Builders Risk */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">
-                Add Inland Marine Builder’s Risk Coverage
-              </h2>
-            </div>
-
-            <div className="px-8 pt-6 pb-7 space-y-4">
-              <p className="text-sm text-gray-700">
-                Add Builder’s Risk:
-              </p>
-              <ul className="list-disc pl-5 text-sm text-gray-700">
-                <li>New Construction & Renovation</li>
-                <li>Non-admitted ISO Forms</li>
-                <li>Maximum TIV: $2,000,000</li>
-                <li>Wood Frame Eligible</li>
-              </ul>
-
-              <YesNoRadio
-                label=""
-                value={formData.addBuildersRisk}
-                onChange={(val) =>
-                  handleInputChange("addBuildersRisk", val)
-                }
-              />
-            </div>
-          </div>
-
-          {/* Environmental Coverage */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Add Environmental coverage</h2>
-            </div>
-
-            <div className="px-8 pt-6 pb-7 space-y-4">
-
-              {/* Top row: description + Yes/No */}
-              <div className="flex items-start justify-between gap-6">
-                <p className="text-sm text-gray-700 max-w-3xl">
-                  Contractors of ALL types may find themselves faced with a pollution
-                  exposure arising out of:
-                </p>
-
-                <YesNoRadio
-                  label=""
-                  value={formData.addEnvironmentalCoverage}
-                  onChange={(val) =>
-                    handleInputChange("addEnvironmentalCoverage", val)
-                  }
-                />
-              </div>
-
-              {/* Bullet points in two columns */}
-              <div className="grid grid-cols-2 gap-x-10 text-sm text-gray-700">
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Excessive or fugitive dust, soot</li>
-                  <li>Vapors, fumes, and odors</li>
-                  <li>Mold growth</li>
-                  <li>Unknown/hidden utilities</li>
-                  <li>And more...</li>
-                </ul>
-
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Asbestos, lead-based paint, silica</li>
-                  <li>Accidental spills of fuel, paints, solvents</li>
-                  <li>Cleaning chemicals and detergents</li>
-                  <li>Pesticides and herbicides</li>
-                </ul>
-              </div>
-
-              {/* Disclaimer text */}
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Please review the policy as well as consult your legal or insurance
-                representative as to your specific business operations and needs.
-                Note that the insuring agreement in a policy sets out the covered perils,
-                assumed risks, and nature of coverage that the insurance company provides
-                to insured in exchange for the premiums paid. Thus, the terms and
-                conditions of the policy will dictate whether coverage exists and the
-                nature of any potential benefits.
-              </p>
-
-            </div>
-          </div>
 
 
 
