@@ -23,6 +23,18 @@ body {
   color: #0a0a0a;
 }
 
+/* Remove number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -7,6 +7,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useGooglePlacesAutocomplete } from "@/hooks/useGooglePlacesAutocomplete";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
+import { DollarSign, Umbrella, Hammer, Home, AlertTriangle, } from "lucide-react";
 
 // Helper component for Yes/No radio buttons
 const YesNoRadio = ({
@@ -55,11 +56,33 @@ const YesNoRadio = ({
   </div>
 );
 
+// option for showing template quote add-ons
+const options = [
+  {
+    icon: <DollarSign size={18} />,
+    text: "$ Limit Options - $100k for as low as $442",
+  },
+  {
+    icon: <Umbrella size={18} />,
+    text: "Add Excess Coverage for as low as $530.45",
+  },
+  {
+    icon: <Hammer size={18} />,
+    text: "Add $10k in Tools Coverage for as low as $400",
+  },
+  {
+    icon: <Home size={18} />,
+    text: "Add Builders Risk Coverage for as low as $515",
+  },
+];
+
 export default function QuoteFormPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const programId = params.programId as string;
+
+
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [validationErrors, setValidationErrors] = useState<any>({
@@ -80,6 +103,8 @@ export default function QuoteFormPage() {
       }));
     }
   );
+
+  const [showAIRequiredAlert, setShowAIRequiredAlert] = useState(false);
   const [formData, setFormData] = useState<any>({
     // Indication Information
     companyName: "",
@@ -93,52 +118,68 @@ export default function QuoteFormPage() {
     totalPayroll: "",
     yearsInBusiness: "",
     yearsExperience: "",
+    isPremiseOnlyPolicy: false,
 
     // Class Codes
     classCodeWork: {},
-    newConstructionPercent: "",
+    // newConstructionPercent: "",
     remodelPercent: "",
-    residentialPercent: "",
-    commercialPercent: "",
+    // residentialPercent: "",
+    // commercialPercent: "",
 
     // Coverage
     coverageLimits: "1M / 1M / 1M",
     fireLegalLimit: "$100,000",
     medicalExpenseLimit: "$5,000",
-    deductible: "$2,500",
+    selfInsuredRetention: "$2,500",
     lossesLast5Years: "0",
     effectiveDate: "",
     selectedStates: [],
-    willPerformStructuralWork: null,
+    willPerformStructuralWork: false,
 
     // Endorsements
-    blanketAdditionalInsured: null,
-    blanketWaiverOfSubrogation: null,
-    blanketPrimaryWording: null,
+    blanketAI_PW_WOS: null,
     blanketPerProjectAggregate: null,
-    blanketCompletedOperations: null,
+    blanketCompletedOperationsCommercial: null,
+    blanketYourWorkCommercial: null,
+    multiUnitResidentialNew: null,
+    multiUnitResidentialRemodel: null,
+    openStructureWaterDamage: null,
+    openStructureWaterDamageLimit: "", // "50K" | "100K" | "250K"
     actsOfTerrorism: null,
-    noticeCancellationThirdParties: null,
+    schoolOrRecreationalFacility: null,
+    heatingDevices: null,
+    hospitalMedicalCareFacilities: null,
+    buildingsExceedingThreeStories: null,
+    snowPlowSnowRemoval: null,
+    residentialProjectSizeRestrictionExclusion: null,
+    commercialMixedUseSizeRestrictionExclusion: null,
+    museumsAndHistoricBuildings: null,
+    houseOfWorship: null,
+    overspray: null,
+
+
 
     // Payment Options
     brokerFee: "0",
-    displayBrokerFee: null,
+    displayBrokerFee: false,
     paymentOption: "Full Pay",
 
     // Company Information
-    contractorsLicense: null,
+    contractorsLicense: false,
     licenseNumber: "",
     licenseClassification: "",
     dba: "",
     firstName: "",
     lastName: "",
+    yearsOfExperienceTrade: "",
     entityType: "Individual",
     applicantSSN: "",
     phone: "",
     fax: "",
     email: "",
     website: "",
-    carrierDescriptionOk: null,
+    useCarrierApprovedDescriptions: true,
     carrierApprovedDescription: "",
 
     // Address
@@ -160,84 +201,106 @@ export default function QuoteFormPage() {
     certificationsExplanation: "",
 
     // Type of Work
+    newConstructionPercent: "",
+    remodelServiceRepairPercent: "",
+    residentialPercent: "",
+    commercialPercent: "",
     maxInteriorStories: "",
     maxExteriorStories: "",
+    maxExteriorDepthBelowGrade: "",
     workBelowGrade: null,
     belowGradeDepth: "",
     belowGradePercent: "",
     buildOnHillside: null,
     hillsideExplanation: "",
-    performRoofingOps: null,
+    performRoofingOps: false,
     roofingOpsExplanation: "",
     actAsGeneralContractor: null,
     generalContractorExplanation: "",
-    performWaterproofing: null,
+    performWaterproofing: false,
     waterproofingExplanation: "",
-    useHeavyEquipment: null,
+    useHeavyEquipment: false,
     heavyEquipmentExplanation: "",
     heavyEquipmentOperatorsCertified: null,
     heavyEquipmentYearsExpRequired: "",
-    workNewTractHomes: null,
+    workNewTractHomes: false,
     tractHomesExplanation: "",
-    workCondoConstruction: null,
+    workCondoConstruction: false,
     condoConstructionExplanation: "",
     condoUnits15OrMore: null,
-    performCondoStructuralRepair: null,
+    performCondoStructuralRepair: false,
     condoRepairExplanation: "",
-    condoRepairUnits15OrMore: null,
-    performOCIPWork: null,
-    performHazardousWork: null,
+    condoRepairUnits25OrMore: false,
+    performOCIPWork: false,
+    performHazardousWork: false,
     hazardousWorkExplanation: "",
-    workOver5000SqFt: null,
+    performMedicalFacilities: false,
+    medicalFacilitiesExplanation: "",
+    workOver5000SqFt: false,
     over5000SqFtExplanation: "",
     over5000SqFtPercent: "",
+    workOver20000SqFt: false,
+    over20000SqFtExplanation: "",
+    over20000SqFtPercent: "",
 
     // Additional Business Info
-    performIndustrialOps: null,
-    otherBusinessNames: "",
-    citedForOSHAViolations: null,
-    lossInfoVerifiable: null,
-    licensingActionTaken: null,
-    allowedLicenseUseByOthers: null,
-    lawsuitsFiled: null,
-    awareOfPotentialClaims: null,
-    hasWrittenContracts: null,
-    contractHasStartDate: null,
-    contractHasScopeOfWork: null,
-    contractIdentifiesSubcontractors: null,
-    contractHasSetPrice: null,
-    contractSignedByAllParties: null,
+    writtenContractForAllWork: true,
+    contractHasStartDate: true,
+    contractHasScopeOfWork: true,
+    contractIdentifiesSubTrades: true,
+    contractHasSetPrice: true,
+    contractSignedByAllParties: true,
+    writtenContractForAllWorkExplanation: "",
+    contractHasStartDateExplanation: "",
+    contractHasScopeOfWorkExplanation: "",
+    contractIdentifiesSubTradesExplanation: "",
+    contractHasSetPriceExplanation: "",
+    contractSignedByAllPartiesExplanation: "",
+
+    otherBusinessNames: false,
+    otherBusinessNamesExplanation: "",
+    licensingActionTaken: false,
+    licensingActionTakenExplanation: "",
+    licenseSharedWithOthers: false,
+    licenseSharedWithOthersExplanation: "",
+    judgementsOrLiens: false,
+    judgementsOrLiensExplanation: "",
+    lawsuitsOrClaims: false,
+    lawsuitsOrClaimsExplanation: "",
+    knownIncidentsOrClaims: false,
+    knownIncidentsOrClaimsExplanation: "",
+
 
 
     // Subcontractors
-    useSubcontractors: null,
+    useSubcontractors: true,
 
-    collectSubCertificates: null,
+    collectSubCertificates: false,
     collectSubCertificatesExplanation: "",
 
-    requireSubInsuranceEqual: null,
+    requireSubInsuranceEqual: false,
     requireSubInsuranceEqualExplanation: "",
 
-    requireAdditionalInsured: null,
+    requireAdditionalInsured: false,
     requireAdditionalInsuredExplanation: "",
 
-    haveWrittenSubContracts: null,
+    haveWrittenSubContracts: false,
     haveWrittenSubContractsExplanation: "",
 
-    requireWorkersComp: null,
+    requireWorkersComp: false,
     requireWorkersCompExplanation: "",
 
 
     // Excess Liability
-    addExcessLiability: null,
+    addExcessLiability: false,
     excessLiabilityLimit: "", // 1M-5M dropdown
 
 
     // Inland Marine Equipment 
-    addInlandMarineEquipment: null,
+    addInlandMarineEquipment: false,
 
     //Inland Builder's Risk Coverage
-    addBuildersRisk: null,
+    addBuildersRisk: false,
 
     //Environmental Coverage
     addEnvironmentalCoverage: null,
@@ -269,6 +332,22 @@ export default function QuoteFormPage() {
     setIsProcessing(true);
     setTimeout(() => setIsProcessing(false), 2000);
   };
+
+  // endrosements that require limit selection
+  const endorsementsWithLimits = [
+    "multiUnitResidentialRemodel",
+    "openStructureWaterDamage",
+    "schoolOrRecreationalFacility",
+    "heatingDevices",
+    "hospitalMedicalCareFacilities",
+    "buildingsExceedingThreeStories",
+    "residentialProjectSizeRestrictionExclusion",
+    "commercialMixedUseSizeRestrictionExclusion",
+    "houseOfWorship",
+    "overspray",
+  ];
+
+
 
   // Calculate form completion percentage
   const calculateCompletionPercentage = () => {
@@ -412,26 +491,40 @@ export default function QuoteFormPage() {
     return Math.max(0, 100 - total);
   };
 
-  const formatFEIN = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, '');
-    if (digitsOnly.length <= 2) {
+  const formatSSN = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "");
+
+    if (digitsOnly.length <= 3) {
       return digitsOnly;
     }
-    return `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 9)}`;
+    if (digitsOnly.length <= 5) {
+      return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
+    }
+
+    return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 5)}-${digitsOnly.slice(5, 9)}`;
   };
 
-  const validateFEIN = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, '');
+
+  const validateSSN = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "");
+
     if (digitsOnly.length === 0) {
-      setValidationErrors((prev: any) => ({ ...prev, fein: '' }));
+      setValidationErrors((prev: any) => ({ ...prev, ssn: "" }));
     } else if (digitsOnly.length < 9) {
-      setValidationErrors((prev: any) => ({ ...prev, fein: `Not enough numbers, expecting 9` }));
+      setValidationErrors((prev: any) => ({
+        ...prev,
+        ssn: "Not enough numbers, expecting 9",
+      }));
     } else if (digitsOnly.length > 9) {
-      setValidationErrors((prev: any) => ({ ...prev, fein: `Too many numbers, expecting 9` }));
+      setValidationErrors((prev: any) => ({
+        ...prev,
+        ssn: "Too many numbers, expecting 9",
+      }));
     } else {
-      setValidationErrors((prev: any) => ({ ...prev, fein: '' }));
+      setValidationErrors((prev: any) => ({ ...prev, ssn: "" }));
     }
   };
+
 
   const formatPhone = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '');
@@ -467,9 +560,9 @@ export default function QuoteFormPage() {
     const losses = parseInt(formData.lossesLast5Years) || 0;
     if (losses > 0) premium *= (1 + (losses * 0.15));
 
-    if (formData.deductible === "$10,000") premium *= 0.85;
-    else if (formData.deductible === "$5,000") premium *= 0.90;
-    else if (formData.deductible === "$2,500") premium *= 0.95;
+    if (formData.selfInsuredRetention === "$10,000") premium *= 0.85;
+    else if (formData.selfInsuredRetention === "$5,000") premium *= 0.90;
+    else if (formData.selfInsuredRetention === "$2,500") premium *= 0.95;
 
     premium = Math.max(premium, 400);
 
@@ -762,7 +855,7 @@ export default function QuoteFormPage() {
           {/* Indication Information */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Indication Information</h2>
+              <h2 className="text-lg font-semibold">Quick Quote Information</h2>
             </div>
             <div className="px-8 pt-6 pb-7">
 
@@ -782,17 +875,17 @@ export default function QuoteFormPage() {
                 </div>
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">Zip</label>
+                  <label className="text-sm font-medium text-gray-900">Zip</label>
                   <div></div>
-                  <div className="flex gap-3">
+                  <div className="flex justify-end">
                     <input
                       type="text"
                       value={formData.zip}
                       onChange={(e) => handleInputChange('zip', e.target.value)}
                       maxLength={5}
-                      className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm w-[100px]"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm]"
                     />
-                    <select
+                    {/* <select
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
                       className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm flex-1"
@@ -800,7 +893,7 @@ export default function QuoteFormPage() {
                       {statesList.map(state => (
                         <option key={state} value={state}>{state}</option>
                       ))}
-                    </select>
+                    </select> */}
                   </div>
                 </div>
 
@@ -846,6 +939,205 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
+
+
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900"># of Active Owners in the Field</label>
+                  <div></div>
+                  <select
+                    value={formData.activeOwners}
+                    onChange={(e) => handleInputChange('activeOwners', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                  >
+                    {Array.from({ length: 21 }, (_, i) => (
+                      <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
+                    ))}
+                  </select>
+                </div> */}
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  <label className="text-sm font-medium text-gray-900 pt-2"># of Field Employees</label>
+                  <div></div>
+                  <div>
+                    <select
+                      value={formData.fieldEmployees}
+                      onChange={(e) => handleInputChange('fieldEmployees', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    >
+                      {Array.from({ length: 21 }, (_, i) => (
+                        <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Including leased workers, temporary workers, volunteer workers, and any individuals for which a 1099 is provided.
+                    </p>
+                  </div>
+                </div>
+
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Total Payroll Amount</label>
+                  <div></div>
+                  <select
+                    value={formData.totalPayroll}
+                    onChange={(e) => handleInputChange('totalPayroll', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] bg-white text-sm"
+                  >
+                    <option value="">Select Payroll Range</option>
+                    <option value="Under 15k">Under 15k</option>
+                    <option value="15k-30k">15k-30k</option>
+                    <option value="30k-50k">30k-50k</option>
+                    <option value="50k-70k">50k-70k</option>
+                    <option value="70k-90k">70k-90k</option>
+                    <option value="90k-110k">90k-110k</option>
+                    <option value="110k-150k">110k-150k</option>
+                    <option value="Over 150k">Over 150k</option>
+                  </select>
+                </div> */}
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Years in Business</label>
+                  <div></div>
+                  <input
+                    type="number"
+                    value={formData.yearsInBusiness}
+                    placeholder="4"
+                    onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                  />
+                </div>
+
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
+                  <div></div>
+                  <input
+                    type="number"
+                    value={formData.yearsExperience}
+                    onChange={(e) => handleInputChange('yearsExperience', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                  />
+                </div> */}
+
+                <YesNoRadio
+                  label="Is this a premise only policy?"
+                  value={formData.isPremiseOnlyPolicy}
+                  onChange={(val) => handleInputChange('isPremiseOnlyPolicy', val)}
+                  onInteraction={triggerAnimation}
+                />
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">Class Code</label>
+                  <select
+                    value=""
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
+                    onChange={(e) => {
+                      const selectedCode = e.target.value;
+                      if (selectedCode) {
+                        // Only allow ONE class code at a time - set to 100%
+                        handleClassCodeChange(selectedCode, "100");
+                      } else {
+                        // "Select Class Code" option chosen - clear everything
+                        console.log("[Select Change] Clearing class code and description");
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          classCodeWork: {},
+                          carrierApprovedDescription: ""
+                        }));
+                      }
+                    }}
+                  >
+                    <option value="">Select Class Code</option>
+                    {classCodeOptions.map((code) => (
+                      <option key={code} value={code}>{code}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="text-right mb-4">
+                  <span className="text-sm font-semibold text-gray-700">Total: {calculateTotalClassCodePercent()}%</span>
+                </div>
+
+                {Object.keys(formData.classCodeWork).length > 0 && (
+                  <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
+                    {Object.entries(formData.classCodeWork).map(([code, percentage]) => (
+                      <div key={code} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-700">{code}</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value="100"
+                            readOnly
+                            className="w-20 px-2 py-1 border border-gray-300 rounded bg-gray-50 text-sm text-center text-gray-600"
+                            min="100"
+                            max="100"
+                          />
+                          <span className="text-sm text-gray-500">%</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // Clear class code and reset description to empty
+                              handleInputChange('classCodeWork', {});
+                              handleInputChange('carrierApprovedDescription', "");
+                            }}
+                            className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Limits</label>
+                  <div></div>
+                  <select
+                    value={formData.coverageLimits}
+                    onChange={(e) => handleInputChange('coverageLimits', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                  >
+                    <option>1M / 1M / 1M</option>
+                    <option>1M / 2M / 1M</option>
+                    <option>1M / 2M / 2M</option>
+                  </select>
+                </div>
+
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Self Insured Retention</label>
+                  <div></div>
+                  <select
+                    value={formData.selfInsuredRetention}
+                    onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                  >
+                    <option>$10,000</option>
+                    <option>$5,000</option>
+                    <option>$2,500</option>
+                    <option>$1,000</option>
+                  </select>
+                </div>
+
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900"># Losses in last 5 years</label>
+                  <div></div>
+                  <select
+                    value={formData.lossesLast5Years}
+                    onChange={(e) => handleInputChange('lossesLast5Years', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                  >
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4+</option>
+                  </select>
+                </div>
+
+
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Estimated Material Costs</label>
                   <div></div>
@@ -868,85 +1160,83 @@ export default function QuoteFormPage() {
                 </div>
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900"># of Active Owners in the Field</label>
+                  <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
+                  <div></div>
+                  <input
+                    type="date"
+                    value={formData.effectiveDate}
+                    onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                  />
+                </div>
+
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
+                    States in which you do business for which you are currently applying for insurance:
+                  </label>
                   <div></div>
                   <select
-                    value={formData.activeOwners}
-                    onChange={(e) => handleInputChange('activeOwners', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    value={formData.selectedStates?.[0] || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "selectedStates",
+                        e.target.value ? [e.target.value] : []
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm bg-white"
                   >
-                    {Array.from({ length: 21 }, (_, i) => (
-                      <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
+                    <option value="">Select state</option>
+                    {statesList.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2"># of Field Employees</label>
-                  <div></div>
-                  <div>
-                    <select
-                      value={formData.fieldEmployees}
-                      onChange={(e) => handleInputChange('fieldEmployees', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+
+                <YesNoRadio
+                  label="Will you perform structural work?"
+                  value={formData.willPerformStructuralWork}
+                  onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
+                  onInteraction={triggerAnimation}
+                />
+
+
+                <div className="space-y-2 ">
+                  {options.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 bg-[#EAFBFC] px-4 py-2.5 rounded text-sm text-gray-900"
                     >
-                      {Array.from({ length: 21 }, (_, i) => (
-                        <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Including leased workers, temporary workers, volunteer workers, and any individuals for which a 1099 is provided.
-                    </p>
+                      <span className="text-gray-700">{item.icon}</span>
+                      <span className="font-medium">{item.text}</span>
+                    </div>
+                  ))}
+
+                  {/* Pollution Risk (NEW) */}
+                  <div className="flex items-center gap-3 bg-[#EAFBFC] px-4 py-2.5 rounded text-sm text-gray-900">
+                    <span className="relative">
+
+                      <span className="absolute -top-4 -left-2 bg-teal-400 text-white text-[10px] px-1 rounded">
+                        NEW
+                      </span>
+                      <AlertTriangle size={18} className="text-gray-700 ml-1" />
+                    </span>
+                    <span className="font-medium">
+                      Your client is exposed to unexpected Pollution Risks. Pollution
+                      coverage starting at $25.
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Total Payroll Amount</label>
-                  <div></div>
-                  <select
-                    value={formData.totalPayroll}
-                    onChange={(e) => handleInputChange('totalPayroll', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] bg-white text-sm"
-                  >
-                    <option value="">Select Payroll Range</option>
-                    <option value="Under 15k">Under 15k</option>
-                    <option value="15k-30k">15k-30k</option>
-                    <option value="30k-50k">30k-50k</option>
-                    <option value="50k-70k">50k-70k</option>
-                    <option value="70k-90k">70k-90k</option>
-                    <option value="90k-110k">90k-110k</option>
-                    <option value="110k-150k">110k-150k</option>
-                    <option value="Over 150k">Over 150k</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Years in Business</label>
-                  <div></div>
-                  <input
-                    type="number"
-                    value={formData.yearsInBusiness}
-                    onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
-                  <div></div>
-                  <input
-                    type="number"
-                    value={formData.yearsExperience}
-                    onChange={(e) => handleInputChange('yearsExperience', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                  />
-                </div>
               </div>
             </div>
           </div>
 
           {/* Class Code Section */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Class Code</h2>
             </div>
@@ -983,8 +1273,8 @@ export default function QuoteFormPage() {
                 <span className="text-sm font-semibold text-gray-700">Total: {calculateTotalClassCodePercent()}%</span>
               </div>
 
-              {/* Display selected class codes */}
-              {Object.keys(formData.classCodeWork).length > 0 && (
+              // Display selected class codes  
+               {Object.keys(formData.classCodeWork).length > 0 && (
                 <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
                   {Object.entries(formData.classCodeWork).map(([code, percentage]) => (
                     <div key={code} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
@@ -1118,10 +1408,10 @@ export default function QuoteFormPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>  */}
 
           {/* Limits Section */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Limits</h2>
             </div>
@@ -1169,11 +1459,11 @@ export default function QuoteFormPage() {
                 </div>
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Deductible</label>
+                  <label className="text-sm font-medium text-gray-900">selfInsuredRetention</label>
                   <div></div>
                   <select
-                    value={formData.deductible}
-                    onChange={(e) => handleInputChange('deductible', e.target.value)}
+                    value={formData.selfInsuredRetention}
+                    onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                   >
                     <option>$10,000</option>
@@ -1183,20 +1473,27 @@ export default function QuoteFormPage() {
                   </select>
                 </div>
 
+
+
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900"># Losses in last 5 years</label>
+                  <label className="text-sm font-medium text-gray-900">Estimated Material Costs</label>
                   <div></div>
-                  <select
-                    value={formData.lossesLast5Years}
-                    onChange={(e) => handleInputChange('lossesLast5Years', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4+</option>
-                  </select>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                    <input
+                      type="text"
+                      value={formData.estimatedMaterialCosts ? formatCurrencyInput(formData.estimatedMaterialCosts) : ''}
+                      onChange={(e) => {
+                        const formatted = formatCurrencyInput(e.target.value);
+                        handleInputChange('estimatedMaterialCosts', formatted);
+                      }}
+                      onBlur={(e) => {
+                        const parsed = parseCurrency(e.target.value);
+                        handleInputChange('estimatedMaterialCosts', parsed > 0 ? parsed.toString() : '');
+                      }}
+                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
@@ -1210,30 +1507,30 @@ export default function QuoteFormPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
                     States in which you do business for which you are currently applying for insurance:
                   </label>
-                  <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded p-3">
+                  <div></div>
+                  <select
+                    value={formData.selectedStates?.[0] || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "selectedStates",
+                        e.target.value ? [e.target.value] : []
+                      )
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm bg-white"
+                  >
+                    <option value="">Select state</option>
                     {statesList.map((state) => (
-                      <label key={state} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedStates.includes(state)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              handleInputChange('selectedStates', [...formData.selectedStates, state]);
-                            } else {
-                              handleInputChange('selectedStates', formData.selectedStates.filter((s: string) => s !== state));
-                            }
-                          }}
-                          className="w-4 h-4 text-[#00BCD4] border-gray-300 rounded"
-                        />
-                        <span className="text-gray-700">{state}</span>
-                      </label>
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
+
 
                 <YesNoRadio
                   label="Will you perform structural work?"
@@ -1243,38 +1540,142 @@ export default function QuoteFormPage() {
                 />
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Endorsements */}
+
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Endorsements</h2>
             </div>
-            <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-2">
+            <div className="px-8 pt-6 pb-7">
+              <div className="space-y-3">
+
                 {[
-                  { key: 'blanketAdditionalInsured', label: 'Blanket Additional Insured' },
-                  { key: 'blanketWaiverOfSubrogation', label: 'Blanket Waiver of Subrogation' },
-                  { key: 'blanketPrimaryWording', label: 'Blanket Primary Wording' },
-                  { key: 'blanketPerProjectAggregate', label: 'Blanket Per Project Aggregate' },
-                  { key: 'blanketCompletedOperations', label: 'Blanket Completed Operations' },
-                  { key: 'actsOfTerrorism', label: 'Acts of Terrorism' },
-                  { key: 'noticeCancellationThirdParties', label: 'Notice of Cancellation to Third Parties' },
-                ].map((endorsement) => (
-                  <label key={endorsement.key} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData[endorsement.key]}
-                      onChange={(e) => handleInputChange(endorsement.key, e.target.checked)}
-                      className="w-4 h-4 text-[#00BCD4] border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-700">{endorsement.label}</span>
-                  </label>
-                ))}
+                  { key: "blanketAI_PW_WOS", label: "Blanket AI + PW + WOS" },
+                  { key: "blanketPerProjectAggregate", label: "Blanket Per Project Aggregate" },
+                  { key: "blanketCompletedOperationsCommercial", label: "Blanket Completed Operations (Commercial Only)" },
+                  { key: "blanketYourWorkCommercial", label: "Blanket Your Work (Commercial Only)" },
+                  { key: "multiUnitResidentialNew", label: "Multi-Unit Residential Structures - New" },
+                  { key: "multiUnitResidentialRemodel", label: "Multi-Unit Residential Structures - Remodel" },
+                  { key: "openStructureWaterDamage", label: 'Open Structure "Water" Damage' },
+                  { key: "actsOfTerrorism", label: "Acts of Terrorism" },
+                  { key: "schoolOrRecreationalFacility", label: "School or Recreational Facility" },
+                  { key: "heatingDevices", label: "Heating Devices" },
+                  { key: "hospitalMedicalCareFacilities", label: "Hospital, Medical or Care Facilities" },
+                  { key: "buildingsExceedingThreeStories", label: "Buildings and Structures Exceeding Three Stories" },
+                  { key: "snowPlowSnowRemoval", label: "Snow Plow/Snow Removal Operations" },
+                  { key: "residentialProjectSizeRestrictionExclusion", label: "Residential Project/Structure Size Restriction Exclusion" },
+                  { key: "commercialMixedUseSizeRestrictionExclusion", label: "Commercial or Mixed Use Building/Project Size Restriction Exclusion" },
+                  { key: "museumsAndHistoricBuildings", label: "Museums and Historic Buildings and Structures" },
+                  { key: "houseOfWorship", label: "House of Worship" },
+                  { key: "overspray", label: "Overspray" },
+                ].map((endorsement) => {
+                  const checked = !!formData[endorsement.key];
+                  const hasLimits = endorsementsWithLimits.includes(endorsement.key);
+
+                  return (
+                    <div
+                      key={endorsement.key}
+                      className={`border rounded px-4 py-3 transition${checked ? "bg-[#EAF7F9] border-[#7DD3D7]" : "border-gray-300 hover:bg-gray-50"}`}
+                    >
+                      <div className="flex items-center justify-between">
+
+                        {/* Checkbox + label */}
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+
+                              // 🔴 DEPENDENCY RULE (THIS WAS BROKEN BEFORE)
+                              if (
+                                endorsement.key === "blanketCompletedOperationsCommercial" &&
+                                isChecked &&
+                                !formData.blanketAI_PW_WOS
+                              ) {
+                                handleInputChange("blanketAI_PW_WOS", true);
+                                setShowAIRequiredAlert(true);
+                              }
+
+                              handleInputChange(endorsement.key, isChecked);
+
+                              // 🔵 LIMIT HANDLING
+                              if (hasLimits) {
+                                if (isChecked) {
+                                  handleInputChange(`${endorsement.key}Limit`, "$50K");
+                                } else {
+                                  handleInputChange(`${endorsement.key}Limit`, "");
+                                }
+                              }
+                            }}
+                            className="w-4 h-4 text-black border-2 border-black rounded-sm focus:ring-0"
+                          />
+
+                          <span className="text-sm text-gray-900">
+                            {endorsement.label}
+                          </span>
+                        </label>
+
+                        {/* Limits */}
+                        {checked && hasLimits && (
+                          <div className="flex items-center gap-4 text-sm">
+                            {["$50K", "$100K", "$250K"].map((limit) => (
+                              <label key={limit} className="flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  checked={formData[`${endorsement.key}Limit`] === limit}
+                                  onChange={() =>
+                                    handleInputChange(`${endorsement.key}Limit`, limit)
+                                  }
+                                />
+                                <span>{limit}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
               </div>
             </div>
+
+            {/* 🔔 MODAL ALERT */}
+            {showAIRequiredAlert && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden">
+                  <div className="bg-[#3A3C3F] text-white px-6 py-3">
+                    <h3 className="text-sm font-semibold">
+                      Blanket AI + PW + WOS Required
+                    </h3>
+                  </div>
+
+                  <div className="px-6 py-5 text-sm text-gray-700">
+                    Endorsement <strong>[Blanket AI + PW + WOS]</strong> is required when
+                    you select endorsement{" "}
+                    <strong>[Blanket Your Work (Commercial Only)]</strong>.
+                    <br /><br />
+                    It has been automatically included for you.
+                  </div>
+
+                  <div className="flex justify-end px-6 py-4 border-t">
+                    <button
+                      onClick={() => setShowAIRequiredAlert(false)}
+                      className="px-5 py-2 bg-[#4FD1C5] text-white rounded font-semibold"
+                    >
+                      Ok
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
+
 
           {/* Payment Options */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
@@ -1451,6 +1852,18 @@ export default function QuoteFormPage() {
                 </div>
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
+                  <div></div>
+                  <input
+                    type="number"
+                    value={formData.yearsOfExperienceTrade}
+                    placeholder="4"
+                    onChange={(e) => handleInputChange('yearsOfExperienceTrade', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Entity of Company</label>
                   <div></div>
                   <select
@@ -1466,35 +1879,48 @@ export default function QuoteFormPage() {
                   </select>
                 </div>
 
+
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">
-                    Company FEIN
-                    <span className="text-blue-500 ml-1 cursor-help" title="Federal Employer Identification Number">ⓘ</span>
+                    Applicant SSN
+                    <span
+                      className="text-blue-500 ml-1 cursor-help"
+                      title="Social Security Number"
+                    >
+                      ⓘ
+                    </span>
                   </label>
                   <div></div>
+
                   <div>
                     <input
                       type="text"
                       value={formData.applicantSSN}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const formatted = formatFEIN(value);
-                        handleInputChange('applicantSSN', formatted);
-                        validateFEIN(formatted);
+                        const formatted = formatSSN(value);
+                        handleInputChange("applicantSSN", formatted);
+                        validateSSN(formatted);
                       }}
-                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.fein ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.ssn
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                         }`}
-                      placeholder="23-4453456"
-                      maxLength={10}
+                      placeholder="111-22-1234"
+                      maxLength={11}
                     />
-                    {validationErrors.fein && (
+
+                    {validationErrors.ssn && (
                       <div className="flex items-center gap-1 mt-1">
                         <span className="text-red-600">⚠</span>
-                        <span className="text-sm text-red-600">{validationErrors.fein}</span>
+                        <span className="text-sm text-red-600">
+                          {validationErrors.ssn}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
+
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">Applicant Phone</label>
@@ -1523,7 +1949,82 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">Applicant Email</label>
+                  <div></div>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    placeholder="insured@example.com"
+                  />
+                </div>
+
+
+
+
+
+                {/* Use Carrier Approved Descriptions */}
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                  <label className="text-sm font-medium text-gray-900">
+                    Use Carrier Approved Descriptions?
+                  </label>
+                  <div></div>
+                  <div className="flex items-center gap-6">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        checked={formData.useCarrierApprovedDescriptions === true}
+                        onChange={() =>
+                          handleInputChange("useCarrierApprovedDescriptions", true)
+                        }
+                        className="w-4 h-4"
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        checked={formData.useCarrierApprovedDescriptions === false}
+                        onChange={() =>
+                          handleInputChange("useCarrierApprovedDescriptions", false)
+                        }
+                        className="w-4 h-4"
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
+
+                {/* Carrier Approved Description */}
+                {formData.useCarrierApprovedDescriptions && (
+                  <div className="border border-gray-300 rounded overflow-hidden">
+                    <div className="bg-[#4A4E5A] text-white px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full bg-white text-[#4A4E5A] flex items-center justify-center text-xs font-bold">
+                        i
+                      </span>
+                      Carrier Approved Description
+                    </div>
+                    <textarea
+                      value={formData.carrierApprovedDescription}
+                      onChange={(e) =>
+                        handleInputChange("carrierApprovedDescription", e.target.value)
+                      }
+                      rows={6}
+                      className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
+                    />
+                  </div>
+                )}
+
+
+
+
+
+
+
+
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">Applicant Fax</label>
                   <div></div>
                   <div>
@@ -1548,21 +2049,9 @@ export default function QuoteFormPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Applicant Email</label>
-                  <div></div>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="insured@example.com"
-                  />
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Website address</label>
                   <div></div>
                   <input
@@ -1572,9 +2061,9 @@ export default function QuoteFormPage() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     placeholder="example.com"
                   />
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Does the carrier approved description thoroughly describe the work you will be performing?</label>
                   <div></div>
                   <div className="flex items-center gap-6">
@@ -1597,9 +2086,9 @@ export default function QuoteFormPage() {
                       <span className="text-sm text-gray-700">No</span>
                     </label>
                   </div>
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">Carrier Approved Description</label>
                   <div></div>
                   <textarea
@@ -1621,7 +2110,7 @@ export default function QuoteFormPage() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     placeholder="Describe operations for which you are currently applying for insurance"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -1762,7 +2251,7 @@ export default function QuoteFormPage() {
           </div>
 
           {/* Resume Questions */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+          {/* <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Resume Questions</h2>
             </div>
@@ -1800,7 +2289,7 @@ export default function QuoteFormPage() {
                 )}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Type of Work Performed */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
@@ -1810,29 +2299,167 @@ export default function QuoteFormPage() {
             <div className="px-8 pt-6 pb-7">
 
               <div className="space-y-7 mt-1">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-3">Maximum # of Interior Stories</label>
+
+                {/* % New Construction */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Percentage of work performed on New Construction Projects
+                  </label>
+
+                  <div className="flex justify-end">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={formData.newConstructionPercent}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          if (Number(value) <= 100) {
+                            handleInputChange("newConstructionPercent", value);
+                          }
+                        }}
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      />
+                      <span className="text-sm text-gray-600">%</span>
+                    </div>
+                  </div>
+                </div>
+
+
+                {/* % Remodel / Service / Repair */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Percentage of Remodel/Service/Repair work performed
+                  </label>
+                  <div className="flex items-center gap-2 justify-end">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={formData.remodelServiceRepairPercent}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        if (Number(val) <= 100) {
+                          handleInputChange("remodelServiceRepairPercent", val);
+                        }
+                      }}
+                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+                </div>
+
+                {/* % Residential */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Percentage of Residential work performed:
+                  </label>
+                  <div className="flex items-center gap-2 justify-end">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={formData.residentialPercent}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        if (Number(val) <= 100) {
+                          handleInputChange("residentialPercent", val);
+                        }
+                      }}
+                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+                </div>
+
+                {/* % Commercial */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Percentage of Commercial work performed:
+                  </label>
+                  <div className="flex items-center gap-2 justify-end">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={formData.commercialPercent}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        if (Number(val) <= 100) {
+                          handleInputChange("commercialPercent", val);
+                        }
+                      }}
+                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+                </div>
+
+                {/* Max Interior Stories */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Maximum # of Interior Stories:
+                  </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.maxInteriorStories}
-                    onChange={(e) => handleInputChange('maxInteriorStories', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    min="0"
+                    onChange={(e) =>
+                      handleInputChange(
+                        "maxInteriorStories",
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-3">Maximum # of Exterior Stories</label>
+                {/* Max Exterior Stories */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Maximum # of Exterior Stories:
+                  </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.maxExteriorStories}
-                    onChange={(e) => handleInputChange('maxExteriorStories', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    min="0"
+                    onChange={(e) =>
+                      handleInputChange(
+                        "maxExteriorStories",
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                   />
                 </div>
 
-                <YesNoRadio
+                {/* Max Exterior Depth Below Grade */}
+                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                  <label className="text-sm font-medium text-gray-900">
+                    Maximum Exterior Depth Below Grade in Feet:
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={formData.maxExteriorDepthBelowGrade}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "maxExteriorDepthBelowGrade",
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                  />
+                </div>
+
+
+
+
+                {/* <YesNoRadio
                   label="Will you or any subcontractor perform work below grade?"
                   value={formData.workBelowGrade}
                   onChange={(val) => handleInputChange('workBelowGrade', val)}
@@ -1863,15 +2490,15 @@ export default function QuoteFormPage() {
                       </div>
                     </div>
                   </div>
-                )}
+                )} */}
 
-                <YesNoRadio
+                {/* <YesNoRadio
                   label="Have you or will you build on a hillside?"
                   value={formData.buildOnHillside}
                   onChange={(val) => handleInputChange('buildOnHillside', val)}
-                />
+                /> */}
 
-                {formData.buildOnHillside && (
+                {/* {formData.buildOnHillside && (
                   <div className="pl-4 border-l-2 border-gray-200">
                     <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
                     <textarea
@@ -1881,7 +2508,7 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     />
                   </div>
-                )}
+                )} */}
 
                 <YesNoRadio
                   label="Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?"
@@ -1901,7 +2528,7 @@ export default function QuoteFormPage() {
                   </div>
                 )}
 
-                <YesNoRadio
+                {/* <YesNoRadio
                   label="Will you be acting as the General Contractor on any projects?"
                   value={formData.actAsGeneralContractor}
                   onChange={(val) => handleInputChange('actAsGeneralContractor', val)}
@@ -1917,7 +2544,7 @@ export default function QuoteFormPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     />
                   </div>
-                )}
+                )} */}
 
                 <YesNoRadio
                   label="Will you perform any waterproofing?"
@@ -1955,7 +2582,7 @@ export default function QuoteFormPage() {
                       />
                     </div>
 
-                    <YesNoRadio
+                    {/* <YesNoRadio
                       label="Are you and all employees that operate heavy equipment certified to do so?"
                       value={formData.heavyEquipmentOperatorsCertified}
                       onChange={(val) => handleInputChange('heavyEquipmentOperatorsCertified', val)}
@@ -1973,12 +2600,12 @@ export default function QuoteFormPage() {
                           className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                         />
                       </div>
-                    )}
+                    )} */}
                   </div>
                 )}
 
                 <YesNoRadio
-                  label="Will you perform work in new tract home developments of 15 or more units?"
+                  label="Will you perform work in new tract home developments of 25 or more units?"
                   value={formData.workNewTractHomes}
                   onChange={(val) => handleInputChange('workNewTractHomes', val)}
                 />
@@ -2013,16 +2640,16 @@ export default function QuoteFormPage() {
                       />
                     </div>
 
-                    <YesNoRadio
+                    {/* <YesNoRadio
                       label="Will any of the complexes contain 15 or more units?"
                       value={formData.condoUnits15OrMore}
                       onChange={(val) => handleInputChange('condoUnits15OrMore', val)}
-                    />
+                    /> */}
                   </div>
                 )}
 
                 <YesNoRadio
-                  label="Will you perform structural repair of condominiums/townhouses/multi-unit residences?"
+                  label="Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences? "
                   value={formData.performCondoStructuralRepair}
                   onChange={(val) => handleInputChange('performCondoStructuralRepair', val)}
                 />
@@ -2039,11 +2666,11 @@ export default function QuoteFormPage() {
                       />
                     </div>
 
-                    <YesNoRadio
+                    {/* <YesNoRadio
                       label="Will any of the complexes contain 15 or more units?"
-                      value={formData.condoRepairUnits15OrMore}
-                      onChange={(val) => handleInputChange('condoRepairUnits15OrMore', val)}
-                    />
+                      value={formData.condoRepairUnits25OrMore}
+                      onChange={(val) => handleInputChange('condoRepairUnits25OrMore', val)}
+                    /> */}
                   </div>
                 )}
 
@@ -2065,6 +2692,24 @@ export default function QuoteFormPage() {
                     <textarea
                       value={formData.hazardousWorkExplanation}
                       onChange={(e) => handleInputChange('hazardousWorkExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+                <YesNoRadio
+                  label="Will you or do you perform or subcontract any work involving the following: medical facilities (including new construction), hospitals (including new construction), churches or other house of worship, museums, historic buildings, airports, schools/playgrounds/recreational facilities (including new construction)?"
+                  value={formData.performMedicalFacilities}
+                  onChange={(val) => handleInputChange('performMedicalFacilities', val)}
+                />
+
+                {formData.performMedicalFacilities && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.medicalFacilitiesExplanation}
+                      onChange={(e) => handleInputChange('medicalFacilitiesExplanation', e.target.value)}
                       rows={2}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     />
@@ -2106,6 +2751,43 @@ export default function QuoteFormPage() {
                     </div>
                   </div>
                 )}
+
+
+                <YesNoRadio
+                  label="Will you perform work on commercial buildings over 20,000 square feet? "
+                  value={formData.workOver20000SqFt}
+                  onChange={(val) => handleInputChange('workOver20000SqFt', val)}
+                />
+
+                {formData.workOver20000SqFt && (
+                  <div className="space-y-4 pl-4 border-l-2 border-gray-200">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.over20000SqFtExplanation}
+                        onChange={(e) => handleInputChange('over20000SqFtExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        What percentage of your work will be on commercial buildings over 20,000 square feet?
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={formData.over20000SqFtPercent}
+                          onChange={(e) => handleInputChange('over20000SqFtPercent', e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          max="100"
+                        />
+                        <span className="absolute right-3 top-2 text-gray-500">%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2118,99 +2800,253 @@ export default function QuoteFormPage() {
             <div className="px-8 pt-6 pb-7">
 
               <div className="space-y-7 mt-1">
+
                 <YesNoRadio
-                  label="Do you perform Industrial Operations?"
-                  value={formData.performIndustrialOps}
-                  onChange={(val) => handleInputChange('performIndustrialOps', val)}
+                  label="Are there any other business names which you have used in the past or are currently using in addition to that for which you’re currently applying for insurance? "
+                  value={formData.otherBusinessNames}
+                  onChange={(val) => handleInputChange('otherBusinessNames', val)}
                 />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-3">
-                    List any other business names which you have used in the past or are currently using in addition to that for which you're currently applying for insurance
-                  </label>
-                  <textarea
-                    value={formData.otherBusinessNames}
-                    onChange={(e) => handleInputChange('otherBusinessNames', e.target.value)}
-                    rows={2}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  />
-                </div>
-
+                {formData.otherBusinessNames && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.otherBusinessNamesExplanation}
+                      onChange={(e) => handleInputChange('otherBusinessNamesExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
                 <YesNoRadio
-                  label="Have you been cited for an OSHA violation more than once in the last 3 years?"
-                  value={formData.citedForOSHAViolations}
-                  onChange={(val) => handleInputChange('citedForOSHAViolations', val)}
-                />
-
-                <YesNoRadio
-                  label="Are the number of years in business and loss information provided verifiable with company loss runs?"
-                  value={formData.lossInfoVerifiable}
-                  onChange={(val) => handleInputChange('lossInfoVerifiable', val)}
-                />
-
-                <YesNoRadio
-                  label="Has any licensing authority taken any action against you, your company, or any affiliates?"
+                  label="Has any licensing authority taken any action against you, your company or any affiliates?"
                   value={formData.licensingActionTaken}
                   onChange={(val) => handleInputChange('licensingActionTaken', val)}
                 />
 
-                <YesNoRadio
-                  label="Have you allowed or will you allow your license to be used by another contractor?"
-                  value={formData.allowedLicenseUseByOthers}
-                  onChange={(val) => handleInputChange('allowedLicenseUseByOthers', val)}
-                />
-
-                <YesNoRadio
-                  label="Has any lawsuit ever been filed or any claim otherwise been made against your company?"
-                  value={formData.lawsuitsFiled}
-                  onChange={(val) => handleInputChange('lawsuitsFiled', val)}
-                />
-
-                <YesNoRadio
-                  label="Is your company aware of any facts, circumstances, incidents, situations, damages or accidents that might give rise to a claim or lawsuit?"
-                  value={formData.awareOfPotentialClaims}
-                  onChange={(val) => handleInputChange('awareOfPotentialClaims', val)}
-                />
-
-                <YesNoRadio
-                  label="Do you have a written contract for all work you perform?"
-                  value={formData.hasWrittenContracts}
-                  onChange={(val) => handleInputChange('hasWrittenContracts', val)}
-                />
-
-                {formData.hasWrittenContracts && (
-                  <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-                    <YesNoRadio
-                      label="Does the contract identify a start date for the work?"
-                      value={formData.contractHasStartDate}
-                      onChange={(val) => handleInputChange('contractHasStartDate', val)}
-                    />
-
-                    <YesNoRadio
-                      label="Does the contract identify a precise scope of work?"
-                      value={formData.contractHasScopeOfWork}
-                      onChange={(val) => handleInputChange('contractHasScopeOfWork', val)}
-                    />
-
-                    <YesNoRadio
-                      label="Does the contract identify all subcontracted trades (if any)?"
-                      value={formData.contractIdentifiesSubcontractors}
-                      onChange={(val) => handleInputChange('contractIdentifiesSubcontractors', val)}
-                    />
-
-                    <YesNoRadio
-                      label="Does the contract provide a set price?"
-                      value={formData.contractHasSetPrice}
-                      onChange={(val) => handleInputChange('contractHasSetPrice', val)}
-                    />
-
-                    <YesNoRadio
-                      label="Is the contract signed by all parties to the contract?"
-                      value={formData.contractSignedByAllParties}
-                      onChange={(val) => handleInputChange('contractSignedByAllParties', val)}
+                {formData.licensingActionTaken && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.licensingActionTakenExplanation}
+                      onChange={(e) => handleInputChange('licensingActionTakenExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                     />
                   </div>
                 )}
+                <YesNoRadio
+                  label="Have you allowed or will you allow your license to be used by any other contractor?"
+                  value={formData.licenseSharedWithOthers}
+                  onChange={(val) => handleInputChange('licenseSharedWithOthers', val)}
+                />
+
+                {formData.licenseSharedWithOthers && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.licenseSharedWithOthersExplanation}
+                      onChange={(e) => handleInputChange('licenseSharedWithOthersExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+                <YesNoRadio
+                  label="Has the applicant or business owner ever had any judgements or liens filed against them or filed for bankruptcy?"
+                  value={formData.judgementsOrLiens}
+                  onChange={(val) => handleInputChange('judgementsOrLiens', val)}
+                />
+
+                {formData.judgementsOrLiens && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.judgementsOrLiensExplanation}
+                      onChange={(e) => handleInputChange('judgementsOrLiensExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+                <YesNoRadio
+                  label="Has any lawsuit ever been filed or any claim otherwise been made against your company (including any partnership or any joint venture of which you have been a member of, any of your company's predecessors, or any person, company or entities on whose behalf your company has assumed liability?"
+                  value={formData.lawsuitsOrClaims}
+                  onChange={(val) => handleInputChange('lawsuitsOrClaims', val)}
+                />
+
+                {formData.lawsuitsOrClaims && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.lawsuitsOrClaimsExplanation}
+                      onChange={(e) => handleInputChange('lawsuitsOrClaimsExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+                <YesNoRadio
+                  label="Is your company aware of any facts, circumstances, incidents, situations, damages or accidents (including but not limited to: faulty or defective workmanship, product failure, construction dispute, property damage or construction worker injury) that a reasonably prudent person might expect to give rise to a claim or lawsuit, whether valid or not, which might directly or indirectly involve the company?"
+                  value={formData.knownIncidentsOrClaims}
+                  onChange={(val) => handleInputChange('knownIncidentsOrClaims', val)}
+                />
+
+                {formData.knownIncidentsOrClaims && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                    <textarea
+                      value={formData.knownIncidentsOrClaimsExplanation}
+                      onChange={(e) => handleInputChange('knownIncidentsOrClaimsExplanation', e.target.value)}
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+                <YesNoRadio
+                  label="Do you have a written contract for all work you perform?"
+                  value={formData.writtenContractForAllWork}
+                  onChange={(val) => handleInputChange('writtenContractForAllWork', val)}
+                />
+
+                {formData.writtenContractForAllWork === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.writtenContractForAllWorkExplanation}
+                      onChange={(e) =>
+                        handleInputChange('writtenContractForAllWorkExplanation', e.target.value)
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+
+                <YesNoRadio
+                  label="Does the contract identify a start date for the work?"
+                  value={formData.contractHasStartDate}
+                  onChange={(val) => handleInputChange('contractHasStartDate', val)}
+                />
+
+                {formData.contractHasStartDate === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.contractHasStartDateExplanation}
+                      onChange={(e) =>
+                        handleInputChange('contractHasStartDateExplanation', e.target.value)
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+
+                <YesNoRadio
+                  label="Does the contract identify a precise scope of work?"
+                  value={formData.contractHasScopeOfWork}
+                  onChange={(val) => handleInputChange('contractHasScopeOfWork', val)}
+                />
+
+                {formData.contractHasScopeOfWork === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.contractHasScopeOfWorkExplanation}
+                      onChange={(e) =>
+                        handleInputChange('contractHasScopeOfWorkExplanation', e.target.value)
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+
+                <YesNoRadio
+                  label="Does the contract identify all subcontracted trades (if any)?"
+                  value={formData.contractIdentifiesSubTrades}
+                  onChange={(val) => handleInputChange('contractIdentifiesSubTrades', val)}
+                />
+
+                {formData.contractIdentifiesSubTrades === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.contractIdentifiesSubTradesExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'contractIdentifiesSubTradesExplanation',
+                          e.target.value
+                        )
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+
+                <YesNoRadio
+                  label="Does the contract provide a set price?"
+                  value={formData.contractHasSetPrice}
+                  onChange={(val) => handleInputChange('contractHasSetPrice', val)}
+                />
+
+                {formData.contractHasSetPrice === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.contractHasSetPriceExplanation}
+                      onChange={(e) =>
+                        handleInputChange('contractHasSetPriceExplanation', e.target.value)
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
+
+                <YesNoRadio
+                  label="Is the contract signed by all parties to the contract?"
+                  value={formData.contractSignedByAllParties}
+                  onChange={(val) => handleInputChange('contractSignedByAllParties', val)}
+                />
+
+                {formData.contractSignedByAllParties === false && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      If No, please explain:
+                    </label>
+                    <textarea
+                      value={formData.contractSignedByAllPartiesExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'contractSignedByAllPartiesExplanation',
+                          e.target.value
+                        )
+                      }
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+                )}
+
               </div>
             </div>
           </div>
@@ -2344,7 +3180,7 @@ export default function QuoteFormPage() {
                 </div>
 
                 <YesNoRadio
-                  label="Would you like to add Excess Liability coverage?"
+                  label=""
                   value={formData.addExcessLiability}
                   onChange={(val) => handleInputChange('addExcessLiability', val)}
                 />
@@ -2435,34 +3271,59 @@ export default function QuoteFormPage() {
           {/* Environmental Coverage */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">
-                Add Environmental Coverage
-              </h2>
+              <h2 className="text-lg font-semibold">Add Environmental coverage</h2>
             </div>
 
             <div className="px-8 pt-6 pb-7 space-y-4">
-              <p className="text-sm text-gray-700">
-                Contractors of all types may find themselves faced with pollution exposure arising out of:
+
+              {/* Top row: description + Yes/No */}
+              <div className="flex items-start justify-between gap-6">
+                <p className="text-sm text-gray-700 max-w-3xl">
+                  Contractors of ALL types may find themselves faced with a pollution
+                  exposure arising out of:
+                </p>
+
+                <YesNoRadio
+                  label=""
+                  value={formData.addEnvironmentalCoverage}
+                  onChange={(val) =>
+                    handleInputChange("addEnvironmentalCoverage", val)
+                  }
+                />
+              </div>
+
+              {/* Bullet points in two columns */}
+              <div className="grid grid-cols-2 gap-x-10 text-sm text-gray-700">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Excessive or fugitive dust, soot</li>
+                  <li>Vapors, fumes, and odors</li>
+                  <li>Mold growth</li>
+                  <li>Unknown/hidden utilities</li>
+                  <li>And more...</li>
+                </ul>
+
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Asbestos, lead-based paint, silica</li>
+                  <li>Accidental spills of fuel, paints, solvents</li>
+                  <li>Cleaning chemicals and detergents</li>
+                  <li>Pesticides and herbicides</li>
+                </ul>
+              </div>
+
+              {/* Disclaimer text */}
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Please review the policy as well as consult your legal or insurance
+                representative as to your specific business operations and needs.
+                Note that the insuring agreement in a policy sets out the covered perils,
+                assumed risks, and nature of coverage that the insurance company provides
+                to insured in exchange for the premiums paid. Thus, the terms and
+                conditions of the policy will dictate whether coverage exists and the
+                nature of any potential benefits.
               </p>
 
-              <ul className="list-disc pl-5 text-sm text-gray-700">
-                <li>Excessive or fugitive dust, soot</li>
-                <li>Vapors, fumes, and odors</li>
-                <li>Asbestos, lead-based paint, silica</li>
-                <li>Accidental spills of fuel, paints, solvents</li>
-                <li>Cleaning chemicals and detergents</li>
-                <li>Pesticides and herbicides</li>
-              </ul>
-
-              <YesNoRadio
-                label=""
-                value={formData.addEnvironmentalCoverage}
-                onChange={(val) =>
-                  handleInputChange("addEnvironmentalCoverage", val)
-                }
-              />
             </div>
           </div>
+
 
 
 
