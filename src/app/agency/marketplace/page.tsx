@@ -1,5 +1,5 @@
 "use client";
-import MarketplaceSidebar from "@/components/layout/MarketolaceSidebar";
+import MarketplaceSidebar from "@/components/layout/MarketplaceSidebar";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -162,6 +162,7 @@ export default function MarketplacePage() {
                 <p className="text-sm text-gray-600">Select industries and programs</p>
               </div>
             </div>
+            {/*this button text*/}
             <button
               onClick={() => router.push('/api/auth/signout')}
               className="text-sm text-gray-600 hover:text-gray-900 font-medium"
@@ -191,13 +192,13 @@ export default function MarketplacePage() {
                       <div
                         onClick={() => handleIndustryClick(industry.id)}
                         className={`cursor-pointer bg-white border-2 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
-                          ? 'border-[#00BCD4] shadow-lg'
+                          ? 'border-[#9A8B7A] shadow-lg'
                           : 'border-gray-200 hover:border-gray-300'
                           }`}
                       >
                         {/* Featured Banner */}
                         {industry.featured && !isExpanded && (
-                          <div className="bg-gradient-to-r from-[#7C3AED] to-[#4F46E5] px-4 py-3 text-white text-center">
+                          <div className="bg-[#9A8B7A] px-4 py-3 text-white text-center">
                             <p className="text-sm font-semibold leading-tight">
                               {industry.featuredText}
                             </p>
@@ -249,25 +250,25 @@ export default function MarketplacePage() {
                           {industry.programs.map((program) => (
                             <label
                               key={program.id}
-                              className="flex items-start gap-3 p-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-[#00BCD4] hover:bg-gray-50 transition-all group"
+                              className="flex items-start gap-3 p-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-[#9A8B7A] hover:bg-gray-50 transition-all group"
                             >
                               {/* Checkbox (acts as radio) */}
                               <input
                                 type="checkbox"
                                 checked={selectedProgram === program.id}
                                 onChange={() => handleProgramSelect(program.id)}
-                                className="w-5 h-5 mt-0.5 text-[#00BCD4] border-gray-300 rounded focus:ring-[#00BCD4] focus:ring-2 cursor-pointer"
+                                className="w-5 h-5 mt-0.5 text-[#9A8B7A] border-gray-300 rounded focus:ring-[#9A8B7A] focus:ring-2 cursor-pointer  accent-[#9A8B7A]"
                               />
 
                               {/* Program Info */}
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-sm font-medium text-gray-900 group-hover:text-[#00BCD4] transition-colors">
+                                  <span className="text-sm font-medium text-gray-900 group-hover:text-[#9A8B7A] transition-colors">
                                     {program.name}
                                   </span>
                                   {program.badge && (
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${program.badgeColor === 'teal'
-                                      ? 'bg-[#00BCD4] text-white'
+                                      ? 'bg-[#9A8B7A] text-white'
                                       : 'bg-blue-100 text-blue-700'
                                       }`}>
                                       {program.badge}
@@ -286,10 +287,10 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Continue Button */}
+          {/* Continue Button  this is button edting */}
           <div className="fixed bottom-6 right-6 z-50">
             <button
-              onClick={handleContinue}
+              onClick={handleContinue} 
               disabled={!selectedProgram}
               className={`px-8 py-3 rounded-lg text-base font-semibold shadow-lg transition-all
                 ${

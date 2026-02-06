@@ -7,7 +7,6 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useGooglePlacesAutocomplete } from "@/hooks/useGooglePlacesAutocomplete";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/utils/currencyFormatter";
-import { DollarSign, Umbrella, Hammer, Home, AlertTriangle, } from "lucide-react";
 
 // Helper component for Yes/No radio buttons
 const YesNoRadio = ({
@@ -353,6 +352,16 @@ export default function QuoteFormPage() {
   const materialCost = parseCurrency(
     formData.estimatedMaterialCosts || "0"
   );
+
+  // Validation rules
+  const subcontractingValue = parseCurrency(
+    formData.estimatedSubcontractingCosts || "0"
+  );
+
+  // Subcontracting must be > 0 if subcontractors are used
+  const subcontractingZeroError =
+    formData.useSubcontractors && subcontractingValue <= 0;
+
 
   // Individual rules
   const subcontractingError =
@@ -993,6 +1002,12 @@ export default function QuoteFormPage() {
                         onChange={(e) => {
                           const formatted = formatCurrencyInput(e.target.value);
                           handleInputChange("estimatedSubcontractingCosts", formatted);
+
+                          // 🔥 AUTO-SET SUBCONTRACTORS = YES
+                          const parsed = parseCurrency(formatted);
+                          if (parsed > 0 && !formData.useSubcontractors) {
+                            handleUseSubcontractorsChange(true);
+                          }
                         }}
                         onBlur={(e) => {
                           const parsed = parseCurrency(e.target.value);
@@ -1001,22 +1016,29 @@ export default function QuoteFormPage() {
                             parsed > 0 ? parsed.toString() : ""
                           );
                         }}
-                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError || combinedCostError
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
+                          combinedCostError ||
+                          subcontractingZeroError
                           ? "border-red-500 focus:ring-red-400"
                           : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
                           }`}
                       />
                     </div>
 
-                    {(subcontractingError || combinedCostError) && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {subcontractingError
-                          ? "Subcontracting costs cannot exceed total gross receipts."
-                          : "Subcontracting + material costs must be less than total gross receipts."}
-                      </p>
-                    )}
+                    {(subcontractingError ||
+                      combinedCostError ||
+                      subcontractingZeroError) && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {subcontractingError
+                            ? "Subcontracting costs cannot exceed total gross receipts."
+                            : subcontractingZeroError
+                              ? "Subcontracting costs must be greater than $0 when subcontractors are used."
+                              : "Subcontracting + material costs must be less than total gross receipts."}
+                        </p>
+                      )}
                   </div>
                 </div>
+
 
 
 
@@ -1063,24 +1085,32 @@ export default function QuoteFormPage() {
                       Estimated Total Payroll
                     </label>
                     <div></div>
-                    <select
-                      value={formData.totalPayroll}
-                      onChange={(e) =>
-                        handleInputChange("totalPayroll", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] bg-white text-sm"
-                    >
-                      <option value="">Select Payroll Range</option>
-                      <option value="Under 15k">Under 15k</option>
-                      <option value="15k-30k">15k-30k</option>
-                      <option value="30k-50k">30k-50k</option>
-                      <option value="50k-70k">50k-70k</option>
-                      <option value="70k-90k">70k-90k</option>
-                      <option value="90k-110k">90k-110k</option>
-                      <option value="110k-150k">110k-150k</option>
-                      <option value="Over 150k">Over 150k</option>
-                    </select>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.totalPayroll
+                            ? formatCurrencyInput(formData.totalPayroll)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("totalPayroll", formatted);
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "totalPayroll",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        placeholder="Enter payroll amount"
+                      />
+                    </div>
                   </div>
+
                 )}
 
 
@@ -1262,7 +1292,7 @@ export default function QuoteFormPage() {
 
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Self Insured Retention</label>
+                  <label className="text-sm font-medium text-gray-900">Deductible</label>
                   <div></div>
                   <select
                     value={formData.selfInsuredRetention}
@@ -1350,8 +1380,8 @@ export default function QuoteFormPage() {
                           );
                         }}
                         className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
-                            ? "border-red-500 focus:ring-red-400"
-                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                          ? "border-red-500 focus:ring-red-400"
+                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
                           }`}
                       />
                     </div>

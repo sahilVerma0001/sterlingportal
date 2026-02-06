@@ -1,5 +1,6 @@
 "use client";
 
+import BrokerSidebar from "@/components/layout/BrokerSidebar";
 export const dynamic = 'force-dynamic';
 
 import { useSession } from "next-auth/react";
@@ -274,8 +275,8 @@ function AgencyDashboardContent() {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <div className="relative w-16 h-16 mx-auto mb-4">
-                        <div className="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 border-4 border-[#F3F0ED] rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
                     </div>
                     <p className="text-sm text-gray-600 font-medium">Loading your workspace...</p>
                 </div>
@@ -286,162 +287,25 @@ function AgencyDashboardContent() {
     if (status === "unauthenticated") return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-[#F5F6F7] flex">
             {/* Sidebar - Matching ISC */}
-            <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
-                {/* Sterling Premium Logo */}
-                <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
-                    {/* Logo Icon */}
-                    <div className="relative mb-3">
-                        {/* Outer Glow */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
+            <BrokerSidebar />
 
-                        {/* Logo Container */}
-                        <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#00BCD4]/20 group-hover:border-[#00BCD4]/40 transition-all overflow-hidden">
-                            {/* Animated Background Pattern */}
-                            <div className="absolute inset-0 opacity-10">
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent"></div>
-                            </div>
-
-                            {/* Premium Logo Design - Abstract Geometric */}
-                            <svg className="relative w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                {/* Outer Shield Shape */}
-                                <path
-                                    d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z"
-                                    fill="url(#logoGradient1)"
-                                    className="drop-shadow-lg"
-                                />
-
-                                {/* Inner Diamond */}
-                                <path
-                                    d="M50 25 L65 40 L50 70 L35 40 Z"
-                                    fill="url(#logoGradient2)"
-                                    className="drop-shadow-md"
-                                />
-
-                                {/* Center Accent Line */}
-                                <path
-                                    d="M50 30 L50 65"
-                                    stroke="#FFFFFF"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    className="drop-shadow-sm"
-                                />
-
-                                {/* Horizontal Accent */}
-                                <path
-                                    d="M40 47 L60 47"
-                                    stroke="#FFFFFF"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    opacity="0.8"
-                                />
-
-                                {/* Gradients */}
-                                <defs>
-                                    <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#00BCD4" stopOpacity="0.9" />
-                                        <stop offset="100%" stopColor="#0097A7" stopOpacity="0.95" />
-                                    </linearGradient>
-                                    <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
-                                        <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.1" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            {/* Corner Accents */}
-                            <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-                            <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-                        </div>
-                    </div>
-
-                    {/* Company Name */}
-                    <div className="text-center px-2">
-                        <p className="text-[9px] font-semibold text-gray-400 leading-tight tracking-wide uppercase group-hover:text-gray-300 transition-colors" style={{ letterSpacing: '0.05em' }}>
-                            Sterling
-                        </p>
-                        <p className="text-[8px] font-medium text-gray-500 leading-tight group-hover:text-gray-400 transition-colors">
-                            Wholesale Insurance
-                        </p>
-                    </div>
-                </Link>
-
-                {/* Navigation Icons */}
-                <nav className="flex flex-col gap-6 flex-1">
-                    <button className="p-3 text-gray-400 hover:text-white transition-colors">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </button>
-
-                    <button className="p-3 text-gray-400 hover:text-white transition-colors">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    </button>
-
-                    <button className="p-3 text-gray-400 hover:text-white transition-colors">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </button>
-
-                    <button className="p-3 text-gray-400 hover:text-white transition-colors">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-
-                    <div className="mt-auto">
-                        <Link href="/agency/tools" className="p-3 text-gray-400 hover:text-white hover:bg-[#9C27B0]/10 rounded-lg transition-colors block">
-                            <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </Link>
-                        <div className="text-[10px] text-gray-400 text-center -mt-2">Tools</div>
-
-                        <Link href="/agency/bound-policies" className="p-3 text-gray-400 hover:text-white hover:bg-[#00BCD4]/10 rounded-lg transition-colors block mt-2">
-                            <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </Link>
-                        <div className="text-[10px] text-gray-400 text-center -mt-2">Policies</div>
-
-                        <button className="p-3 text-gray-400 hover:text-white transition-colors mt-2">
-                            <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                        </button>
-                        <div className="text-[10px] text-gray-400 text-center -mt-2">OMGA</div>
-
-                        <Link href="/agency/marketplace" className="p-3 text-gray-400 hover:text-white hover:bg-[#4DD0E1]/10 rounded-lg transition-colors block mt-2">
-                            <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                        </Link>
-                        <div className="text-[10px] text-gray-400 text-center -mt-2 mb-4">Marketplace</div>
-                    </div>
-                </nav>
-
-                {/* Bottom Icons */}
-                <div className="flex flex-col gap-4 mt-auto">
-                </div>
-            </aside>
 
             {/* Main Content */}
-            <div className="flex-1 ml-[70px]">
+            <div className="flex-1">
                 {/* Top Header */}
-                <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                    <h1 className="text-3xl font-normal text-gray-900">Sales Pipeline</h1>
+                <header className="h-20 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-8">
+                    <h1 className="text-3xl font-normal text-[#111827]">Sales Pipeline</h1>
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setViewMode('my')}
                             className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${viewMode === 'my'
-                                ? 'bg-black text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                ? 'bg-[#9A8B7A] text-white'
+
+                                : 'bg-white text-[#111827] border border-[#E5E7EB] hover:bg-[#F3F0ED]'
+
                                 }`}
                         >
                             My Sales Pipeline
@@ -449,7 +313,7 @@ function AgencyDashboardContent() {
                         <button
                             onClick={() => setViewMode('agency')}
                             className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${viewMode === 'agency'
-                                ? 'bg-black text-white'
+                                ? 'bg-[#9A8B7A] text-white'
                                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
@@ -460,7 +324,7 @@ function AgencyDashboardContent() {
 
                 {/* Quote Notifications */}
                 {newQuotes.length > 0 && (
-                    <div className="bg-[#00BCD4] text-white px-8 py-3 border-b border-[#00ACC1]">
+                    <div className="bg-[#9A8B7A] text-white px-8 py-3 border-b border-[#7A6F64]">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="text-lg">🔔</span>
@@ -475,7 +339,7 @@ function AgencyDashboardContent() {
                             </div>
                             <Link
                                 href="/agency/quotes?status=POSTED"
-                                className="px-4 py-2 bg-white text-[#00BCD4] rounded-lg font-medium hover:bg-cyan-50 transition-colors text-sm"
+                                className="px-4 py-2 bg-white text-[#9A8B7A] rounded-lg font-medium hover:bg-cyan-50 transition-colors text-sm"
                             >
                                 View Quotes →
                             </Link>
@@ -493,8 +357,8 @@ function AgencyDashboardContent() {
                                     key={stage.id}
                                     onClick={() => setSelectedStage(stage.id)}
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all ${selectedStage === stage.id
-                                        ? 'bg-[#00BCD4] text-white font-medium'
-                                        : 'text-gray-700 hover:bg-gray-50'
+                                        ? 'bg-[#9A8B7A] text-white font-medium'
+                                        : 'text-[#111827] hover:bg-[#F3F0ED]'
                                         }`}
                                 >
                                     <span className="text-sm">{stage.label}</span>
@@ -529,14 +393,14 @@ function AgencyDashboardContent() {
                                         placeholder="Search"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-[#9A8B7A] focus:border-transparent"
                                     />
                                 </div>
 
                                 <select
                                     value={filterType}
                                     onChange={(e) => setFilterType(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
                                 >
                                     <option value="ALL">All Types</option>
                                     <option value="SUBMITTED">New Business</option>
@@ -546,7 +410,7 @@ function AgencyDashboardContent() {
                                 <select
                                     value={filterProgram}
                                     onChange={(e) => setFilterProgram(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
                                 >
                                     <option value="ALL">All Programs</option>
                                     {Array.from(new Set(allSubmissions.map(s => s.industry))).map(industry => (
@@ -558,7 +422,7 @@ function AgencyDashboardContent() {
                                     type="date"
                                     value={filterStartDate}
                                     onChange={(e) => setFilterStartDate(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
                                     placeholder="Created Date"
                                 />
 
@@ -587,8 +451,8 @@ function AgencyDashboardContent() {
                             <div className="flex items-center justify-center h-96">
                                 <div className="text-center">
                                     <div className="relative w-12 h-12 mx-auto mb-4">
-                                        <div className="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-                                        <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin"></div>
+                                        <div className="absolute inset-0 border-4 border-[#F3F0ED] rounded-full"></div>
+                                        <div className="absolute inset-0 border-4 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
                                     </div>
                                     <p className="text-sm text-gray-600">Loading submissions...</p>
                                 </div>
@@ -605,7 +469,7 @@ function AgencyDashboardContent() {
                                     <p className="text-sm text-gray-600 mb-6">Try adjusting your filters or create a new submission</p>
                                     <Link
                                         href="/agency/submit"
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00BCD4] text-white rounded-lg text-sm font-medium hover:bg-[#00ACC1] transition-colors"
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] text-white hover:bg-[#7A6F64] rounded-lg text-sm font-medium hover:bg-[#00ACC1] transition-colors"
                                     >
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -683,7 +547,7 @@ function AgencyDashboardContent() {
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <svg className="w-4 h-4 text-[#00BCD4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <svg className="w-4 h-4 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                                                 </svg>
                                                                 <span className="text-sm text-gray-900">Renewal</span>
@@ -692,7 +556,7 @@ function AgencyDashboardContent() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#00BCD4]">
+                                                    <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#9A8B7A]">
                                                         {sub.submissionId}
                                                     </Link>
                                                 </td>
@@ -740,7 +604,7 @@ export default function AgencyDashboard() {
                 </div>
             </div>
         }>
-            <AgencyDashboardContent/>
+            <AgencyDashboardContent />
         </Suspense>
     );
 }
