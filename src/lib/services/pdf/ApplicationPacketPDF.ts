@@ -39,7 +39,6 @@ interface ApplicationPacketData {
   applicantZip: string;
   applicantPhone: string;
   applicantEmail: string;
-  fein: string;
   entityType: string;
   yearsInBusiness: number;
   yearsExperienceInTrades: number;
@@ -47,6 +46,13 @@ interface ApplicationPacketData {
   workIn5Boroughs: boolean;
   otherBusinessNames?: string;
   paymentOption: string;
+
+  // Loss History
+  generalLiabilityLosses?: {
+    dateOfLoss: string;
+    amountOfLoss: string;
+  }[];
+
 
   // Quote Information
   quoteType: string;
@@ -121,6 +127,8 @@ interface ApplicationPacketData {
   awareOfPotentialClaims?: boolean;
   potentialClaimsExplanation?: string;
 
+
+
   // Written Contract Questions
   haveWrittenContract?: boolean;
   contractHasStartDate?: boolean;
@@ -146,6 +154,16 @@ interface ApplicationPacketData {
   holdHarmlessExplanation?: string;
   requireSubsWorkersComp?: boolean;
   subsWorkersCompExplanation?: string;
+
+
+  // Policy Endorsements (checkbox-driven)
+  blanketAdditionalInsured?: boolean;
+  blanketWaiverOfSubrogation?: boolean;
+  blanketPrimaryWording?: boolean;
+  blanketPerProjectAggregate?: boolean;
+  blanketCompletedOperations?: boolean;
+  noticeOfCancellationThirdParties?: boolean;
+
 
   // Policy Endorsements
   policyEndorsements?: string;
@@ -440,7 +458,6 @@ function generatePage2(data: ApplicationPacketData): string {
         <div class="applicant-info-section-page2">
           <div class="section-title-underline-page2"><strong>APPLICANT INFORMATION</strong></div>
           <div class="applicant-field-page2"><strong>Mailing Address:</strong> ${data.applicantAddress}</div>
-          <div class="applicant-field-page2"><strong>FEIN:</strong> ${data.fein || 'N/A'}</div>
           <div class="applicant-field-page2"><strong>Entity of Company:</strong> ${data.entityType}</div>
           <div class="applicant-field-page2"><strong>Years in Business:</strong> ${data.yearsInBusiness}</div>
           <div class="applicant-field-page2"><strong>Years of experience in the Trades for which you are applying for insurance:</strong> ${data.yearsExperienceInTrades}</div>
@@ -524,7 +541,7 @@ function generatePage3(data: ApplicationPacketData): string {
         <div class="footnote-page3">* For purposes of this application, "Employee" is defined as an individual working for you (the applicant), which receives a W-2 tax form or you withhold & pay employment related taxes for that individual.</div>
         
         <div class="section-title-uppercase-page3">WORK PERFORMED</div>
-        <div class="work-description-page3"><strong>Complete Descriptions of operations that for which you are currently applying for insurance:</strong> ${data.workDescription || ''}</div>
+        <div class="work-description-page3"><strong>Description of operations</strong> ${data.workDescription || ''}</div>
         <div class="work-percentages-page3">
           <div class="percentage-item-page3"><strong>Percentage of Residential work performed:</strong> ${data.percentageResidential}%</div>
           <div class="percentage-item-page3"><strong>Percentage of Commercial work performed:</strong> ${data.percentageCommercial}%</div>
@@ -679,6 +696,36 @@ function generatePage4(data: ApplicationPacketData): string {
             <div class="yes-no-options-page4">${formatYesNo(data.awareOfPotentialClaims)}</div>
             ${data.awareOfPotentialClaims ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.potentialClaimsExplanation || ''}</div>` : ''}
           </div>
+
+          ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
+          <div class="loss-history-section">
+            <h3>General Liability Loss Information</h3>
+
+            <table class="loss-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Date of Loss</th>
+                  <th>Amount of Loss</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.generalLiabilityLosses.map(loss => `
+                  <tr>
+                    <td>General Liability</td>
+                    <td>${loss.dateOfLoss || "-"}</td>
+                    <td>${loss.amountOfLoss || "-"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          ` : `
+          <div class="loss-history-section">
+            <strong>Loss History:</strong> No losses reported
+          </div>
+          `}
+
         </div>
         
         <div class="page-number page-number-page4">Page 4 of 12</div>
@@ -717,36 +764,6 @@ function generatePage5(data: ApplicationPacketData): string {
         </div>
       </div>
       <div class="main-content main-content-page5">
-
-      <div class="section-title-uppercase-page5">ADDITIONAL COVERAGES</div>
-
-      <div class="written-contract-questions-page5">
-        <div class="question-item-page5">
-          <div class="question-text-page5">
-            <strong>Add Inland Marine Equipment Coverage</strong>
-          </div>
-          <div class="yes-no-options-page5">
-            ${formatYesNo(data.addInlandMarineEquipment)}
-          </div>
-        </div>
-        <div class="question-item-page5">
-          <div class="question-text-page5">
-            <strong>Add Inland Marine Builder's Risk Coverage</strong>
-          </div>
-          <div class="yes-no-options-page5">
-            ${formatYesNo(data.addBuildersRisk)}
-          </div>
-        </div>
-
-        <div class="question-item-page5">
-          <div class="question-text-page5">
-            <strong>Add Environmental Coverage</strong>
-          </div>
-          <div class="yes-no-options-page5">
-            ${formatYesNo(data.addEnvironmentalCoverage)}
-          </div>
-        </div>
-      </div>
 
 
 
@@ -828,7 +845,7 @@ function generatePage5(data: ApplicationPacketData): string {
         </div>
         
         <div class="section-title-uppercase-page5 policy-endorsements-title-page5">POLICY ENDORSEMENTS</div>
-        <div class="policy-endorsements-content-page5">${data.policyEndorsements || 'Blanket AI + PW + WOS'}</div>
+        <div class="policy-endorsements-content-page5">${data.policyEndorsements}</div>
         
         <div class="page-number page-number-page5">Page 5 of 12</div>
       </div>
@@ -1511,8 +1528,12 @@ export function mapFormDataToPacketData(
   // Extract class code and description
   const classCodeWork = formData.classCodeWork || {};
   const classCodes = Object.keys(classCodeWork);
-  const firstClassCode = classCodes[0] || '';
-  const classCodeDescription = formData.carrierApprovedDescription || firstClassCode;
+  const formattedClassCodes =
+    classCodes.length > 0
+      ? classCodes
+        .map(code => `${code} (${classCodeWork[code]}%)`)
+        .join(', ')
+      : '';
 
   // Calculate field employees
   const activeOwners = formData.activeOwnersInField || 0;
@@ -1542,11 +1563,41 @@ export function mapFormDataToPacketData(
     ? `${formData.streetAddress}${formData.aptSuite ? ', ' + formData.aptSuite : ''}`
     : '';
 
+
+
   // Format agency address
   const agencyAddress = agency?.address?.street || '';
   const agencyCity = agency?.address?.city || '';
   const agencyState = agency?.address?.state || '';
   const agencyZip = agency?.address?.zip || '';
+
+
+  const endorsements: string[] = [];
+
+  if (formData.blanketAdditionalInsured) {
+    endorsements.push("Blanket Additional Insured");
+  }
+
+  if (formData.blanketWaiverOfSubrogation) {
+    endorsements.push("Blanket Waiver of Subrogation");
+  }
+
+  if (formData.blanketPrimaryWording) {
+    endorsements.push("Blanket Primary Wording");
+  }
+
+  if (formData.blanketPerProjectAggregate) {
+    endorsements.push("Blanket Per Project Aggregate");
+  }
+
+  if (formData.blanketCompletedOperations) {
+    endorsements.push("Blanket Completed Operations");
+  }
+
+  if (formData.noticeOfCancellationThirdParties) {
+    endorsements.push("Notice of Cancellation to Third Parties");
+  }
+
 
   return {
     // Application Metadata
@@ -1576,7 +1627,6 @@ export function mapFormDataToPacketData(
     applicantZip: formData.zipCode || '',
     applicantPhone: formData.phone || '',
     applicantEmail: formData.email || '',
-    fein: formData.companyFEIN || formData.EIN || 'N/A',
     entityType: formData.entityType || '',
     yearsInBusiness: formData.yearsInBusiness || 0,
     yearsExperienceInTrades: formData.yearsExperienceInTrades || 0,
@@ -1584,6 +1634,11 @@ export function mapFormDataToPacketData(
     workIn5Boroughs: formData.workIn5Boroughs || false,
     otherBusinessNames: formData.otherBusinessNames || 'No',
     paymentOption: formData.paymentOption || '3rd Party Finance',
+
+    // Loss History
+    generalLiabilityLosses: Array.isArray(formData.generalLiabilityLosses)
+      ? formData.generalLiabilityLosses
+      : [],
 
     // Quote Information
     quoteType: quote?.type || 'General Liability',
@@ -1601,7 +1656,7 @@ export function mapFormDataToPacketData(
     selfInsuredRetention: formData.deductible || '$2,500',
 
     // Class Code & Gross Receipts
-    classCode: classCodeDescription || firstClassCode,
+    classCode: formattedClassCodes,
     grossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
 
     // Current Exposures
@@ -1612,11 +1667,11 @@ export function mapFormDataToPacketData(
     numberOfFieldEmployees: numberOfFieldEmployees,
 
     // Work Performed
-    workDescription: formData.carrierApprovedDescription || '',
+    workDescription: formData.carrierApprovedDescription ?? '',
     percentageResidential: formData.residentialPercent || 0,
     percentageCommercial: formData.commercialPercent || 0,
     percentageNewConstruction: formData.newConstructionPercent || 0,
-    percentageRemodel: formData.remodelPercent || 0,
+    percentageRemodel: formData.remodelServiceRepairPercent || 0,
     maxInteriorStories: formData.maxInteriorStories || 0,
     maxExteriorStories: formData.maxExteriorStories || 0,
     maxExteriorDepthBelowGrade: formData.maxExteriorDepthBelowGrade || 0,
@@ -1642,11 +1697,11 @@ export function mapFormDataToPacketData(
     useHeavyEquipment: formData.useHeavyEquipment,
     heavyEquipmentExplanation: formData.heavyEquipmentExplanation,
     workOver5000SqFt: formData.workOver5000SqFt,
-    workOver5000SqFtPercent: formData.workOver5000SqFtPercent,
-    workOver5000SqFtExplanation: formData.workOver5000SqFtExplanation,
-    workCommercialOver20000SqFt: formData.workCommercialOver20000SqFt,
-    commercialOver20000SqFtPercent: formData.commercialOver20000SqFtPercent,
-    commercialOver20000SqFtExplanation: formData.commercialOver20000SqFtExplanation,
+    workOver5000SqFtPercent: formData.over5000SqFtPercent,
+    workOver5000SqFtExplanation: formData.over5000SqFtExplanation,
+    workCommercialOver20000SqFt: formData.workOver20000SqFt,
+    commercialOver20000SqFtPercent: formData.over20000SqFtPercent,
+    commercialOver20000SqFtExplanation: formData.over20000SqFtExplanation,
     licensingActionTaken: formData.licensingActionTaken,
     licensingActionExplanation: formData.licensingActionExplanation,
     allowedLicenseUseByOthers: formData.allowedLicenseUseByOthers,
@@ -1657,8 +1712,6 @@ export function mapFormDataToPacketData(
     lawsuitsExplanation: formData.lawsuitsExplanation,
     awareOfPotentialClaims: formData.awareOfPotentialClaims,
     potentialClaimsExplanation: formData.potentialClaimsExplanation,
-
-
 
 
     // Written Contract Questions
@@ -1693,8 +1746,19 @@ export function mapFormDataToPacketData(
     subsWorkersCompExplanation: formData.requireWorkersCompExplanation,
 
 
-    // Policy Endorsements
-    policyEndorsements: formData.policyEndorsements || 'Blanket AI + PW + WOS',
+    // Policy Endorsements (flags)
+    blanketAdditionalInsured: formData.blanketAdditionalInsured ?? false,
+    blanketWaiverOfSubrogation: formData.blanketWaiverOfSubrogation ?? false,
+    blanketPrimaryWording: formData.blanketPrimaryWording ?? false,
+    blanketPerProjectAggregate: formData.blanketPerProjectAggregate ?? false,
+    blanketCompletedOperations: formData.blanketCompletedOperations ?? false,
+    noticeOfCancellationThirdParties: formData.noticeOfCancellationThirdParties ?? false,
+
+    // Policy Endorsements (rendered text)
+    policyEndorsements: endorsements.length
+      ? endorsements.join(", ")
+      : "None",
+
 
     // Application Agreement - Signatures
     applicantSignature: formData.applicantSignature,
@@ -3305,6 +3369,29 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       color: #6b7280;
       font-weight: 400;
     }
+
+    .loss-history-section {
+      margin-top: 16px;
+      font-size: 12px;
+    }
+
+    .loss-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .loss-table th,
+    .loss-table td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: left;
+    }
+
+    .loss-table th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
     
     /* ============================================
        PAGE 5 - ISC FORMAT: WRITTEN CONTRACT & POLICY ENDORSEMENTS

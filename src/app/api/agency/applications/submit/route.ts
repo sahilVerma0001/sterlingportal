@@ -80,9 +80,9 @@ function normalizeSubcontractors(formData: any) {
 function normalizeAdditionalCoverages(formData: any) {
   return {
     ...formData,
-      inlandMarineEquipment: formData.addInlandMarineEquipment ?? false,
-      buildersRisk: formData.addBuildersRisk ?? false,
-      environmentalCoverage: formData.addEnvironmentalCoverage ?? false,
+    inlandMarineEquipment: formData.addInlandMarineEquipment ?? false,
+    buildersRisk: formData.addBuildersRisk ?? false,
+    environmentalCoverage: formData.addEnvironmentalCoverage ?? false,
   };
 }
 
@@ -103,12 +103,7 @@ export async function POST(req: NextRequest) {
     const user = session.user as any;
     const { programId, programName, formData, carrierEmail } = await req.json();
 
-    if (!programId || !formData) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+   
 
 
     // 🔒 Required client contact validation
@@ -156,12 +151,11 @@ export async function POST(req: NextRequest) {
       name: formData.companyName || "Unknown",
       phone: formData.phone.trim(),
       email: formData.email.trim(),
-      EIN: formData.companyFEIN || "",
       businessAddress: {
         street: formData.streetAddress.trim(),
         city: formData.city.trim(),
         state: formData.state || "CA",
-        zip: formData.zipCode || "00000",
+        zip: formData.zip || "00000",
       },
     };
 

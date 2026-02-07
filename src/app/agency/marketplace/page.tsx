@@ -42,62 +42,62 @@ export default function MarketplacePage() {
           badge: "NEW All 50 States!",
           badgeColor: "teal"
         },
-        {
-          id: "plus-contractor",
-          name: "Plus Contractor General Liability"
-        },
-        {
-          id: "standard-contractor",
-          name: "Standard Contractor General Liability",
-          badge: "NEW Lower Rates!",
-          badgeColor: "teal"
-        },
-        {
-          id: "builders-risk",
-          name: "Builders Risk"
-        }
+        // {
+        //   id: "plus-contractor",
+        //   name: "Plus Contractor General Liability"
+        // },
+        // {
+        //   id: "standard-contractor",
+        //   name: "Standard Contractor General Liability",
+        //   badge: "NEW Lower Rates!",
+        //   badgeColor: "teal"
+        // },
+        // {
+        //   id: "builders-risk",
+        //   name: "Builders Risk"
+        // }
       ]
     },
-    {
-      id: "property",
-      name: "Property",
-      icon: "property",
-      programs: [
-        { id: "investor-property", name: "Investor Property" },
-        { id: "builders-renovation", name: "Builder's Renovation" },
-        { id: "vacant-land", name: "Vacant Land" },
-        { id: "vacant-package", name: "Vacant Package" },
-        { id: "1-8-dwelling", name: "1-8 Unit Dwelling" }
-      ]
-    },
-    {
-      id: "hospitality",
-      name: "Hospitality",
-      icon: "hospitality",
-      programs: [
-        { id: "hospitality", name: "Hospitality" }
-      ]
-    },
-    {
-      id: "trucking",
-      name: "Trucking",
-      icon: "trucking",
-      programs: [
-        { id: "domestic-long-haul", name: "Domestic Long Haul" },
-        { id: "cargo", name: "Cargo" },
-        { id: "physical-damage", name: "Physical Damage" }
-      ]
-    },
-    {
-      id: "excess",
-      name: "Excess",
-      icon: "excess",
-      programs: [
-        { id: "excess-everything", name: "Excess for Everything" },
-        { id: "construction-excess", name: "Construction Excess Liability" },
-        { id: "petroleum-excess", name: "Petroleum Distribution Excess Liability" }
-      ]
-    }
+    // {
+    //   id: "property",
+    //   name: "Property",
+    //   icon: "property",
+    //   programs: [
+    //     { id: "investor-property", name: "Investor Property" },
+    //     { id: "builders-renovation", name: "Builder's Renovation" },
+    //     { id: "vacant-land", name: "Vacant Land" },
+    //     { id: "vacant-package", name: "Vacant Package" },
+    //     { id: "1-8-dwelling", name: "1-8 Unit Dwelling" }
+    //   ]
+    // },
+    // {
+    //   id: "hospitality",
+    //   name: "Hospitality",
+    //   icon: "hospitality",
+    //   programs: [
+    //     { id: "hospitality", name: "Hospitality" }
+    //   ]
+    // },
+    // {
+    //   id: "trucking",
+    //   name: "Trucking",
+    //   icon: "trucking",
+    //   programs: [
+    //     { id: "domestic-long-haul", name: "Domestic Long Haul" },
+    //     { id: "cargo", name: "Cargo" },
+    //     { id: "physical-damage", name: "Physical Damage" }
+    //   ]
+    // },
+    // {
+    //   id: "excess",
+    //   name: "Excess",
+    //   icon: "excess",
+    //   programs: [
+    //     { id: "excess-everything", name: "Excess for Everything" },
+    //     { id: "construction-excess", name: "Construction Excess Liability" },
+    //     { id: "petroleum-excess", name: "Petroleum Distribution Excess Liability" }
+    //   ]
+    // }
   ];
 
   useEffect(() => {

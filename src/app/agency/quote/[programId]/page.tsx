@@ -85,39 +85,35 @@ export default function QuoteFormPage() {
   );
 
   const [formData, setFormData] = useState<any>({
-    // Indication Information
+    /* ================= APPLICATION INFO ================= */
     companyName: "",
     zip: "",
     state: "California",
+    effectiveDate: new Date().toISOString().split("T")[0],
+
     estimatedGrossReceipts: "",
     estimatedSubcontractingCosts: "",
     estimatedMaterialCosts: "",
-    activeOwners: "0",
+
     fieldEmployees: "0",
     totalPayroll: "",
     yearsInBusiness: "",
-    yearsExperience: "",
-    isPremiseOnlyPolicy: false,
 
-    // Class Codes
+    /* ================= CLASS CODES ================= */
     classCodeWork: {},
-    // newConstructionPercent: "",
-    remodelPercent: "",
-    // residentialPercent: "",
-    // commercialPercent: "",
 
-    // Coverage
+    /* ================= COVERAGE ================= */
     coverageLimits: "1M / 1M / 1M",
     fireLegalLimit: "$100,000",
     medicalExpenseLimit: "$5,000",
     selfInsuredRetention: "$2,500",
+
     lossesLast5Years: "0",
     generalLiabilityLosses: [],
-    effectiveDate: new Date().toISOString().split("T")[0],
-    selectedStates: [],
-    willPerformStructuralWork: false,
 
-    // Endorsements
+    selectedStates: [],
+
+    /* ================= ENDORSEMENTS ================= */
     blanketAdditionalInsured: false,
     blanketWaiverOfSubrogation: false,
     blanketPrimaryWording: false,
@@ -125,15 +121,15 @@ export default function QuoteFormPage() {
     blanketCompletedOperations: false,
     noticeOfCancellationThirdParties: false,
 
+    /* ================= DESCRIPTION ================= */
+    carrierApprovedDescription: "",
 
-
-
-    // Payment Options
+    /* ================= PAYMENT ================= */
     brokerFee: "0",
     displayBrokerFee: false,
     paymentOption: "",
 
-    // Company Information
+    /* ================= COMPANY INFO ================= */
     contractorsLicense: false,
     licenseNumber: "",
     licenseClassification: "",
@@ -142,107 +138,21 @@ export default function QuoteFormPage() {
     lastName: "",
     yearsOfExperienceTrade: "",
     entityType: "Individual",
-    applicantSSN: "",
     phone: "",
-    fax: "",
     email: "",
-    website: "",
-    useCarrierApprovedDescriptions: true,
-    carrierApprovedDescription: "",
 
-    // Address
+    /* ================= ADDRESS ================= */
     streetAddress: "",
     aptSuite: "",
     city: "",
-    addressState: "",
     mailingAddressSame: null,
     mailingStreet: "",
     mailingAptSuite: "",
-    mailingZip: "",
     mailingCity: "",
+    mailingZip: "",
     mailingState: "",
 
-    // Resume Questions
-    employeesHave3YearsExp: null,
-    hasConstructionSupervisionExp: null,
-    hasConstructionCertifications: null,
-    certificationsExplanation: "",
-
-    // Type of Work
-    newConstructionPercent: "",
-    remodelServiceRepairPercent: "",
-    residentialPercent: "",
-    commercialPercent: "",
-    maxInteriorStories: "",
-    maxExteriorStories: "",
-    maxExteriorDepthBelowGrade: "",
-    workBelowGrade: null,
-    belowGradeDepth: "",
-    belowGradePercent: "",
-    buildOnHillside: null,
-    hillsideExplanation: "",
-    performRoofingOps: false,
-    roofingOpsExplanation: "",
-    actAsGeneralContractor: null,
-    generalContractorExplanation: "",
-    performWaterproofing: false,
-    waterproofingExplanation: "",
-    useHeavyEquipment: false,
-    heavyEquipmentExplanation: "",
-    heavyEquipmentOperatorsCertified: null,
-    heavyEquipmentYearsExpRequired: "",
-    workNewTractHomes: false,
-    tractHomesExplanation: "",
-    workCondoConstruction: false,
-    condoConstructionExplanation: "",
-    condoUnits15OrMore: null,
-    performCondoStructuralRepair: false,
-    condoRepairExplanation: "",
-    condoRepairUnits25OrMore: false,
-    performOCIPWork: false,
-    ocipWrapUpReceipts: "",
-    nonOcipReceipts: "",
-    performHazardousWork: false,
-    hazardousWorkExplanation: "",
-    performMedicalFacilities: false,
-    medicalFacilitiesExplanation: "",
-    workOver5000SqFt: false,
-    over5000SqFtExplanation: "",
-    over5000SqFtPercent: "",
-    workOver20000SqFt: false,
-    over20000SqFtExplanation: "",
-    over20000SqFtPercent: "",
-
-    // Additional Business Info
-    writtenContractForAllWork: true,
-    contractHasStartDate: true,
-    contractHasScopeOfWork: true,
-    contractIdentifiesSubTrades: true,
-    contractHasSetPrice: true,
-    contractSignedByAllParties: true,
-    writtenContractForAllWorkExplanation: "",
-    contractHasStartDateExplanation: "",
-    contractHasScopeOfWorkExplanation: "",
-    contractIdentifiesSubTradesExplanation: "",
-    contractHasSetPriceExplanation: "",
-    contractSignedByAllPartiesExplanation: "",
-
-    otherBusinessNames: false,
-    otherBusinessNamesExplanation: "",
-    licensingActionTaken: false,
-    licensingActionTakenExplanation: "",
-    licenseSharedWithOthers: false,
-    licenseSharedWithOthersExplanation: "",
-    judgementsOrLiens: false,
-    judgementsOrLiensExplanation: "",
-    lawsuitsOrClaims: false,
-    lawsuitsOrClaimsExplanation: "",
-    knownIncidentsOrClaims: false,
-    knownIncidentsOrClaimsExplanation: "",
-
-
-
-    // Subcontractors
+    /* ================= SUBCONTRACTORS ================= */
     useSubcontractors: false,
 
     collectSubCertificates: false,
@@ -260,35 +170,310 @@ export default function QuoteFormPage() {
     requireWorkersComp: false,
     requireWorkersCompExplanation: "",
 
+    /* ================= TYPE OF WORK ================= */
+    newConstructionPercent: "",
+    remodelServiceRepairPercent: "",
 
-    // Excess Liability
+    residentialPercent: "",
+    commercialPercent: "",
+
+    maxInteriorStories: "",
+    maxExteriorStories: "",
+    maxExteriorDepthBelowGrade: "",
+
+    performRoofingOps: false,
+    roofingOpsExplanation: "",
+
+    performWaterproofing: false,
+    waterproofingExplanation: "",
+
+    useHeavyEquipment: false,
+    heavyEquipmentExplanation: "",
+
+    workNewTractHomes: false,
+    tractHomesExplanation: "",
+
+    workCondoConstruction: false,
+
+    performCondoStructuralRepair: false,
+
+    performOCIPWork: false,
+    ocipWrapUpReceipts: "",
+    nonOcipReceipts: "",
+
+    performHazardousWork: false,
+    hazardousWorkExplanation: "",
+
+    performMedicalFacilities: false,
+    medicalFacilitiesExplanation: "",
+
+    workOver5000SqFt: false,
+    over5000SqFtExplanation: "",
+    over5000SqFtPercent: "",
+
+    workOver20000SqFt: false,
+    over20000SqFtExplanation: "",
+    over20000SqFtPercent: "",
+
+    /* ================= ADDITIONAL BUSINESS ================= */
+    otherBusinessNames: false,
+    otherBusinessNamesExplanation: "",
+
+    licensingActionTaken: false,
+    licensingActionTakenExplanation: "",
+
+    licenseSharedWithOthers: false,
+    licenseSharedWithOthersExplanation: "",
+
+    judgementsOrLiens: false,
+    judgementsOrLiensExplanation: "",
+
+    lawsuitsOrClaims: false,
+    lawsuitsOrClaimsExplanation: "",
+
+    knownIncidentsOrClaims: false,
+    knownIncidentsOrClaimsExplanation: "",
+
+    writtenContractForAllWork: true,
+    writtenContractForAllWorkExplanation: "",
+
+    contractHasStartDate: true,
+    contractHasStartDateExplanation: "",
+
+    contractHasScopeOfWork: true,
+    contractHasScopeOfWorkExplanation: "",
+
+    contractIdentifiesSubTrades: true,
+    contractIdentifiesSubTradesExplanation: "",
+
+    contractHasSetPrice: true,
+    contractHasSetPriceExplanation: "",
+
+    contractSignedByAllParties: true,
+    contractSignedByAllPartiesExplanation: "",
+
+    /* ================= EXCESS LIABILITY ================= */
     addExcessLiability: false,
-    excessLiabilityLimit: "", // 1M-5M dropdown
+    excessLiabilityLimit: "",
     employersLiabilityWC: false,
     employersLiabilityWCLimit: "",
     combinedUnderlyingLosses: "0",
     auto: false,
 
-
-
-    // Inland Marine Equipment 
+    /* ================= OPTIONAL PRODUCTS ================= */
     addInlandMarineEquipment: false,
-
-    //Inland Builder's Risk Coverage
     addBuildersRisk: false,
-
-    //Environmental Coverage
     addEnvironmentalCoverage: null,
-
   });
 
+
+  // const [formData, setFormData] = useState<any>({
+  //   // Indication Information
+  //   companyName: "",
+  //   zip: "",
+  //   state: "California",
+  //   estimatedGrossReceipts: "",
+  //   estimatedSubcontractingCosts: "",
+  //   estimatedMaterialCosts: "",
+  //   activeOwners: "0",
+  //   fieldEmployees: "0",
+  //   totalPayroll: "",
+  //   yearsInBusiness: "",
+  //   yearsExperience: "",
+  //   isPremiseOnlyPolicy: false,
+
+  //   // Class Codes
+  //   classCodeWork: {},
+  //   // newConstructionPercent: "",
+  //   remodelPercent: "",
+  //   // residentialPercent: "",
+  //   // commercialPercent: "",
+
+  //   // Coverage
+  //   coverageLimits: "1M / 1M / 1M",
+  //   fireLegalLimit: "$100,000",
+  //   medicalExpenseLimit: "$5,000",
+  //   selfInsuredRetention: "$2,500",
+  //   lossesLast5Years: "0",
+  //   generalLiabilityLosses: [],
+  //   effectiveDate: new Date().toISOString().split("T")[0],
+  //   selectedStates: [],
+  //   willPerformStructuralWork: false,
+
+  //   // Endorsements
+  //   blanketAdditionalInsured: false,
+  //   blanketWaiverOfSubrogation: false,
+  //   blanketPrimaryWording: false,
+  //   blanketPerProjectAggregate: false,
+  //   blanketCompletedOperations: false,
+  //   noticeOfCancellationThirdParties: false,
+
+
+
+
+  //   // Payment Options
+  //   brokerFee: "0",
+  //   displayBrokerFee: false,
+  //   paymentOption: "",
+
+  //   // Company Information
+  //   contractorsLicense: false,
+  //   licenseNumber: "",
+  //   licenseClassification: "",
+  //   dba: "",
+  //   firstName: "",
+  //   lastName: "",
+  //   yearsOfExperienceTrade: "",
+  //   entityType: "Individual",
+  //   applicantSSN: "",
+  //   phone: "",
+  //   fax: "",
+  //   email: "",
+  //   website: "",
+  //   // useCarrierApprovedDescriptions: true,
+  //   carrierApprovedDescription: "",
+
+  //   // Address
+  //   streetAddress: "",
+  //   aptSuite: "",
+  //   city: "",
+  //   addressState: "",
+  //   mailingAddressSame: null,
+  //   mailingStreet: "",
+  //   mailingAptSuite: "",
+  //   mailingZip: "",
+  //   mailingCity: "",
+  //   mailingState: "",
+
+  //   // Resume Questions
+  //   employeesHave3YearsExp: null,
+  //   hasConstructionSupervisionExp: null,
+  //   hasConstructionCertifications: null,
+  //   certificationsExplanation: "",
+
+  //   // Type of Work
+  //   newConstructionPercent: "",
+  //   remodelServiceRepairPercent: "",
+  //   residentialPercent: "",
+  //   commercialPercent: "",
+  //   maxInteriorStories: "",
+  //   maxExteriorStories: "",
+  //   maxExteriorDepthBelowGrade: "",
+  //   workBelowGrade: null,
+  //   belowGradeDepth: "",
+  //   belowGradePercent: "",
+  //   buildOnHillside: null,
+  //   hillsideExplanation: "",
+  //   performRoofingOps: false,
+  //   roofingOpsExplanation: "",
+  //   actAsGeneralContractor: null,
+  //   generalContractorExplanation: "",
+  //   performWaterproofing: false,
+  //   waterproofingExplanation: "",
+  //   useHeavyEquipment: false,
+  //   heavyEquipmentExplanation: "",
+  //   heavyEquipmentOperatorsCertified: null,
+  //   heavyEquipmentYearsExpRequired: "",
+  //   workNewTractHomes: false,
+  //   tractHomesExplanation: "",
+  //   workCondoConstruction: false,
+  //   condoConstructionExplanation: "",
+  //   condoUnits15OrMore: null,
+  //   performCondoStructuralRepair: false,
+  //   condoRepairExplanation: "",
+  //   condoRepairUnits25OrMore: false,
+  //   performOCIPWork: false,
+  //   ocipWrapUpReceipts: "",
+  //   nonOcipReceipts: "",
+  //   performHazardousWork: false,
+  //   hazardousWorkExplanation: "",
+  //   performMedicalFacilities: false,
+  //   medicalFacilitiesExplanation: "",
+  //   workOver5000SqFt: false,
+  //   over5000SqFtExplanation: "",
+  //   over5000SqFtPercent: "",
+  //   workOver20000SqFt: false,
+  //   over20000SqFtExplanation: "",
+  //   over20000SqFtPercent: "",
+
+  //   // Additional Business Info
+  //   writtenContractForAllWork: true,
+  //   contractHasStartDate: true,
+  //   contractHasScopeOfWork: true,
+  //   contractIdentifiesSubTrades: true,
+  //   contractHasSetPrice: true,
+  //   contractSignedByAllParties: true,
+  //   writtenContractForAllWorkExplanation: "",
+  //   contractHasStartDateExplanation: "",
+  //   contractHasScopeOfWorkExplanation: "",
+  //   contractIdentifiesSubTradesExplanation: "",
+  //   contractHasSetPriceExplanation: "",
+  //   contractSignedByAllPartiesExplanation: "",
+
+  //   otherBusinessNames: false,
+  //   otherBusinessNamesExplanation: "",
+  //   licensingActionTaken: false,
+  //   licensingActionTakenExplanation: "",
+  //   licenseSharedWithOthers: false,
+  //   licenseSharedWithOthersExplanation: "",
+  //   judgementsOrLiens: false,
+  //   judgementsOrLiensExplanation: "",
+  //   lawsuitsOrClaims: false,
+  //   lawsuitsOrClaimsExplanation: "",
+  //   knownIncidentsOrClaims: false,
+  //   knownIncidentsOrClaimsExplanation: "",
+
+
+
+  //   // Subcontractors
+  //   useSubcontractors: false,
+
+  //   collectSubCertificates: false,
+  //   collectSubCertificatesExplanation: "",
+
+  //   requireSubInsuranceEqual: false,
+  //   requireSubInsuranceEqualExplanation: "",
+
+  //   requireAdditionalInsured: false,
+  //   requireAdditionalInsuredExplanation: "",
+
+  //   haveWrittenSubContracts: false,
+  //   haveWrittenSubContractsExplanation: "",
+
+  //   requireWorkersComp: false,
+  //   requireWorkersCompExplanation: "",
+
+
+  //   // Excess Liability
+  //   addExcessLiability: false,
+  //   excessLiabilityLimit: "", // 1M-5M dropdown
+  //   employersLiabilityWC: false,
+  //   employersLiabilityWCLimit: "",
+  //   combinedUnderlyingLosses: "0",
+  //   auto: false,
+
+
+
+  //   // Inland Marine Equipment 
+  //   addInlandMarineEquipment: false,
+
+  //   //Inland Builder's Risk Coverage
+  //   addBuildersRisk: false,
+
+  //   //Environmental Coverage
+  //   addEnvironmentalCoverage: null,
+
+  // });
+
   // Ensure class codes/description start blank on every mount to avoid stale values
+  
+  
   useEffect(() => {
     console.log("[Init] Resetting class codes and carrier description to blank");
     setFormData((prev: any) => ({
       ...prev,
       classCodeWork: {},
-      carrierApprovedDescription: ""
+      carrierApprovedDescription: "",
     }));
   }, []);
 
@@ -411,6 +596,60 @@ export default function QuoteFormPage() {
       }));
     }
   };
+  const handleAddClassCode = (code: string) => {
+    if (!code) return;
+
+    if (formData.classCodeWork[code]) return;
+
+    const total = calculateTotalClassCodePercent();
+    const remaining = Math.max(0, 100 - total);
+
+    setFormData((prev: any) => ({
+      ...prev,
+      classCodeWork: {
+        ...prev.classCodeWork,
+        [code]: remaining, // ✅ auto-fill remaining %
+      },
+    }));
+  };
+
+
+  const handleClassCodePercentChange = (code: string, rawValue: string) => {
+    // Allow empty input while typing
+    if (rawValue === "") {
+      setFormData((prev: any) => ({
+        ...prev,
+        classCodeWork: {
+          ...prev.classCodeWork,
+          [code]: "",
+        },
+      }));
+      return;
+    }
+
+    let percent = parseFloat(rawValue);
+    if (isNaN(percent)) percent = 0;
+    if (percent < 0) percent = 0;
+
+    const otherTotal = Object.entries(formData.classCodeWork).reduce(
+      (sum: number, [k, v]: any) =>
+        k === code ? sum : sum + (parseFloat(String(v)) || 0),
+      0
+    );
+
+    if (otherTotal + percent > 100) {
+      percent = 100 - otherTotal;
+    }
+
+    setFormData((prev: any) => ({
+      ...prev,
+      classCodeWork: {
+        ...prev.classCodeWork,
+        [code]: percent,
+      },
+    }));
+  };
+
 
 
 
@@ -516,33 +755,9 @@ export default function QuoteFormPage() {
     setFormData((prev: any) => ({
       ...prev,
       classCodeWork: newClassCodeWork,
-      carrierApprovedDescription: description
     }));
     triggerAnimation();
   };
-
-  // Watch for class code changes and update description
-  useEffect(() => {
-    const classCodes = Object.keys(formData.classCodeWork || {});
-    if (classCodes.length > 0) {
-      const firstClassCode = classCodes[0];
-      const description = classCodeDescriptionMap[firstClassCode] || "";
-      if (description && formData.carrierApprovedDescription !== description) {
-        setFormData((prev: any) => ({
-          ...prev,
-          carrierApprovedDescription: description
-        }));
-      }
-    } else {
-      // No class code selected - clear description
-      if (formData.carrierApprovedDescription) {
-        setFormData((prev: any) => ({
-          ...prev,
-          carrierApprovedDescription: ""
-        }));
-      }
-    }
-  }, [formData.classCodeWork, formData.carrierApprovedDescription]);
 
   const calculateTotalClassCodePercent = (): number => {
     const values = Object.values(formData.classCodeWork || {}) as (string | number)[];
@@ -921,7 +1136,7 @@ export default function QuoteFormPage() {
           {/* Indication Information */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Quick Quote Information</h2>
+              <h2 className="text-lg font-semibold">Application Information</h2>
             </div>
             <div className="px-8 pt-6 pb-7">
 
@@ -1145,58 +1360,72 @@ export default function QuoteFormPage() {
                 /> */}
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-900 mb-2">Class Code</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Class Code
+                  </label>
+
                   <select
                     value=""
+                    onChange={(e) => handleAddClassCode(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
-                    onChange={(e) => {
-                      const selectedCode = e.target.value;
-                      if (selectedCode) {
-                        // Only allow ONE class code at a time - set to 100%
-                        handleClassCodeChange(selectedCode, "100");
-                      } else {
-                        // "Select Class Code" option chosen - clear everything
-                        console.log("[Select Change] Clearing class code and description");
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          classCodeWork: {},
-                          carrierApprovedDescription: ""
-                        }));
-                      }
-                    }}
                   >
                     <option value="">Select Class Code</option>
-                    {classCodeOptions.map((code) => (
-                      <option key={code} value={code}>{code}</option>
-                    ))}
+                    {classCodeOptions
+                      .filter((code) => !formData.classCodeWork[code]) // 🚫 hide selected
+                      .map((code) => (
+                        <option key={code} value={code}>
+                          {code}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
+
                 <div className="text-right mb-4">
-                  <span className="text-sm font-semibold text-gray-700">Total: {calculateTotalClassCodePercent()}%</span>
+                  <span
+                    className={`text-sm font-semibold ${calculateTotalClassCodePercent() === 100
+                      ? "text-green-600"
+                      : "text-red-600"
+                      }`}
+                  >
+                    Total: {calculateTotalClassCodePercent()}%
+                  </span>
                 </div>
+
 
                 {Object.keys(formData.classCodeWork).length > 0 && (
                   <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                    {Object.entries(formData.classCodeWork).map(([code, percentage]) => (
-                      <div key={code} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    {Object.entries(formData.classCodeWork).map(([code, percent]: any) => (
+                      <div
+                        key={code}
+                        className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                      >
                         <span className="text-sm text-gray-700">{code}</span>
+
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            value="100"
-                            readOnly
-                            className="w-20 px-2 py-1 border border-gray-300 rounded bg-gray-50 text-sm text-center text-gray-600"
-                            min="100"
-                            max="100"
+                            value={percent}
+                            min={0}
+                            max={100}
+                            onChange={(e) =>
+                              handleClassCodePercentChange(code, e.target.value)
+                            }
+                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
                           />
+
                           <span className="text-sm text-gray-500">%</span>
+
                           <button
                             type="button"
                             onClick={() => {
-                              // Clear class code and reset description to empty
-                              handleInputChange('classCodeWork', {});
-                              handleInputChange('carrierApprovedDescription', "");
+                              const updated = { ...formData.classCodeWork };
+                              delete updated[code];
+
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                classCodeWork: updated,
+                              }));
                             }}
                             className="text-red-500 hover:text-red-700 text-sm font-semibold"
                           >
@@ -1207,6 +1436,7 @@ export default function QuoteFormPage() {
                     ))}
                   </div>
                 )}
+
 
 
 
@@ -1556,6 +1786,30 @@ export default function QuoteFormPage() {
 
           </div>
 
+          {/*Description of operations*/}
+
+          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              {/* <span className="w-4 h-4 rounded-full bg-white text-[#4A4E5A] flex items-center justify-center text-xs font-bold">
+                i
+              </span> */}
+              <h2 className="text-lg font-semibold">Description of operations</h2>
+            </div>
+
+            <textarea
+              value={formData.carrierApprovedDescription}
+              placeholder="Enter Description here...."
+              onChange={(e) =>
+                setFormData((prev: any) => ({
+                  ...prev,
+                  carrierApprovedDescription: e.target.value,
+                }))
+              }
+              rows={6}
+              className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
+            />
+          </div>
+
 
 
           {/* Payment Options */}
@@ -1842,69 +2096,6 @@ export default function QuoteFormPage() {
                     placeholder="insured@example.com"
                   />
                 </div>
-
-
-
-
-
-                {/* Use Carrier Approved Descriptions */}
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Use Carrier Approved Descriptions?
-                  </label>
-                  <div></div>
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        checked={formData.useCarrierApprovedDescriptions === true}
-                        onChange={() =>
-                          handleInputChange("useCarrierApprovedDescriptions", true)
-                        }
-                        className="w-4 h-4"
-                      />
-                      Yes
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        checked={formData.useCarrierApprovedDescriptions === false}
-                        onChange={() =>
-                          handleInputChange("useCarrierApprovedDescriptions", false)
-                        }
-                        className="w-4 h-4"
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Carrier Approved Description */}
-                {formData.useCarrierApprovedDescriptions && (
-                  <div className="border border-gray-300 rounded overflow-hidden">
-                    <div className="bg-[#4A4E5A] text-white px-4 py-2 text-sm font-semibold flex items-center gap-2">
-                      <span className="w-4 h-4 rounded-full bg-white text-[#4A4E5A] flex items-center justify-center text-xs font-bold">
-                        i
-                      </span>
-                      Carrier Approved Description
-                    </div>
-                    <textarea
-                      value={formData.carrierApprovedDescription}
-                      onChange={(e) =>
-                        handleInputChange("carrierApprovedDescription", e.target.value)
-                      }
-                      rows={6}
-                      className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
-                    />
-                  </div>
-                )}
-
-
-
-
-
-
-
 
                 {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">Applicant Fax</label>
