@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import SterlingLogo from "@/components/SterlingLogo";
 import StatusBadge from "@/components/agency/quotes/StatusBadge";
 import StatusTimeline from "@/components/ui/StatusTimeline";
 import {

@@ -245,7 +245,9 @@ function AgencyDashboardContent() {
                       className="border-t hover:bg-[#F9FAFB] transition"
                     >
                       <td className="px-4 py-2 font-medium">
-                        {sub.submissionId}
+                        <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#00BCD4]">
+                          {sub.submissionId}
+                        </Link>
                       </td>
                       <td className="px-4 py-2">{sub.clientName}</td>
                       <td className="px-4 py-2">{sub.industry}</td>
@@ -259,7 +261,7 @@ function AgencyDashboardContent() {
             )}
           </div>
         </section>
-      </div> //d dkashboard layout
+      </div>
     </DashboardLayout>
   );
 }
@@ -269,7 +271,10 @@ export default function AgencyDashboard() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#9A8B7A]"></div>
+          <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
         </div>
       }
     >

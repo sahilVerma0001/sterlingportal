@@ -1,6 +1,18 @@
 "use client";
-
+import DashboardLayout from "@/components/layout/DashboardLayout";
 export const dynamic = 'force-dynamic';
+
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  Heart,
+  UserPlus,
+  Copy,
+  Share2,
+} from "lucide-react";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
@@ -75,6 +87,63 @@ interface SubmissionDetails {
 }
 
 function SubmissionDetailsContent() {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File) => {
+    if (!submissionId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setUploading(true);
+
+      const res = await fetch(
+        `/api/agency/submissions/${submissionId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
+
+const toggleNoteFilter = (filter: string) => {
+  setNoteFilters((prev) =>
+    prev.includes(filter)
+      ? prev.filter((f) => f !== filter)
+      : [...prev, filter]
+  );
+};
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      toast.success("Document uploaded successfully");
+
+      // 🔁 refresh submission data
+      fetchSubmission();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload document");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const toggleNoteFilter = (filter: string) => {
+  setNoteFilters((prev) =>
+    prev.includes(filter)
+      ? prev.filter((f) => f !== filter)
+      : [...prev, filter]
+  );
+};
+  // ✅ REQUIRED DOCUMENT CHECKLIST TOGGLE (ISC STYLE)
+const toggleDoc = (doc: string) => {
+  setCheckedDocs((prev) => ({
+    ...prev,
+    [doc]: !prev[doc],
+  }));
+};
+
+  const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
@@ -88,6 +157,9 @@ function SubmissionDetailsContent() {
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const [noteText, setNoteText] = useState("");
+  const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
 
   // Check for success message from edit
   useEffect(() => {
@@ -192,7 +264,7 @@ function SubmissionDetailsContent() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center py-20 bg-gray-50">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-4">
             <div className="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
@@ -208,7 +280,7 @@ function SubmissionDetailsContent() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="flex flex-col min-h-full">
         <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
           <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
             <div className="relative mb-3">
@@ -284,113 +356,491 @@ function SubmissionDetailsContent() {
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <DashboardLayout>
+    
       {/* Sidebar - Matching Dashboard */}
-      <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
-        <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
-          <div className="relative mb-3">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
-            <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#00BCD4]/20 group-hover:border-[#00BCD4]/40 transition-all overflow-hidden">
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent"></div>
-              </div>
-              <svg className="relative w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#logoGradient1)" className="drop-shadow-lg" />
-                <path d="M50 25 L65 40 L50 70 L35 40 Z" fill="url(#logoGradient2)" className="drop-shadow-md" />
-                <path d="M50 30 L50 65" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" className="drop-shadow-sm" />
-                <path d="M40 47 L60 47" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
-                <defs>
-                  <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00BCD4" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="#0097A7" stopOpacity={0.95} />
-                  </linearGradient>
-                  <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-              <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-            </div>
-          </div>
-          <div className="text-center px-2">
-            <p className="text-[9px] font-semibold text-gray-400 leading-tight tracking-wide uppercase group-hover:text-gray-300 transition-colors" style={{ letterSpacing: '0.05em' }}>Sterling</p>
-            <p className="text-[8px] font-medium text-gray-500 leading-tight group-hover:text-gray-400 transition-colors">Wholesale Insurance</p>
-          </div>
-        </Link>
-
-        <nav className="flex flex-col gap-6 flex-1">
-          <Link href="/agency/dashboard" className="p-3 text-gray-400 hover:text-white transition-colors">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </Link>
-        </nav>
-      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-[70px] overflow-auto">
+      <main className="flex-1 ml-[6px] bg-gray-50 overflow-x-hidden">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+        {/* ISC STYLE HEADER – NO BORDER */}
+        <div className="bg-white px-6 pt-5 pb-4">
+          <div className="flex items-start justify-between">
+
+            {/* LEFT SIDE */}
+           <div className="bg-white px-8 py-3">
+              <Link href="/agency/dashboard" className="mt-1">
+                <ArrowLeft className="w-5 h-5 text-gray-500 hover:text-black" />
               </Link>
+
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Submission Details</h1>
-                <p className="text-sm text-gray-600">
-                  {submission.submissionId || submission._id.slice(-8)}
-                </p>
+                {/* Title */}
+                <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px] leading-tight">
+                  {submission.clientContact.name}
+                   <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
+              {submission.status.replace("_", " ")}
+            </span>
+                </h1>
+
+                {/* Meta Row */}
+                <div className="flex items-center flex-wrap gap-x-5 gap-y-1 mt-2 text-[14px] text-gray-700">
+
+                  <span className="flex items-center gap-1.5">
+                    <User className="w-[18px] h-[18px] text-gray-500 text-gray-400" />
+                    {submission.clientContact.name}
+                  </span>
+
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" />
+                    {submission.clientContact.businessAddress.city},{" "}
+                    {submission.clientContact.businessAddress.state}
+                  </span>
+
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="w-4 h-4" />
+                    {submission.clientContact.phone}
+                  </span>
+
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-4 h-4" />
+                    {submission.clientContact.email}
+                  </span>
+
+                </div>
               </div>
             </div>
+
+            {/* RIGHT SIDE */}
             <div className="flex items-center gap-4">
-              <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${getStatusBadgeColor(submission.status)}`}>
+
+              {/* ICON ACTIONS */}
+              <div className="flex items-center gap-5">
+                <button className="p-2 rounded-md hover:bg-gray-100">
+                  <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
+                </button>
+
+                <button className="p-2 rounded-md hover:bg-gray-100">
+                  <UserPlus className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
+                </button>
+
+                <button className="p-2 rounded-md hover:bg-gray-100">
+                  <Copy className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
+                </button>
+
+                <button className="p-2 rounded-md hover:bg-gray-100">
+                  <Share2 className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
+                </button>
+              </div>
+              {/* APP ID */}
+              <span className="text-[14px] text-gray-500 ml-2">
+                App ID {submission.submissionId || submission._id.slice(-6)}
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* APP INFO ROW – ISC STYLE */}
+        <div className="bg-white px-6 h-[64px] border-t border-gray-100">
+          <div className="flex items-center justify-between w-full h-full">
+            {/* LEFT */}
+            <div className="flex items-center gap-4">
+              <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
+              <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
                 {submission.status.replace("_", " ")}
               </span>
-              {/* Edit Button - Only show if status allows editing */}
-              {(submission.status === "ENTERED" || submission.status === "DRAFT") && (
-                <Link
-                  href={`/agency/submit/${submission.templateId?._id}?edit=${submission._id}`}
-                  className="px-4 py-2 bg-[#00BCD4] text-white rounded-lg hover:bg-[#00ACC1] transition-colors text-sm font-semibold"
-                >
-                  Edit Submission
-                </Link>
-              )}
-              <button
-                onClick={() => signOut({ callbackUrl: "/signin" })}
-                className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-              >
-                Sign Out
+            </div>
+
+            {/* RIGHT BUTTONS */}
+            <div className="flex items-center gap-3">
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
+                Quick Quote
+              </button>
+
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-400 cursor-not-allowed">
+                App Packet
+              </button>
+
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
+                Edit
+              </button>
+
+              <button className="px-5 py-2 rounded-md bg-[#2DD4BF] text-white text-[14px] font-semibold">
+                Request Approval
+              </button>
+
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
+                Cancel Quote
               </button>
             </div>
           </div>
         </div>
+        {/* KEY INFO GRID – ISC STYLE */}
+        {/* ISC STYLE – KEY INFO STRIP */}
+        <div className="bg-white px-6 py-5 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-y-6 gap-x-14 text-[14px]">
 
+            {/* Total Cost */}
+            <div>
+              <p className="text-gray-500 mb-1">Total Cost:</p>
+              <p className="font-semibold text-gray-900">
+                {quotes.length > 0
+                  ? `$${quotes[0].finalAmountUSD.toLocaleString()}`
+                  : "Not Quoted"}
+              </p>
+            </div>
+
+            {/* Create Date */}
+            <div>
+              <p className="text-gray-500 mb-1">Create Date:</p>
+              <p className="font-semibold text-gray-900">
+                {new Date(submission.createdAt).toLocaleString()}
+              </p>
+            </div>
+
+            {/* Agency */}
+            <div>
+              <p className="text-gray-500 mb-1">Agency:</p>
+              <p className="font-semibold text-gray-900">
+                {(session?.user as any)?.agencyName || "—"}
+              </p>
+            </div>
+
+            {/* Agent */}
+            <div>
+              <p className="text-gray-500 mb-1">Agent:</p>
+              <p className="font-semibold text-gray-900">
+                {session?.user?.name || "—"}
+              </p>
+            </div>
+
+            {/* Payment Option */}
+            <div>
+              <p className="text-gray-500 mb-1">Payment Option:</p>
+              <p className="font-semibold text-gray-900">
+                3rd Party Finance
+              </p>
+            </div>
+
+            {/* Bind Date */}
+            <div>
+              <p className="text-gray-500 mb-1">Bind Date:</p>
+              <p className="font-semibold text-gray-900">—</p>
+            </div>
+
+          </div>
+        </div>
+    {/* ISC STYLE – STANDARD GL A-RATED SECTION */}
+    <div className="bg-white px-8 py-6 border-t border-gray-200">
+
+      {/* SECTION TITLE */}
+      <div className="mb-6">
+        <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+          Standard GL A-Rated - Claims Made
+        </h3>
+        <div className="mt-2 h-[1px] w-64 bg-gray-300" />
+      </div>
+
+      {/* CONTENT GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-6 text-[14px]">
+
+        {/* LEFT */}
+        <div className="space-y-4">
+          <div className="flex">
+            <span className="w-28 text-gray-500">Carrier:</span>
+            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+              {quotes[0]?.carrierId?.name || "—"}
+            </span>
+          </div>
+
+          <div className="flex">
+            <span className="w-28 text-gray-500">Cost:</span>
+            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+              {quotes.length > 0
+                ? `$${quotes[0].finalAmountUSD.toLocaleString()}`
+                : "Not Quoted"}
+            </span>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className="space-y-4">
+          <div className="flex">
+            <span className="w-36 text-gray-500">Policy Number:</span>
+            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+              Not Bound
+            </span>
+          </div>
+
+          <div className="flex">
+            <span className="w-36 text-gray-500">Effective Date:</span>
+            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+              {new Date(submission.createdAt).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    {/* ISC STYLE – UPLOAD DOCUMENTS */}
+    <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
+
+      {/* LEFT – UPLOADED DOCUMENTS */}
+      <div className="lg:col-span-2">
+
+        <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+          Uploaded Documents
+        </h3>
+
+        {/* Upload Box */}
+        <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
+          <p className="text-[14px] text-gray-500">
+            Drag and drop your files here to start uploading or
+          </p>
+
+          <input
+            type="file"
+            hidden
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                handleFileUpload(e.target.files[0]);
+              }
+            }}
+          />
+
+          <span className="ml-4 px-5 py-2 bg-[#2DD4BF] text-white text-[14px] font-medium rounded-md">
+            {uploading ? "Uploading..." : "Browse"}
+          </span>
+        </label>
+
+        {/* TABLE HEADER */}
+        <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
+          <span>Filename</span>
+          <span>Uploaded On</span>
+          <span>Action</span>
+        </div>
+
+        {/* FILE ROWS */}
+        {submission.files.length === 0 ? (
+          <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">
+            No documents uploaded yet
+          </div>
+        ) : (
+          submission.files.map((file, index) => (
+            <div
+              key={index}
+              className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200"
+            >
+              <span className="font-medium text-gray-900">
+                {file.fileName}
+              </span>
+
+              <span className="text-gray-500">
+                {new Date(submission.updatedAt).toLocaleDateString()}
+              </span>
+
+              <a
+                href={file.fileUrl}
+                download
+                target="_blank"
+                className="text-[#0A66C2] font-medium hover:underline"
+              >
+                Download
+              </a>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
+      <div>
+          <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
+            Required Documents Checklist
+          </h3>
+          <div className="space-y-6 text-[14px]">
+            {[
+              "Signed GL Application",
+              "Signed Loss Warranty Letter",
+              "Invoice Statement",
+              "Surplus Line Acknowledgment",
+              "Terrorism Acknowledgment",
+            ].map((doc) => {
+              const checked = checkedDocs[doc];
+
+              return (
+                <div
+                  key={doc}
+                  onClick={() => toggleDoc(doc)}
+                  className="flex items-center gap-4 cursor-pointer"
+                >
+                  {/* CLEAN ISC CIRCLE */}
+                  <div
+                    className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
+                      ${
+                        checked
+                          ? "bg-[#2DD4BF] border-[#2DD4BF]"
+                          : "border-gray-300"
+                      }`}
+                  >
+                    {checked && (
+                      <svg
+                        className="w-3 h-3 text-white"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path d="M5 10l3 3 7-7" />
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* TEXT */}
+                  <span className="text-gray-800 leading-tight">
+                    {doc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          
+      </div>
+    </div>
+    {/* ================= NOTES – ISC STYLE ================= */}
+<div className="bg-white px-8 py-6 border-t border-gray-200">
+  {/* Tabs */}
+  <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
+    {["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
+      (tab, i) => (
+        <span
+          key={tab}
+          className={`pb-3 cursor-pointer ${
+            i === 0
+              ? "border-b-2 border-black text-black font-medium"
+              : "text-gray-400"
+          }`}
+        >
+          {tab}
+        </span>
+      )
+    )}
+  </div>
+
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    {/* LEFT – ADD NOTE */}
+    <div className="lg:col-span-2">
+      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+        Add Note
+      </h3>
+
+      {/* Notify Filters */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-[13px] text-gray-500 mr-2">Notify:</span>
+
+        {[
+          "Underwriter",
+          "Accounting",
+          "Endorsements",
+          "Additional Insured Endorsements",
+          "Cancellations",
+          "Audits",
+          "Inspections",
+        ].map((item) => (
+          <button
+            key={item}
+            onClick={() => toggleNoteFilter(item)}
+            className={`px-3 py-1.5 rounded-md text-[13px] border transition ${
+              noteFilters.includes(item)
+                ? "bg-black text-white border-black"
+                : "bg-gray-100 text-gray-700 border-gray-200"
+            }`}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+
+      {/* Chat Box */}
+      <div className="flex gap-4 items-start">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-full bg-[#2DD4BF] text-white flex items-center justify-center font-semibold">
+          {session?.user?.name?.[0] || "U"}
+        </div>
+
+        {/* Textarea */}
+        <div className="flex-1">
+          <textarea
+            rows={4}
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Leave a note..."
+            className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]"
+          />
+
+          <div className="mt-3 flex justify-end">
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-[#2DD4BF] text-white rounded-md text-[14px] font-medium"
+            >
+              <span className="text-lg leading-none">＋</span> Note
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* RIGHT – NOTES THREAD */}
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[15px] font-semibold text-gray-900">
+          Notes Thread
+        </h3>
+
+        <div className="flex gap-2">
+          <button className="px-3 py-1.5 text-[13px] rounded-md bg-black text-white">
+            Default
+          </button>
+          <button className="px-3 py-1.5 text-[13px] rounded-md bg-gray-100 text-gray-700">
+            System Only
+          </button>
+        </div>
+      </div>
+
+      {/* Empty State */}
+      <div className="border rounded-md p-8 flex flex-col items-center justify-center text-center bg-gray-50">
+        <div className="w-20 h-16 bg-gray-300 rounded mb-4" />
+        <p className="font-medium text-gray-700 mb-1">
+          No notes added yet
+        </p>
+        <p className="text-[13px] text-gray-500">
+          Drop in questions or comments to help us assist you.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{/* ================= END NOTES ================= */}   
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="px-6 py-4 space-y-3">
           {/* Submission Overview */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Overview</h2>
+          <div className="bg-white rounded-md border border-gray-100 px-4 py-3">
+           <h2 className="text-[15px] font-semibold text-gray-900 mb-3">
+            Overview
+          </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Industry</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.templateId?.industry || "N/A"}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Industry</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.templateId?.industry || "N/A"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Subtype</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.templateId?.subtype || "N/A"}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Subtype</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.templateId?.subtype || "N/A"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">State</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.state || "N/A"}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">State</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.state || "N/A"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Created</p>
-                <p className="text-sm font-semibold text-gray-900">{new Date(submission.createdAt).toLocaleDateString()}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Created</p>
+                <p className="text-[15px] font-semibold text-gray-900">{new Date(submission.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -400,26 +850,26 @@ function SubmissionDetailsContent() {
             <h2 className="text-lg font-bold text-gray-900 mb-4">Client Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Name</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.clientContact.name}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Name</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.name}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Email</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.clientContact.email}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Email</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.email}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Phone</p>
-                <p className="text-sm font-semibold text-gray-900">{submission.clientContact.phone}</p>
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Phone</p>
+                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.phone}</p>
               </div>
               {submission.clientContact.EIN && (
                 <div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">EIN</p>
-                  <p className="text-sm font-semibold text-gray-900">{submission.clientContact.EIN}</p>
+                  <p className="text-[13px] text-gray-500 font-medium mb-1">EIN</p>
+                  <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.EIN}</p>
                 </div>
               )}
               <div className="md:col-span-2">
-                <p className="text-xs text-gray-500 font-medium mb-1">Business Address</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-[13px] text-gray-500 font-medium mb-1">Business Address</p>
+                <p className="text-[15px] font-semibold text-gray-900">
                   {submission.clientContact.businessAddress.street}<br />
                   {submission.clientContact.businessAddress.city}, {submission.clientContact.businessAddress.state} {submission.clientContact.businessAddress.zip}
                 </p>
@@ -462,7 +912,7 @@ function SubmissionDetailsContent() {
                       </div>
                     </div>
                     <div className="flex-1 pb-4 border-b border-gray-100 last:border-0">
-                      <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                      <p className="text-[15px] font-semibold text-gray-900">{item.title}</p>
                       <p className="text-xs text-gray-600 mt-1">{item.description}</p>
                       <p className="text-xs text-gray-500 mt-1">{new Date(item.date).toLocaleString()}</p>
                     </div>
@@ -481,7 +931,7 @@ function SubmissionDetailsContent() {
                   <div key={log._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{log.carrierId?.name || "Unknown Carrier"}</p>
+                        <p className="text-[15px] font-semibold text-gray-900">{log.carrierId?.name || "Unknown Carrier"}</p>
                         <p className="text-xs text-gray-600 mt-1">{log.carrierId?.email}</p>
                         {log.notes && (
                           <p className="text-xs text-gray-500 mt-2">{log.notes}</p>
@@ -509,7 +959,7 @@ function SubmissionDetailsContent() {
                   <div key={quote._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{quote.carrierId?.name || "Unknown Carrier"}</p>
+                        <p className="text-[15px] font-semibold text-gray-900">{quote.carrierId?.name || "Unknown Carrier"}</p>
                         <p className="text-xs text-gray-600 mt-1">Final Amount: <span className="font-bold text-[#00BCD4]">${quote.finalAmountUSD.toLocaleString()}</span></p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -518,7 +968,7 @@ function SubmissionDetailsContent() {
                         </span>
                         <Link
                           href={`/agency/quotes/${quote._id}`}
-                          className="px-3 py-1.5 bg-[#00BCD4] text-white rounded-lg text-xs font-semibold hover:bg-[#00ACC1] transition-colors"
+                          className="px-3 py-[6px] bg-[#00BCD4] text-white rounded-md text-[12px] font-semibold hover:bg-[#00ACC1] transition-colors"
                         >
                           View Details
                         </Link>
@@ -559,14 +1009,14 @@ function SubmissionDetailsContent() {
                 {activityLogs.map((log) => (
                   <div key={log._id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-[#00BCD4] rounded-lg flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-[16px]">
                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{log.description}</p>
+                      <p className="text-[15px] font-semibold text-gray-900">{log.description}</p>
                       <p className="text-xs text-gray-600 mt-1">
                         {log.performedBy.userName} ({log.performedBy.userRole}) • {new Date(log.createdAt).toLocaleString()}
                       </p>
@@ -809,14 +1259,14 @@ function SubmissionDetailsContent() {
                 {submission.files.map((file, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{file.fileName}</p>
+                      <p className="text-[15px] font-semibold text-gray-900">{file.fileName}</p>
                       <p className="text-xs text-gray-600">{formatFileSize(file.fileSize)} • {file.mimeType}</p>
                     </div>
                     <a
                       href={file.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-[#00BCD4] text-white rounded-lg text-xs font-semibold hover:bg-[#00ACC1] transition-colors"
+                      className="px-3 py-[6px] bg-[#00BCD4] text-white rounded-md text-[12px] font-semibold hover:bg-[#00ACC1] transition-colors"
                     >
                       Download
                     </a>
@@ -845,7 +1295,7 @@ function SubmissionDetailsContent() {
           </div>
         </div>
       </main>
-    </div>
+    </DashboardLayout>
   );
 }
 

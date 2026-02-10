@@ -466,8 +466,8 @@ export default function QuoteFormPage() {
   // });
 
   // Ensure class codes/description start blank on every mount to avoid stale values
-  
-  
+
+
   useEffect(() => {
     console.log("[Init] Resetting class codes and carrier description to blank");
     setFormData((prev: any) => ({
@@ -978,7 +978,7 @@ export default function QuoteFormPage() {
     "Roofing (New Commercial)", "Roofing (New Residential)", "Roofing (Repair Commercial)",
     "Roofing (Repair Residential)", "Sheet Metal", "Siding and Decking",
     "Swimming Pool Cleaning", "Swimming Pool Installation", "Tile & Marble Installation",
-    "Welding (Non-Structural)",
+    "Welding (Non-Structural)", "Others"
   ];
 
   const statesList = [
@@ -1155,28 +1155,6 @@ export default function QuoteFormPage() {
                   />
                 </div>
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900">Zip</label>
-                  <div></div>
-                  <div className="flex justify-end">
-                    <input
-                      type="text"
-                      value={formData.zip}
-                      onChange={(e) => handleInputChange('zip', e.target.value)}
-                      maxLength={5}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm]"
-                    />
-                    <select
-                      value={formData.state}
-                      onChange={(e) => handleInputChange('state', e.target.value)}
-                      className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm flex-1"
-                    >
-                      {statesList.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div> */}
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Estimated Total Gross Receipts</label>
@@ -1254,22 +1232,49 @@ export default function QuoteFormPage() {
                   </div>
                 </div>
 
-
-
-
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900"># of Active Owners in the Field</label>
+                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  <label className="text-sm font-medium text-gray-900">
+                    Estimated Material Costs
+                  </label>
                   <div></div>
-                  <select
-                    value={formData.activeOwners}
-                    onChange={(e) => handleInputChange('activeOwners', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                  >
-                    {Array.from({ length: 21 }, (_, i) => (
-                      <option key={i} value={i}>{i >= 19 ? '19+' : i}</option>
-                    ))}
-                  </select>
-                </div> */}
+                  <div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                      <input
+                        type="text"
+                        value={
+                          formData.estimatedMaterialCosts
+                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange("estimatedMaterialCosts", formatted);
+                        }}
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange(
+                            "estimatedMaterialCosts",
+                            parsed > 0 ? parsed.toString() : ""
+                          );
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
+                          ? "border-red-500 focus:ring-red-400"
+                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                          }`}
+                      />
+                    </div>
+
+                    {(materialCostError || combinedCostError) && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {materialCostError
+                          ? "Material costs cannot exceed total gross receipts."
+                          : "Subcontracting + material costs must be less than total gross receipts."}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">
@@ -1581,53 +1586,6 @@ export default function QuoteFormPage() {
 
 
 
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900">
-                    Estimated Material Costs
-                  </label>
-                  <div></div>
-                  <div>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                      <input
-                        type="text"
-                        value={
-                          formData.estimatedMaterialCosts
-                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formatted = formatCurrencyInput(e.target.value);
-                          handleInputChange("estimatedMaterialCosts", formatted);
-                        }}
-                        onBlur={(e) => {
-                          const parsed = parseCurrency(e.target.value);
-                          handleInputChange(
-                            "estimatedMaterialCosts",
-                            parsed > 0 ? parsed.toString() : ""
-                          );
-                        }}
-                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
-                          ? "border-red-500 focus:ring-red-400"
-                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
-                          }`}
-                      />
-                    </div>
-
-                    {(materialCostError || combinedCostError) && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {materialCostError
-                          ? "Material costs cannot exceed total gross receipts."
-                          : "Subcontracting + material costs must be less than total gross receipts."}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-
-
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
                   <div></div>
@@ -1722,7 +1680,26 @@ export default function QuoteFormPage() {
             </div>
           </div>
 
+          {/*Description of operations*/}
 
+          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <h2 className="text-lg font-semibold">Description of operations</h2>
+            </div>
+
+            <textarea
+              value={formData.carrierApprovedDescription}
+              placeholder="Enter Description here...."
+              onChange={(e) =>
+                setFormData((prev: any) => ({
+                  ...prev,
+                  carrierApprovedDescription: e.target.value,
+                }))
+              }
+              rows={6}
+              className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
+            />
+          </div>
 
           {/* Endorsements */}
 
@@ -1785,32 +1762,6 @@ export default function QuoteFormPage() {
             </div>
 
           </div>
-
-          {/*Description of operations*/}
-
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              {/* <span className="w-4 h-4 rounded-full bg-white text-[#4A4E5A] flex items-center justify-center text-xs font-bold">
-                i
-              </span> */}
-              <h2 className="text-lg font-semibold">Description of operations</h2>
-            </div>
-
-            <textarea
-              value={formData.carrierApprovedDescription}
-              placeholder="Enter Description here...."
-              onChange={(e) =>
-                setFormData((prev: any) => ({
-                  ...prev,
-                  carrierApprovedDescription: e.target.value,
-                }))
-              }
-              rows={6}
-              className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
-            />
-          </div>
-
-
 
           {/* Payment Options */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
@@ -2097,93 +2048,7 @@ export default function QuoteFormPage() {
                   />
                 </div>
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">Applicant Fax</label>
-                  <div></div>
-                  <div>
-                    <input
-                      type="tel"
-                      value={formData.fax}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const formatted = formatPhone(value);
-                        handleInputChange('fax', formatted);
-                        validatePhone(formatted, 'fax');
-                      }}
-                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.fax ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                      placeholder="(123) 456-7890"
-                      maxLength={14}
-                    />
-                    {validationErrors.fax && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-red-600">⚠</span>
-                        <span className="text-sm text-red-600">{validationErrors.fax}</span>
-                      </div>
-                    )}
-                  </div>
-                </div> */}
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Website address</label>
-                  <div></div>
-                  <input
-                    type="text"
-                    value={formData.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="example.com"
-                  />
-                </div> */}
-
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Does the carrier approved description thoroughly describe the work you will be performing?</label>
-                  <div></div>
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.carrierDescriptionOk === true}
-                        onChange={() => handleInputChange('carrierDescriptionOk', true)}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
-                      />
-                      <span className="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.carrierDescriptionOk === false}
-                        onChange={() => handleInputChange('carrierDescriptionOk', false)}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
-                      />
-                      <span className="text-sm text-gray-700">No</span>
-                    </label>
-                  </div>
-                </div> */}
-
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">Carrier Approved Description</label>
-                  <div></div>
-                  <textarea
-                    value={effectiveDescription}
-                    onChange={(e) => {
-                      const hasClassCode = Object.keys(formData.classCodeWork || {}).length > 0;
-                      if (!hasClassCode) {
-                        // If no class code, force clear to avoid stale values
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          carrierApprovedDescription: ""
-                        }));
-                        return;
-                      }
-                      // Allow manual editing when a class code exists (still recalculated on load)
-                      handleInputChange('carrierApprovedDescription', e.target.value);
-                    }}
-                    rows={4}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="Describe operations for which you are currently applying for insurance"
-                  />
-                </div> */}
               </div>
             </div>
           </div>
@@ -2199,7 +2064,7 @@ export default function QuoteFormPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-3">
                     Address
-                    <span className="ml-1 text-xs text-gray-500">(? icon would show help)</span>
+                    {/* <span className="ml-1 text-xs text-gray-500">(? icon would show help)</span> */}
                   </label>
                   <input
                     ref={addressInputRef}
@@ -3454,11 +3319,11 @@ export default function QuoteFormPage() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
                   >
                     <option value="">Select Limit</option>
-                    <option value="1M">$1,000,000 (1M)</option>
-                    <option value="2M">$2,000,000 (2M)</option>
-                    <option value="3M">$3,000,000 (3M)</option>
-                    <option value="4M">$4,000,000 (4M)</option>
-                    <option value="5M">$5,000,000 (5M)</option>
+                    <option value="1M">$1,000,000</option>
+                    <option value="2M">$2,000,000</option>
+                    <option value="3M">$3,000,000</option>
+                    <option value="4M">$4,000,000</option>
+                    <option value="5M">$5,000,000</option>
                   </select>
                 </div>
 

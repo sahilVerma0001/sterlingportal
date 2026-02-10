@@ -24,36 +24,36 @@ const menu = [
       { label: "Compare Coverages", href: "/agency/compare" },
     ],
   },
-  {
-    id: "excess",
-    label: "Excess Liability",
-    icon: Layers,
-    children: [{ label: "Excess", href: "/agency/submit?program=excess" }],
-  },
-  {
-    id: "environmental",
-    label: "Environmental",
-    icon: Leaf,
-    badge: "NEW",
-    href: "/agency/submit?program=environmental",
-  },
-  {
-    id: "inland",
-    label: "Inland Marine",
-    icon: Hammer,
-    children: [
-      { label: "Tools & Equipment", href: "/agency/submit?program=inland-tools" },
-    ],
-  },
-  {
-    id: "builders",
-    label: "Builder's Risk",
-    icon: Hammer,
-    children: [
-      { label: "0 - 2M TIV", href: "/agency/submit?program=br-small" },
-      { label: "2M - 25M TIV", href: "/agency/submit?program=br-large" },
-    ],
-  },
+  // {
+  //   id: "excess",
+  //   label: "Excess Liability",
+  //   icon: Layers,
+  //   children: [{ label: "Excess", href: "/agency/submit?program=excess" }],
+  // },
+  // {
+  //   id: "environmental",
+  //   label: "Environmental",
+  //   icon: Leaf,
+  //   badge: "NEW",
+  //   href: "/agency/submit?program=environmental",
+  // },
+  // {
+  //   id: "inland",
+  //   label: "Inland Marine",
+  //   icon: Hammer,
+  //   children: [
+  //     { label: "Tools & Equipment", href: "/agency/submit?program=inland-tools" },
+  //   ],
+  // },
+  // {
+  //   id: "builders",
+  //   label: "Builder's Risk",
+  //   icon: Hammer,
+  //   children: [
+  //     { label: "0 - 2M TIV", href: "/agency/submit?program=br-small" },
+  //     { label: "2M - 25M TIV", href: "/agency/submit?program=br-large" },
+  //   ],
+  // },
 ];
 
 export default function Sidebar() {
@@ -141,11 +141,11 @@ export default function Sidebar() {
                   {!collapsed && (
                     <span className="text-sm font-medium">{item.label}</span>
                   )}
-                  {!collapsed && item.badge && (
+                  {/* {!collapsed && item.badge && (
                     <span className="ml-1 bg-[#8F8376] text-black text-[10px] px-2 rounded-full">
                       {item.badge}
                     </span>
-                  )}
+                  )} */}
                 </div>
 
                 {!collapsed && item.children && (
