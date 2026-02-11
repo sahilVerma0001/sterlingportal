@@ -5,7 +5,8 @@ import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
-import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+// import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/SubmissionPDF";
 
 /**
  * GET /api/agency/applications/[id]/pdf
@@ -118,10 +119,10 @@ export async function GET(
       console.error("📄 [PDF Download] PDF generation error:", pdfError);
       console.error("📄 [PDF Download] Error message:", pdfError?.message);
       console.error("📄 [PDF Download] Error stack:", pdfError?.stack);
-      
+
       // Return detailed error for debugging
       return NextResponse.json(
-        { 
+        {
           error: pdfError?.message || "Failed to generate PDF",
           details: process.env.NODE_ENV === 'development' ? pdfError?.stack : undefined
         },
@@ -160,7 +161,7 @@ export async function GET(
     console.error("📄 [PDF Download] Error message:", error?.message);
     console.error("📄 [PDF Download] Error stack:", error?.stack);
     return NextResponse.json(
-      { 
+      {
         error: error?.message || "Failed to generate PDF",
         details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
       },

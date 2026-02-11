@@ -37,7 +37,7 @@ interface GenerateDocumentResult {
 }
 
 /**
- * Minify HTML to reduce size for PDFShift
+ * Minify HTML to reduce size for CustomJS
  */
 function minifyHTML(html: string): string {
   return html
@@ -72,362 +72,86 @@ function optimizeCSS(css: string): string {
 }
 
 /**
- * Generate PDF using PDFShift (Primary - Cost-effective)
- * Fallback: Browserless.io or local Puppeteer for development
+ * Generate PDF using CustomJS only.
+ * Requires CUSTOMJS_API_KEY in environment variables.
  */
 export async function generatePDFFromHTML(options: PDFGenerationOptions): Promise<Buffer> {
-  const { html, format = 'A4', margin, printBackground = true } = options;
-  
-  // Store original HTML for Puppeteer fallback (Puppeteer works better with unminified HTML)
-  const originalHTML = html;
+  const { html } = options;
 
-  // Option 1: PDFShift (Primary - Cost-effective)
-  // Get API key from: https://pdfshift.io/
-  const PDFSHIFT_API_KEY = process.env.PDFSHIFT_API_KEY;
-  // IMPORTANT: Disable PDFShift entirely in production (e.g. on Vercel) to avoid 2MB limit
-  // Production should use CustomJS / Browserless instead.
-  const isProductionEnv = !!(process.env.VERCEL || process.env.NODE_ENV === 'production');
-  if (PDFSHIFT_API_KEY && !isProductionEnv) {
-    // Declare minifiedHTML outside try block so it's accessible in catch
-    let minifiedHTML: string = html;
-    
-    try {
-      console.log('[PDF Service] Using PDFShift for PDF generation');
-      
-      // Minify HTML to reduce size (important for PDFShift 2MB limit)
-      try {
-        minifiedHTML = minifyHTML(html);
-      } catch (minifyError: any) {
-        console.error('[PDF Service] Error minifying HTML, using original:', minifyError.message);
-        minifiedHTML = html;
-      }
-      
-      const htmlSizeKB = Buffer.byteLength(minifiedHTML, 'utf8') / 1024;
-      console.log(`[PDF Service] HTML size: ${htmlSizeKB.toFixed(2)} KB`);
-      
-      if (htmlSizeKB > 2000) {
-        console.warn(`[PDF Service] Warning: HTML size (${htmlSizeKB.toFixed(2)} KB) exceeds PDFShift free tier limit (2MB). Consider optimizing.`);
-      }
-      
-      if (!minifiedHTML || minifiedHTML.length === 0) {
-        throw new Error('Generated HTML is empty');
-      }
-      
-      // Convert margin object to string format for PDFShift
-      const marginValue = margin 
-        ? typeof margin === 'string' 
-          ? margin 
-          : `${margin.top || '20px'} ${margin.right || '20px'} ${margin.bottom || '20px'} ${margin.left || '20px'}`
-        : '20px';
-      
-      // PDFShift uses X-API-Key header for authentication
-      // For free accounts, we can try sandbox mode which might have different limits
-      const pdfShiftBody: any = {
-        source: minifiedHTML,
-        format: format.toLowerCase(),
-        margin: marginValue,
-        // Use sandbox mode for free accounts (may have different behavior)
-        sandbox: false, // Set to true if experiencing issues with free tier
-        // Note: PDFShift doesn't support print_background parameter
-        // Backgrounds are printed by default in PDFShift
-      };
-      
-      console.log('[PDF Service] Sending to PDFShift with body size:', JSON.stringify(pdfShiftBody).length, 'bytes');
-      
-      const response = await fetch('https://api.pdfshift.io/v3/convert/pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': PDFSHIFT_API_KEY,
-        },
-        body: JSON.stringify(pdfShiftBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        let errorData: any = {};
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          // If not JSON, use the text as-is
-          errorData = { error: errorText };
-        }
-        console.error('[PDF Service] PDFShift API error:', response.status, errorText);
-        console.error('[PDF Service] PDFShift error data:', errorData);
-        
-        // Create a more detailed error message
-        const errorMessage = errorData.error || errorData.message || errorText || 'Unknown error';
-        const error = new Error(`PDFShift API error (${response.status}): ${errorMessage}`);
-        (error as any).status = response.status;
-        (error as any).code = errorData.code;
-        throw error;
-      }
-
-      const pdfBuffer = Buffer.from(await response.arrayBuffer());
-      console.log('[PDF Service] PDFShift success - PDF generated:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
-    } catch (error: any) {
-      console.error('[PDF Service] PDFShift failed:', error.message);
-      console.error('[PDF Service] PDFShift error details:', {
-        message: error.message,
-        status: error.status,
-        code: error.code,
-      });
-      
-      // Log HTML size for debugging (minifiedHTML is now accessible)
-      const htmlSizeKB = Buffer.byteLength(minifiedHTML, 'utf8') / 1024;
-      console.error(`[PDF Service] HTML size was: ${htmlSizeKB.toFixed(2)} KB`);
-      
-      // Check if it's a size limit error
-      const isSizeError = error.message.includes('too big') || 
-                          error.message.includes('2Mb') || 
-                          error.message.includes('2MB') ||
-                          error.message.includes('more than 2Mb') ||
-                          error.message.includes('more than 2MB');
-      
-      // Check if it's a credits/403 error
-      const isCreditsError = error.status === 403 || 
-                            error.message.includes('No remaining credits') ||
-                            error.message.includes('credits') ||
-                            error.message.includes('403');
-      
-      const isDevelopment = !process.env.VERCEL && process.env.NODE_ENV === 'development';
-      const isProduction = isProductionEnv;
-      
-      // In development, for credits/size errors, try CustomJS first if available
-      if ((isSizeError || isCreditsError) && isDevelopment) {
-        console.warn(`[PDF Service] PDFShift ${isCreditsError ? 'credits exhausted' : 'size limit exceeded'} (${htmlSizeKB.toFixed(2)} KB).`);
-        
-        // If CustomJS is configured, don't throw - let it try CustomJS
-        if (process.env.CUSTOMJS_API_KEY) {
-          console.log('[PDF Service] CustomJS API key found, will try CustomJS next...');
-          // Exit this if block and continue to CustomJS handler below
-          // Don't throw - execution will continue
-        } else {
-          // No CustomJS configured, throw to fall back to Puppeteer
-          console.warn('[PDF Service] No CustomJS configured, falling back to Puppeteer...');
-          throw error; // Will be caught by Puppeteer fallback below
-        }
-      } else {
-        // For other cases, continue with existing logic
-        // In production, for credits/403 errors, fall back to Browserless if available
-        if (isCreditsError && isProduction) {
-          console.warn(`[PDF Service] PDFShift credits exhausted (403). HTML size: ${htmlSizeKB.toFixed(2)} KB. Attempting fallback to Browserless...`);
-          throw error; // Will be caught by Browserless fallback below
-        }
-        
-        // In production, if it's a size error, provide helpful message
-        if (isSizeError && isProduction) {
-          console.error('[PDF Service] PDFShift size limit exceeded. HTML size:', htmlSizeKB.toFixed(2), 'KB');
-          throw new Error(`PDF size too large (${htmlSizeKB.toFixed(2)} KB). The document exceeds PDFShift's 2MB limit. Please optimize the content or upgrade your PDFShift plan.`);
-        }
-        
-        // For other errors in production, provide clear error message with actual error details
-        if (isProduction) {
-          // Log the full error for debugging
-          console.error('[PDF Service] Full PDFShift error:', JSON.stringify(error, null, 2));
-          
-          // If PDFShift says document is too big even though HTML is small, explain the situation
-          if ((error.message.includes('too big') || error.message.includes('2Mb') || error.message.includes('2MB')) && htmlSizeKB < 1500) {
-            throw new Error(
-              `PDFShift rendered document size limit exceeded. ` +
-              `While the HTML is only ${htmlSizeKB.toFixed(2)} KB, PDFShift counts the rendered document size ` +
-              `(after CSS processing, layout calculation, fonts) which exceeds their free tier 2MB limit. ` +
-              `Solutions: 1) Upgrade your PDFShift plan (recommended), 2) Configure BROWSERLESS_API_KEY as an alternative, ` +
-              `or 3) Contact PDFShift for a free trial with extended limits. Original error: ${error.message}`
-            );
-          }
-          
-          throw new Error(`PDFShift failed: ${error.message}. HTML size: ${htmlSizeKB.toFixed(2)} KB. Please check your PDFSHIFT_API_KEY and ensure it's configured correctly in Vercel environment variables.`);
-        }
-        
-        // In development, fall through to Puppeteer/Browserless
-        console.warn('[PDF Service] Falling back to alternative PDF generation method...');
-        throw error; // Will be caught by fallback handlers below
-      }
-    }
-  }
-
-  // Option 2: CustomJS (Alternative to PDFShift)
-  // Get API key from: https://www.customjs.space/ (sign in and get API key from dashboard)
-  // API Documentation: https://www.customjs.space/integration/native-api/documentation/
   const CUSTOMJS_API_KEY = process.env.CUSTOMJS_API_KEY;
   const CUSTOMJS_URL = process.env.CUSTOMJS_URL || 'https://e.customjs.io/html2pdf';
 
-  if (CUSTOMJS_API_KEY) {
-    try {
-      console.log('[PDF Service] Attempting CustomJS for PDF generation...');
-      
-      // Minify HTML to reduce size
-      let minifiedHTML: string = html;
-      try {
-        minifiedHTML = minifyHTML(html);
-      } catch (minifyError: any) {
-        console.error('[PDF Service] Error minifying HTML, using original:', minifyError.message);
-        minifiedHTML = html;
-      }
-      
-      const htmlSizeKB = Buffer.byteLength(minifiedHTML, 'utf8') / 1024;
-      console.log(`[PDF Service] HTML size: ${htmlSizeKB.toFixed(2)} KB`);
-      
-      // CustomJS API request body format: { "input": { "html": "..." } }
-      const customJSBody: any = {
-        input: {
-          html: minifiedHTML,
-        },
-      };
-      
-      console.log('[PDF Service] Sending to CustomJS with body size:', JSON.stringify(customJSBody).length, 'bytes');
-      
-      const response = await fetch(CUSTOMJS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CUSTOMJS_API_KEY,
-        },
-        body: JSON.stringify(customJSBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        let errorData: any = {};
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { error: errorText };
-        }
-        console.error('[PDF Service] CustomJS API error:', response.status, errorText);
-        console.error('[PDF Service] CustomJS error data:', errorData);
-        console.error('[PDF Service] CustomJS endpoint used:', CUSTOMJS_URL);
-        
-        // If 404, provide helpful message
-        if (response.status === 404) {
-          const errorMessage = errorData.error || errorData.message || errorText || 'Unknown error';
-          throw new Error(
-            `CustomJS API endpoint not found (404): ${errorMessage}. ` +
-            `Please verify your CUSTOMJS_API_KEY is correct and your account has access to the PDF generation service. ` +
-            `Endpoint: ${CUSTOMJS_URL}`
-          );
-        }
-        
-        const errorMessage = errorData.error || errorData.message || errorText || 'Unknown error';
-        const error = new Error(`CustomJS API error (${response.status}): ${errorMessage}`);
-        (error as any).status = response.status;
-        throw error;
-      }
-
-      const pdfBuffer = Buffer.from(await response.arrayBuffer());
-      console.log('[PDF Service] CustomJS success - PDF generated:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
-    } catch (error: any) {
-      console.error('[PDF Service] CustomJS failed:', error.message);
-      // Continue to next fallback
-      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-        // In production, only throw if no other services are configured
-        // Otherwise, fall through to Browserless or Puppeteer
-        if (!process.env.BROWSERLESS_API_KEY) {
-          throw new Error(`CustomJS failed: ${error.message}. Please check your CUSTOMJS_API_KEY or configure BROWSERLESS_API_KEY as a fallback.`);
-        }
-      }
-      throw error; // Will be caught by Browserless fallback below
-    }
-  }
-
-  // Option 3: Browserless.io (Fallback for PDFShift/CustomJS failures)
-  // Get API key from: https://www.browserless.io/
-  const BROWSERLESS_API_KEY = process.env.BROWSERLESS_API_KEY;
-  const BROWSERLESS_URL = process.env.BROWSERLESS_URL || 'https://chrome.browserless.io/pdf';
-
-  if (BROWSERLESS_API_KEY) {
-    try {
-      console.log('[PDF Service] Attempting Browserless fallback...');
-      const response = await fetch(BROWSERLESS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${BROWSERLESS_API_KEY}`,
-        },
-        body: JSON.stringify({
-          html: originalHTML, // Use original HTML for Browserless
-          options: {
-            format,
-            margin: margin || { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-            printBackground,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        throw new Error(`Browserless API error: ${response.status} ${errorText}`);
-      }
-
-      const pdfBuffer = Buffer.from(await response.arrayBuffer());
-      console.log('[PDF Service] Browserless success - PDF generated:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
-    } catch (error: any) {
-      console.error('[PDF Service] Browserless failed:', error.message);
-      // Continue to next fallback or show error
-      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-        throw new Error(`Browserless fallback failed: ${error.message}. Please check your BROWSERLESS_API_KEY or add credits to your PDFShift account.`);
-      }
-      throw error;
-    }
-  }
-
-  // Fallback: Try local Puppeteer (ONLY in local development, NEVER in production/serverless)
-  const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
-  const isLocalDev = !isProduction && process.env.NODE_ENV === 'development';
-  
-  if (isLocalDev) {
-    try {
-      console.log('[PDF Service] Attempting local Puppeteer fallback (development only)');
-      const { getPuppeteerBrowser } = await import('@/lib/utils/puppeteer');
-      const browser = await getPuppeteerBrowser();
-      const page = await browser.newPage();
-      await page.setContent(originalHTML, { waitUntil: 'networkidle0' });
-      const pdfUint8Array = await page.pdf({
-        format,
-        printBackground,
-        margin: margin || {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px',
-        },
-      });
-      await browser.close();
-      return Buffer.from(pdfUint8Array);
-    } catch (error: any) {
-      console.error('[PDF Service] Local Puppeteer failed:', error.message);
-      throw new Error(`Local Puppeteer failed: ${error.message}. Please configure PDFSHIFT_API_KEY for production.`);
-    }
-  }
-
-  // If we reach here, no PDF service is configured or all services failed
-  // (isProduction is already defined above)
-  
-  if (isProduction) {
-    console.error('[PDF Service] All PDF generation methods failed in production');
-    console.error('[PDF Service] PDFShift API Key configured:', !!process.env.PDFSHIFT_API_KEY);
-    console.error('[PDF Service] CustomJS API Key configured:', !!process.env.CUSTOMJS_API_KEY);
-    console.error('[PDF Service] Browserless API Key configured:', !!process.env.BROWSERLESS_API_KEY);
-    
+  if (!CUSTOMJS_API_KEY) {
     throw new Error(
-      'PDF generation failed in production. All configured PDF services encountered errors. Please check: 1) Your API keys are set in Vercel environment variables, 2) The API keys are valid, 3) Your accounts have sufficient credits. Configure one of: PDFSHIFT_API_KEY, CUSTOMJS_API_KEY, or BROWSERLESS_API_KEY.'
+      'PDF generation requires CUSTOMJS_API_KEY. Set it in your environment variables (e.g. .env.local). Get an API key from https://www.customjs.space/'
     );
   }
 
-  throw new Error(
-    'PDF generation failed. Please configure one of: PDFSHIFT_API_KEY, CUSTOMJS_API_KEY, or BROWSERLESS_API_KEY in environment variables.'
-  );
+  let minifiedHTML: string = html;
+  try {
+    minifiedHTML = minifyHTML(html);
+  } catch (minifyError: any) {
+    console.error('[PDF Service] Error minifying HTML, using original:', minifyError.message);
+    minifiedHTML = html;
+  }
+
+  const htmlSizeKB = Buffer.byteLength(minifiedHTML, 'utf8') / 1024;
+  console.log('[PDF Service] Using CustomJS for PDF generation. HTML size:', htmlSizeKB.toFixed(2), 'KB');
+
+  const customJSBody: any = {
+    input: {
+      html: minifiedHTML,
+    },
+  };
+
+  const response = await fetch(CUSTOMJS_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CUSTOMJS_API_KEY,
+    },
+    body: JSON.stringify(customJSBody),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    let errorData: any = {};
+    try {
+      errorData = JSON.parse(errorText);
+    } catch (e) {
+      errorData = { error: errorText };
+    }
+    console.error('[PDF Service] CustomJS API error:', response.status, errorText);
+    console.error('[PDF Service] CustomJS error data:', errorData);
+
+    if (response.status === 403 && (errorData.message || '').toLowerCase().includes('too many requests')) {
+      throw new Error(
+        'CustomJS rate limit exceeded (Too Many Requests). Please wait a few minutes before trying again, or upgrade your CustomJS plan for higher limits.'
+      );
+    }
+
+    if (response.status === 404) {
+      const errorMessage = errorData.error || errorData.message || errorText || 'Unknown error';
+      throw new Error(
+        `CustomJS API endpoint not found (404): ${errorMessage}. ` +
+        `Verify CUSTOMJS_API_KEY and that your account has access. Endpoint: ${CUSTOMJS_URL}`
+      );
+    }
+
+    const errorMessage = errorData.error || errorData.message || errorText || 'Unknown error';
+    throw new Error(`CustomJS API error (${response.status}): ${errorMessage}`);
+  }
+
+  const pdfBuffer = Buffer.from(await response.arrayBuffer());
+  console.log('[PDF Service] CustomJS success - PDF generated:', pdfBuffer.length, 'bytes');
+  return pdfBuffer;
 }
 
 /**
  * Check if PDF service is configured
  */
 export function isPDFServiceConfigured(): boolean {
-  return !!(process.env.CUSTOMJS_API_KEY || process.env.BROWSERLESS_API_KEY || process.env.PDFSHIFT_API_KEY);
+  return !!process.env.CUSTOMJS_API_KEY;
 }
 
 /**

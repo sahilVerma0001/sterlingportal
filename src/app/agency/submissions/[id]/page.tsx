@@ -1281,7 +1281,7 @@ const toggleDoc = (doc: string) => {
             <h2 className="text-lg font-bold text-gray-900 mb-4">Actions</h2>
             <div className="flex gap-3">
               <a
-                href={`/api/admin/submissions/${submissionId}/pdf`}
+                href={`/api/agency/applications/${submissionId}/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
