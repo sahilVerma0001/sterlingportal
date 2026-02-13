@@ -160,6 +160,8 @@ const toggleDoc = (doc: string) => {
 
   const [noteText, setNoteText] = useState("");
   const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
+  const [emailHistory, setEmailHistory] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("Notes");
 
   // Check for success message from edit
   useEffect(() => {
@@ -190,7 +192,37 @@ const toggleDoc = (doc: string) => {
     setLoadingActivity(true);
     try {
       const response = await fetch(`/api/agency/submissions/${submissionId}/activity`);
+
       if (response.ok) {
+              const statusHistory = [
+      {
+        _id: submission._id + "-created",
+        program: submission.programName || "General Liability",
+        changedAt: submission.createdAt,
+        user: session?.user?.name || "System",
+        status: "Submission Created",
+      },
+
+      ...routingLogs.map((log) => ({
+        _id: log._id,
+        program: log.carrierId?.name || "Carrier",
+        changedAt: log.createdAt,
+        user: log.carrierId?.name || "Underwriter",
+        status: log.status,
+      })),
+
+      ...activityLogs.map((log) => ({
+        _id: log._id,
+        program: "Activity",
+        changedAt: log.createdAt,
+        user: log.performedBy?.userName || "System",
+        status: log.description,
+      })),
+    ].sort(
+      (a, b) =>
+        new Date(b.changedAt).getTime() -
+        new Date(a.changedAt).getTime()
+    );
         const data = await response.json();
         setActivityLogs(data.logs || []);
       }
@@ -330,6 +362,36 @@ const toggleDoc = (doc: string) => {
 
   const { submission, routingLogs, quotes } = data;
 
+  const statusHistory = [
+  {
+    _id: submission._id + "-created",
+    program: submission.programName || "General Liability",
+    changedAt: submission.createdAt,
+    user: session?.user?.name || "System",
+    status: "Submission Created",
+  },
+
+  ...routingLogs.map((log) => ({
+    _id: log._id,
+    program: log.carrierId?.name || "Carrier",
+    changedAt: log.createdAt,
+    user: log.carrierId?.name || "Underwriter",
+    status: log.status,
+  })),
+
+  ...activityLogs.map((log) => ({
+    _id: log._id,
+    program: "Activity",
+    changedAt: log.createdAt,
+    user: log.performedBy?.userName || "System",
+    status: log.description,
+  })),
+].sort(
+  (a, b) =>
+    new Date(b.changedAt).getTime() -
+    new Date(a.changedAt).getTime()
+);
+
   // Build timeline from submission history
   const timeline = [
     {
@@ -361,7 +423,7 @@ const toggleDoc = (doc: string) => {
       {/* Sidebar - Matching Dashboard */}
 
       {/* Main Content */}
-      <main className="flex-1 ml-[6px] bg-gray-50 overflow-x-hidden">
+      <main className="flex-1 ml-[6px] bg-[#F3F0ED] overflow-x-hidden">
         {/* Header */}
         {/* ISC STYLE HEADER – NO BORDER */}
         <div className="bg-white px-6 pt-5 pb-4">
@@ -463,7 +525,7 @@ const toggleDoc = (doc: string) => {
                 Edit
               </button>
 
-              <button className="px-5 py-2 rounded-md bg-[#2DD4BF] text-white text-[14px] font-semibold">
+              <button className="px-5 py-2 rounded-md bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-semibold transition-colors">
                 Request Approval
               </button>
 
@@ -607,7 +669,7 @@ const toggleDoc = (doc: string) => {
             }}
           />
 
-          <span className="ml-4 px-5 py-2 bg-[#2DD4BF] text-white text-[14px] font-medium rounded-md">
+          <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
             {uploading ? "Uploading..." : "Browse"}
           </span>
         </label>
@@ -642,7 +704,7 @@ const toggleDoc = (doc: string) => {
                 href={file.fileUrl}
                 download
                 target="_blank"
-                className="text-[#0A66C2] font-medium hover:underline"
+                className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
               >
                 Download
               </a>
@@ -677,7 +739,7 @@ const toggleDoc = (doc: string) => {
                     className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
                       ${
                         checked
-                          ? "bg-[#2DD4BF] border-[#2DD4BF]"
+                          ? "bg-[#9A8B7A] border-[#9A8B7A]"
                           : "border-gray-300"
                       }`}
                   >
@@ -709,22 +771,23 @@ const toggleDoc = (doc: string) => {
 <div className="bg-white px-8 py-6 border-t border-gray-200">
   {/* Tabs */}
   <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
-    {["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
-      (tab, i) => (
-        <span
-          key={tab}
-          className={`pb-3 cursor-pointer ${
-            i === 0
-              ? "border-b-2 border-black text-black font-medium"
-              : "text-gray-400"
-          }`}
-        >
-          {tab}
-        </span>
-      )
-    )}
+{["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
+  (tab) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`pb-3 cursor-pointer transition ${
+        activeTab === tab
+          ? "border-b-2 border-black text-black font-medium"
+          : "text-gray-400 hover:text-gray-600"
+      }`}
+    >
+      {tab}
+    </button>
+  )
+)}
   </div>
-
+  {activeTab === "Notes" && (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
     {/* LEFT – ADD NOTE */}
     <div className="lg:col-span-2">
@@ -761,27 +824,28 @@ const toggleDoc = (doc: string) => {
 
       {/* Chat Box */}
       <div className="flex gap-4 items-start">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-[#2DD4BF] text-white flex items-center justify-center font-semibold">
+        {/* Avatar */}<div className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold">
+        
           {session?.user?.name?.[0] || "U"}
         </div>
 
         {/* Textarea */}
         <div className="flex-1">
           <textarea
-            rows={4}
+            rows={4}className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
             placeholder="Leave a note..."
-            className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]"
+            
           />
 
           <div className="mt-3 flex justify-end">
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-[#2DD4BF] text-white rounded-md text-[14px] font-medium"
-            >
-              <span className="text-lg leading-none">＋</span> Note
-            </button>
+          <button
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <span className="text-base">+</span>
+            Add Note
+          </button>
           </div>
         </div>
       </div>
@@ -816,484 +880,277 @@ const toggleDoc = (doc: string) => {
       </div>
     </div>
   </div>
-</div>
-{/* ================= END NOTES ================= */}   
-        {/* Content */}
-        <div className="px-6 py-4 space-y-3">
-          {/* Submission Overview */}
-          <div className="bg-white rounded-md border border-gray-100 px-4 py-3">
-           <h2 className="text-[15px] font-semibold text-gray-900 mb-3">
-            Overview
-          </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Industry</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.templateId?.industry || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Subtype</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.templateId?.subtype || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">State</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.state || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Created</p>
-                <p className="text-[15px] font-semibold text-gray-900">{new Date(submission.createdAt).toLocaleDateString()}</p>
-              </div>
+  )}
+  {activeTab === "Status History" && (
+  <div className="border rounded-md overflow-hidden">
+    <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 text-sm font-medium text-gray-600">
+      <span>Program</span>
+      <span>Changed</span>
+      <span>User</span>
+      <span>Status</span>
+    </div>
+
+    {statusHistory.map((item) => (
+      <div
+        key={item._id}
+        className="px-4 py-3 grid grid-cols-4 text-sm border-t"
+      >
+        <span>{item.program}</span>
+        <span>{new Date(item.changedAt).toLocaleString()}</span>
+        <span>{item.user}</span>
+        <span>{item.status}</span>
+      </div>
+    ))}
+  </div>
+)}
+{activeTab === "Rating Information" && (
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    {/* LEFT SIDE – PREMIUM INFO */}
+    <div className="border rounded-md p-6">
+      <h3 className="text-[15px] font-semibold mb-4">
+        Premium Breakdown
+      </h3>
+
+      {quotes.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No rating information available.
+        </p>
+      ) : (
+        <>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span>Carrier Premium</span>
+              <span>
+                ${quotes[0].carrierQuoteUSD.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Broker Fee</span>
+              <span>
+                ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between font-semibold border-t pt-3">
+              <span>Total Premium</span>
+              <span>
+                ${quotes[0].finalAmountUSD.toLocaleString()}
+              </span>
             </div>
           </div>
+        </>
+      )}
+      {activeTab === "Contact Information" && (
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-          {/* Client Information */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Client Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Name</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.name}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Email</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.email}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Phone</p>
-                <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.phone}</p>
-              </div>
-              {submission.clientContact.EIN && (
-                <div>
-                  <p className="text-[13px] text-gray-500 font-medium mb-1">EIN</p>
-                  <p className="text-[15px] font-semibold text-gray-900">{submission.clientContact.EIN}</p>
-                </div>
-              )}
-              <div className="md:col-span-2">
-                <p className="text-[13px] text-gray-500 font-medium mb-1">Business Address</p>
-                <p className="text-[15px] font-semibold text-gray-900">
-                  {submission.clientContact.businessAddress.street}<br />
-                  {submission.clientContact.businessAddress.city}, {submission.clientContact.businessAddress.state} {submission.clientContact.businessAddress.zip}
-                </p>
-              </div>
-            </div>
+    {/* ================= PRODUCER ================= */}
+    <div className="border rounded-md p-6 bg-gray-50">
+      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+        Producer
+      </h3>
+
+      <div className="space-y-3 text-[14px]">
+
+        <div>
+          <p className="font-semibold text-gray-900">
+            {submission.clientContact.name}
+          </p>
+          <p className="text-gray-500">
+            {(session?.user as any)?.agencyName || "Agency Name"}
+          </p>
+        </div>
+
+        <div className="pt-4 space-y-2 text-gray-600">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-gray-400" />
+            <span>
+              {submission.clientContact.businessAddress.street},{" "}
+              {submission.clientContact.businessAddress.city},{" "}
+              {submission.clientContact.businessAddress.state}{" "}
+              {submission.clientContact.businessAddress.zip}
+            </span>
           </div>
 
-          {/* Admin Notes Section */}
-          {submission.adminNotes && (
-            <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-[#00BCD4] rounded-lg p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <svg className="w-5 h-5 text-[#00BCD4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-gray-900 mb-2">Admin Notes</h3>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{submission.adminNotes}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Timeline */}
-          {timeline.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Timeline</h2>
-              <div className="space-y-4">
-                {timeline.map((item, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                        item.color === "green" ? "bg-green-100" :
-                        item.color === "red" ? "bg-red-100" :
-                        item.color === "purple" ? "bg-purple-100" :
-                        "bg-blue-100"
-                      }`}>
-                        {item.icon}
-                      </div>
-                    </div>
-                    <div className="flex-1 pb-4 border-b border-gray-100 last:border-0">
-                      <p className="text-[15px] font-semibold text-gray-900">{item.title}</p>
-                      <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">{new Date(item.date).toLocaleString()}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Routing Logs */}
-          {routingLogs.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Routing Logs</h2>
-              <div className="space-y-3">
-                {routingLogs.map((log) => (
-                  <div key={log._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[15px] font-semibold text-gray-900">{log.carrierId?.name || "Unknown Carrier"}</p>
-                        <p className="text-xs text-gray-600 mt-1">{log.carrierId?.email}</p>
-                        {log.notes && (
-                          <p className="text-xs text-gray-500 mt-2">{log.notes}</p>
-                        )}
-                      </div>
-                      <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                        log.status === "SENT" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"
-                      }`}>
-                        {log.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">{new Date(log.createdAt).toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Quotes */}
-          {quotes.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Quotes ({quotes.length})</h2>
-              <div className="space-y-3">
-                {quotes.map((quote) => (
-                  <div key={quote._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-[15px] font-semibold text-gray-900">{quote.carrierId?.name || "Unknown Carrier"}</p>
-                        <p className="text-xs text-gray-600 mt-1">Final Amount: <span className="font-bold text-[#00BCD4]">${quote.finalAmountUSD.toLocaleString()}</span></p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${getQuoteStatusBadgeColor(quote.status)}`}>
-                          {quote.status}
-                        </span>
-                        <Link
-                          href={`/agency/quotes/${quote._id}`}
-                          className="px-3 py-[6px] bg-[#00BCD4] text-white rounded-md text-[12px] font-semibold hover:bg-[#00ACC1] transition-colors"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-xs">
-                      <div>
-                        <p className="text-gray-500">Carrier Quote</p>
-                        <p className="font-semibold text-gray-900">${quote.carrierQuoteUSD.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Broker Fee</p>
-                        <p className="font-semibold text-gray-900">${quote.brokerFeeAmountUSD.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500">Created</p>
-                        <p className="font-semibold text-gray-900">{new Date(quote.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Activity Log */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Activity Log</h2>
-              {loadingActivity && (
-                <div className="w-4 h-4 border-2 border-gray-300 border-t-cyan-500 rounded-full animate-spin"></div>
-              )}
-            </div>
-            {activityLogs.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">No activity recorded yet</p>
-            ) : (
-              <div className="space-y-3">
-                {activityLogs.map((log) => (
-                  <div key={log._id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex-shrink-0">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-[16px]">
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-gray-900">{log.description}</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {log.performedBy.userName} ({log.performedBy.userRole}) • {new Date(log.createdAt).toLocaleString()}
-                      </p>
-                      {log.details && Object.keys(log.details).length > 0 && (
-                        <div className="mt-2 text-xs text-gray-500">
-                          {Object.entries(log.details).map(([key, value]) => (
-                            <span key={key} className="mr-3">
-                              <span className="font-medium">{key}:</span> {String(value)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-gray-400" />
+            <span>{submission.clientContact.phone}</span>
           </div>
 
-          {/* Application Data */}
-          {submission.payload && Object.keys(submission.payload).length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900">Application Data</h2>
-                  <p className="text-xs text-gray-500 mt-1">{Object.keys(submission.payload).length} fields</p>
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(submission.payload, null, 2));
-                    toast.success("Application data copied to clipboard!");
-                  }}
-                  className="px-3 py-1.5 text-xs font-semibold text-[#00BCD4] hover:bg-cyan-50 rounded-lg border border-[#00BCD4]/20 hover:border-[#00BCD4]/40 transition-all flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Copy All
-                </button>
-              </div>
-              
-              {/* Search Bar */}
-              <div className="mb-4">
-                <div className="relative">
-                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search fields..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00BCD4] focus:border-[#00BCD4] outline-none"
-                  />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-gray-400" />
+            <span>{submission.clientContact.email}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(submission.payload)
-                  .filter(([key, value]) => {
-                    if (!searchTerm) return true;
-                    const search = searchTerm.toLowerCase();
-                    const formattedKey = key
-                      .replace(/([A-Z])/g, ' $1')
-                      .replace(/^./, (str) => str.toUpperCase())
-                      .trim()
-                      .toLowerCase();
-                    const valueStr = typeof value === 'object' 
-                      ? JSON.stringify(value).toLowerCase()
-                      : String(value).toLowerCase();
-                    return formattedKey.includes(search) || valueStr.includes(search);
-                  })
-                  .map(([key, value]) => {
-                    // Format the key to be more readable
-                    const formattedKey = key
-                      .replace(/([A-Z])/g, ' $1')
-                      .replace(/^./, (str) => str.toUpperCase())
-                      .trim();
-                    
-                    // Format the value based on its type
-                    let formattedValue: string;
-                    let valueType: 'text' | 'boolean' | 'object' | 'number' | 'email' | 'url' | 'date' = 'text';
-                    
-                    if (value === null || value === undefined) {
-                      formattedValue = 'N/A';
-                    } else if (typeof value === 'boolean') {
-                      formattedValue = value ? 'Yes' : 'No';
-                      valueType = 'boolean';
-                    } else if (typeof value === 'number') {
-                      formattedValue = value.toLocaleString();
-                      valueType = 'number';
-                    } else if (typeof value === 'object') {
-                      formattedValue = JSON.stringify(value, null, 2);
-                      valueType = 'object';
-                    } else {
-                      formattedValue = String(value);
-                      // Detect email
-                      if (formattedValue.includes('@') && formattedValue.includes('.')) {
-                        valueType = 'email';
-                      }
-                      // Detect URL
-                      if (formattedValue.startsWith('http://') || formattedValue.startsWith('https://')) {
-                        valueType = 'url';
-                      }
-                      // Detect date
-                      if (/^\d{4}-\d{2}-\d{2}/.test(formattedValue) || formattedValue.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                        valueType = 'date';
-                      }
-                    }
-                    
-                    const handleCopy = () => {
-                      const textToCopy = typeof value === 'object' 
-                        ? JSON.stringify(value, null, 2)
-                        : String(value);
-                      navigator.clipboard.writeText(textToCopy);
-                      setCopiedField(key);
-                      toast.success("Copied to clipboard!");
-                      setTimeout(() => setCopiedField(null), 2000);
-                    };
-                    
-                    return (
-                      <div 
-                        key={key} 
-                        className="bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all group"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            {valueType === 'email' && (
-                              <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                            {valueType === 'url' && (
-                              <svg className="w-4 h-4 text-purple-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                              </svg>
-                            )}
-                            {valueType === 'number' && (
-                              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                              </svg>
-                            )}
-                            {valueType === 'boolean' && (
-                              <svg className={`w-4 h-4 flex-shrink-0 ${value ? 'text-green-500' : 'text-red-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={value ? "M5 13l4 4L19 7" : "M6 18L18 6M6 6l12 12"} />
-                              </svg>
-                            )}
-                            {valueType === 'date' && (
-                              <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide truncate">{formattedKey}</p>
-                          </div>
-                          <button
-                            onClick={handleCopy}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-200 rounded text-gray-500 hover:text-[#00BCD4] flex-shrink-0"
-                            title="Copy value"
-                          >
-                            {copiedField === key ? (
-                              <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                        {typeof value === 'object' && value !== null ? (
-                          <div className="bg-gray-900 rounded-lg p-3 border border-gray-700 max-h-48 overflow-auto">
-                            <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-words">
-                              {formattedValue}
-                            </pre>
-                          </div>
-                        ) : valueType === 'url' ? (
-                          <a 
-                            href={formattedValue} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm font-semibold text-[#00BCD4] hover:text-[#00ACC1] break-all underline flex items-center gap-1"
-                          >
-                            {formattedValue}
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </a>
-                        ) : valueType === 'email' ? (
-                          <a 
-                            href={`mailto:${formattedValue}`}
-                            className="text-sm font-semibold text-blue-600 hover:text-blue-700 break-all"
-                          >
-                            {formattedValue}
-                          </a>
-                        ) : (
-                          <p className={`text-sm font-semibold break-words ${
-                            valueType === 'boolean' 
-                              ? (value ? 'text-green-600' : 'text-red-600')
-                              : valueType === 'number'
-                              ? 'text-green-700'
-                              : 'text-gray-900'
-                          }`}>
-                            {formattedValue}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-              {Object.entries(submission.payload).filter(([key, value]) => {
-                if (!searchTerm) return false;
-                const search = searchTerm.toLowerCase();
-                const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase()).trim().toLowerCase();
-                const valueStr = typeof value === 'object' ? JSON.stringify(value).toLowerCase() : String(value).toLowerCase();
-                return !formattedKey.includes(search) && !valueStr.includes(search);
-              }).length === Object.keys(submission.payload).length && searchTerm && (
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  No fields match your search
-                </div>
-              )}
+    {/* ================= WHOLESALER ================= */}
+    <div className="border rounded-md p-6 bg-gray-50">
+      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+        Wholesaler
+      </h3>
+
+      <div className="space-y-3 text-[14px]">
+
+        <div>
+          <p className="font-semibold text-gray-900">
+            {quotes[0]?.carrierId?.name || "Integrated Specialty Coverage"}
+          </p>
+        </div>
+
+        <div className="pt-4 space-y-2 text-gray-600">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-gray-400" />
+            <span>
+              1811 Aston Ave. Ste. 200 Carlsbad, CA 92008
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-gray-400" />
+            <span>(760) 599-7242</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-gray-400" />
+            <span>
+              {quotes[0]?.carrierId?.email || "info@iscovers.com"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+)}
+    </div>
+
+    {/* RIGHT SIDE – POLICY INFO */}
+    <div className="border rounded-md p-6">
+      <h3 className="text-[15px] font-semibold mb-4">
+        Policy Information
+      </h3>
+
+      <div className="space-y-3 text-sm">
+        <div className="flex justify-between">
+          <span>Program</span>
+          <span>{submission.programName || "GL Program"}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>Effective Date</span>
+          <span>
+            {new Date(submission.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>Status</span>
+          <span>{submission.status}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>State</span>
+          <span>{submission.state}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+)}
+{activeTab === "Rating Information" && (
+  <div className="border rounded-md bg-white">
+
+    {quotes.length === 0 ? (
+      <div className="py-20 flex flex-col items-center justify-center text-center">
+        <div className="w-20 h-16 bg-gray-200 rounded mb-4" />
+        <p className="text-[15px] font-medium text-gray-700 mb-1">
+          No rating information available
+        </p>
+        <p className="text-[13px] text-gray-500">
+          Rating details will appear here once a quote is generated.
+        </p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
+
+        {/* LEFT – PREMIUM */}
+        <div>
+          <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
+            Premium Breakdown
+          </h3>
+
+          <div className="space-y-4 text-[14px]">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Carrier Premium</span>
+              <span className="font-medium text-gray-900">
+                ${quotes[0].carrierQuoteUSD.toLocaleString()}
+              </span>
             </div>
-          )}
 
-          {/* Files */}
-          {submission.files && submission.files.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Uploaded Files ({submission.files.length})</h2>
-              <div className="space-y-2">
-                {submission.files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">{file.fileName}</p>
-                      <p className="text-xs text-gray-600">{formatFileSize(file.fileSize)} • {file.mimeType}</p>
-                    </div>
-                    <a
-                      href={file.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-[6px] bg-[#00BCD4] text-white rounded-md text-[12px] font-semibold hover:bg-[#00ACC1] transition-colors"
-                    >
-                      Download
-                    </a>
-                  </div>
-                ))}
-              </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Broker Fee</span>
+              <span className="font-medium text-gray-900">
+                ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
+              </span>
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Actions</h2>
-            <div className="flex gap-3">
-              <a
-                href={`/api/agency/applications/${submissionId}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                Download PDF
-              </a>
+            <div className="flex justify-between border-t pt-4 font-semibold">
+              <span>Total Premium</span>
+              <span>
+                ${quotes[0].finalAmountUSD.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
+
+        {/* RIGHT – POLICY INFO */}
+        <div>
+          <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
+            Policy Information
+          </h3>
+
+          <div className="space-y-4 text-[14px]">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Program</span>
+              <span className="font-medium text-gray-900">
+                {submission.programName || "General Liability"}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-500">Effective Date</span>
+              <span className="font-medium text-gray-900">
+                {new Date(submission.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-500">Status</span>
+              <span className="font-medium text-gray-900">
+                {submission.status.replace("_", " ")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-500">State</span>
+              <span className="font-medium text-gray-900">
+                {submission.state}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    )}
+  </div>
+)}
+</div>
+{/* ================= END NOTES ================= */}   
+        {/* Content */}
+
       </main>
     </DashboardLayout>
   );
@@ -1302,9 +1159,18 @@ const toggleDoc = (doc: string) => {
 export default function SubmissionDetailsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#F3F0ED] flex items-center justify-center z-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="flex flex-col items-center gap-6">
+  <div className="relative w-14 h-14">
+    <div className="absolute inset-0 rounded-full border-4 border-[#F3F0ED]"></div>
+    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#9A8B7A] animate-spin"></div>
+  </div>
+
+  <p className="text-[14px] text-[#7A6F64] font-medium tracking-wide">
+    Loading submission details...
+  </p>
+</div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
