@@ -105,8 +105,6 @@ function SubmissionDetailsContent() {
           body: formData,
         }
       );
-const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
-
 const toggleNoteFilter = (filter: string) => {
   setNoteFilters((prev) =>
     prev.includes(filter)
@@ -477,19 +475,29 @@ const toggleDoc = (doc: string) => {
 
               {/* ICON ACTIONS */}
               <div className="flex items-center gap-5">
-                <button className="p-2 rounded-md hover:bg-gray-100">
+                <button   aria-label="Favorite"
+                  className="p-2 rounded-md hover:bg-gray-100">
                   <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
 
-                <button className="p-2 rounded-md hover:bg-gray-100">
+                <button
+                  aria-label="Assign User"
+                  className="p-2 rounded-md hover:bg-gray-100"
+                >
                   <UserPlus className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
 
-                <button className="p-2 rounded-md hover:bg-gray-100">
+                <button
+                  aria-label="Copy"
+                  className="p-2 rounded-md hover:bg-gray-100"
+                >
                   <Copy className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
 
-                <button className="p-2 rounded-md hover:bg-gray-100">
+                <button
+                  aria-label="Share"
+                  className="p-2 rounded-md hover:bg-gray-100"
+                >
                   <Share2 className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
               </div>
@@ -942,7 +950,7 @@ const toggleDoc = (doc: string) => {
           </div>
         </>
       )}
-      {activeTab === "Contact Information" && (
+{activeTab === "Rating Information" && (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
     {/* ================= PRODUCER ================= */}
