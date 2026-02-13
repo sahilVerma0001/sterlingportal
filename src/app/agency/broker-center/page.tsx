@@ -11,7 +11,7 @@ import { signOut } from "next-auth/react";
 
 interface Submission {
     _id: string;
-    submissionId: string;
+    submissionNumber: number;
     industry: string;
     subtype: string;
     templateTitle: string;
@@ -237,7 +237,7 @@ function AgencyDashboardContent() {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(sub =>
                 sub.clientName.toLowerCase().includes(query) ||
-                sub.submissionId.toLowerCase().includes(query) ||
+                String(sub.submissionNumber).includes(query) ||
                 sub.clientEmail.toLowerCase().includes(query) ||
                 sub.industry.toLowerCase().includes(query) ||
                 sub.subtype.toLowerCase().includes(query)
@@ -255,7 +255,7 @@ function AgencyDashboardContent() {
         if (submissions.length === 0) return;
         const headers = ["Submission ID", "Industry", "Subtype", "Client Name", "Client Email", "Client Phone", "Status", "State", "Files", "Created Date", "Updated Date"];
         const rows = submissions.map((sub) => [
-            sub.submissionId, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
+            sub.submissionNumber, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
             sub.status, sub.state, sub.fileCount.toString(),
             new Date(sub.createdAt).toLocaleDateString(),
             new Date(sub.updatedAt).toLocaleDateString(),
@@ -557,7 +557,7 @@ function AgencyDashboardContent() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#9A8B7A]">
-                                                        {sub.submissionId}
+                                                        {sub.submissionNumber}
                                                     </Link>
                                                 </td>
                                                 <td className="px-6 py-4">

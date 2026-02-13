@@ -12,12 +12,6 @@ interface ApplicationPacketData {
   submissionId: string;
   formDate: string;
 
-  // Optional Additional Coverages
-  addInlandMarineEquipment?: boolean;
-  addBuildersRisk?: boolean;
-  addEnvironmentalCoverage?: boolean;
-
-
   // Agency Information
   agencyName: string;
   agencyContactName: string;
@@ -39,6 +33,7 @@ interface ApplicationPacketData {
   applicantZip: string;
   applicantPhone: string;
   applicantEmail: string;
+  fein: string;
   entityType: string;
   yearsInBusiness: number;
   yearsExperienceInTrades: number;
@@ -47,18 +42,20 @@ interface ApplicationPacketData {
   otherBusinessNames?: string;
   paymentOption: string;
 
+
   // Loss History
   generalLiabilityLosses?: {
     dateOfLoss: string;
     amountOfLoss: string;
   }[];
 
-
   // Quote Information
   quoteType: string;
   carrierName: string;
   coverageType: string;
   desiredCoverageDates: string;
+  /** When true (approved quote), state-specific forms section is included in the packet */
+  includeStateForms?: boolean;
 
   // General Liability Coverages
   aggregateLimit: string;
@@ -127,8 +124,6 @@ interface ApplicationPacketData {
   awareOfPotentialClaims?: boolean;
   potentialClaimsExplanation?: string;
 
-
-
   // Written Contract Questions
   haveWrittenContract?: boolean;
   contractHasStartDate?: boolean;
@@ -155,6 +150,8 @@ interface ApplicationPacketData {
   requireSubsWorkersComp?: boolean;
   subsWorkersCompExplanation?: string;
 
+  // Policy Endorsements
+  policyEndorsements?: string;
 
   // Policy Endorsements (checkbox-driven)
   blanketAdditionalInsured?: boolean;
@@ -163,10 +160,6 @@ interface ApplicationPacketData {
   blanketPerProjectAggregate?: boolean;
   blanketCompletedOperations?: boolean;
   noticeOfCancellationThirdParties?: boolean;
-
-
-  // Policy Endorsements
-  policyEndorsements?: string;
 
   // Application Agreement - Signatures
   applicantSignature?: string;
@@ -305,6 +298,8 @@ function generateQRCodeHTML(qrCodeDataUrl: string): string {
   return `<div class="qr-code"><img src="${qrCodeDataUrl}" alt="QR Code" style="width: 0.7in; height: 0.7in; display: block;" /></div>`;
 }
 
+// Generate Page 1: Bind Request Checklist
+
 function generatePage1(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P1`;
@@ -367,11 +362,13 @@ function generatePage1(data: ApplicationPacketData): string {
           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Invoice Statement</div>
           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Finance Agreement</div>
         </div>
-        <div class="submission-instructions-page1">
-          Please submit complete and approved apps by visiting the application detail page for App ${data.applicationId} and uploading the above documents.
-        </div>
-        <div class="binding-instructions-page1">
-          All documents must be submitted to be bound by Integrated Specialty Coverages, LLC, no binds are in effect until Broker receives confirmation from Integrated Specialty Coverages, LLC via email.
+        <div class="last-text">
+          <div class="submission-instructions-page1">
+            Please submit complete and approved apps by visiting the application detail page for App ${data.applicationId} and uploading the above documents.
+          </div>
+          <div class="binding-instructions-page1">
+            All documents must be submitted to be bound by Integrated Specialty Coverages, LLC, no binds are in effect until Broker receives confirmation from Integrated Specialty Coverages, LLC via email.
+          </div>
         </div>
         <div class="page-number page-number-page1">Page 1 of 1</div>
       </div>
@@ -458,6 +455,7 @@ function generatePage2(data: ApplicationPacketData): string {
         <div class="applicant-info-section-page2">
           <div class="section-title-underline-page2"><strong>APPLICANT INFORMATION</strong></div>
           <div class="applicant-field-page2"><strong>Mailing Address:</strong> ${data.applicantAddress}</div>
+          <div class="applicant-field-page2"><strong>FEIN:</strong> ${data.fein || 'N/A'}</div>
           <div class="applicant-field-page2"><strong>Entity of Company:</strong> ${data.entityType}</div>
           <div class="applicant-field-page2"><strong>Years in Business:</strong> ${data.yearsInBusiness}</div>
           <div class="applicant-field-page2"><strong>Years of experience in the Trades for which you are applying for insurance:</strong> ${data.yearsExperienceInTrades}</div>
@@ -541,7 +539,7 @@ function generatePage3(data: ApplicationPacketData): string {
         <div class="footnote-page3">* For purposes of this application, "Employee" is defined as an individual working for you (the applicant), which receives a W-2 tax form or you withhold & pay employment related taxes for that individual.</div>
         
         <div class="section-title-uppercase-page3">WORK PERFORMED</div>
-        <div class="work-description-page3"><strong>Description of operations</strong> ${data.workDescription || ''}</div>
+        <div class="work-description-page3"><strong>Complete Descriptions of operations that for which you are currently applying for insurance:</strong> ${data.workDescription || ''}</div>
         <div class="work-percentages-page3">
           <div class="percentage-item-page3"><strong>Percentage of Residential work performed:</strong> ${data.percentageResidential}%</div>
           <div class="percentage-item-page3"><strong>Percentage of Commercial work performed:</strong> ${data.percentageCommercial}%</div>
@@ -697,6 +695,7 @@ function generatePage4(data: ApplicationPacketData): string {
             ${data.awareOfPotentialClaims ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.potentialClaimsExplanation || ''}</div>` : ''}
           </div>
 
+
           ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
           <div class="loss-history-section">
             <h3>General Liability Loss Information</h3>
@@ -725,6 +724,8 @@ function generatePage4(data: ApplicationPacketData): string {
             <strong>Loss History:</strong> No losses reported
           </div>
           `}
+
+
 
         </div>
         
@@ -764,10 +765,7 @@ function generatePage5(data: ApplicationPacketData): string {
         </div>
       </div>
       <div class="main-content main-content-page5">
-
-
-
-      <div class="section-title-uppercase-page5">WRITTEN CONTRACT</div>
+        <div class="section-title-uppercase-page5">WRITTEN CONTRACT</div>
         
         <div class="written-contract-questions-page5">
           <div class="question-item-page5">
@@ -806,17 +804,17 @@ function generatePage5(data: ApplicationPacketData): string {
           <div class="question-item-page5">
             <div class="question-text-page5"><strong>Do you subcontract work?</strong></div>
             <div class="yes-no-options-page5">${formatYesNo(data.doSubcontractWork)}</div>
-            ${data.doSubcontractWork === true ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}${data.doSubcontractWork ? `
+            ${data.doSubcontractWork ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}
+            ${data.doSubcontractWork ? `
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you always collect certificates of insurance from subcontractors?</strong></div>
               <div class="yes-no-options-page5">${formatYesNo(data.alwaysCollectCertificatesFromSubs, true)}</div>
-              ${data.alwaysCollectCertificatesFromSubs === false ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong>${data.collectCertificatesExplanation || ''}</div>` : ''}
+              ${!data.alwaysCollectCertificatesFromSubs ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.collectCertificatesExplanation || ''}</div>` : ''}
             </div>
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you require subcontractors to have insurance limits equal to your own?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsEqualInsuranceLimits)}</div>
-              ${data.requireSubsEqualInsuranceLimits === false ? `<div class="explanation-field-page5"><strong>If "No", pleaseexplain:</strong>${data.subsEqualLimitsExplanation || ''}</div>` : ''}
-
+              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsEqualInsuranceLimits, true)}</div>
+              ${!data.requireSubsEqualInsuranceLimits ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.subsEqualLimitsExplanation || ''}</div>` : ''}
             </div>
             <div class="sub-question-item-page5">
               <div class="question-text-page5"><strong>Do you always require subcontractors to name you as additional insured?</strong></div>
@@ -1495,9 +1493,1369 @@ function generatePage12(data: ApplicationPacketData): string {
   `;
 }
 
+/** State display names for state forms section */
+const STATE_DISPLAY_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas',
+  KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts',
+  MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana',
+  NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico',
+  NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma',
+  OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+  VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+  DC: 'District of Columbia',
+};
+
+/** Resolve state name or 2-letter code to 2-letter code (e.g. "Pennsylvania" -> "PA"). */
+function toStateCode(state: string): string {
+  const s = (state || '').trim();
+  if (!s) return '';
+  const upper = s.toUpperCase();
+  if (s.length === 2) return upper;
+  const entry = Object.entries(STATE_DISPLAY_NAMES).find(([, name]) => name.toLowerCase() === s.toLowerCase());
+  return entry ? entry[0] : upper.slice(0, 2);
+}
+
+/** Shared wrapper for Pennsylvania form pages — full width, no sidebar. */
+function paFormPageWrapper(data: ApplicationPacketData, pageLabel: string, bodyHtml: string): string {
+  return `
+    <div class="page state-forms-isc pa-form-page pa-form-no-sidebar" style="page-break-after: always;">
+      <div class="pa-form-content-full">
+        ${bodyHtml}
+        <div class="pa-form-page-number">${pageLabel}</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Pennsylvania 1609-PR (REV. 08/12) – Page 1: Header, boxes, intro, DECLARATION BY PRODUCER grid and footnotes.
+ */
+function generatePennsylvaniaFormPage1(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const location = data.applicantAddress || '';
+  const city = data.applicantCity || '';
+  const state = data.applicantState || '';
+  const zip = data.applicantZip || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+  const workDesc = data.workDescription || '';
+  const aggregateLimit = data.aggregateLimit || '';
+  const occurrenceLimit = data.occurrenceLimit || '';
+  const dates = data.desiredCoverageDates || '';
+  const [fromDate = '', toDate = ''] = dates.includes(' - ') ? dates.split(' - ').map((s: string) => s.trim()) : [dates, ''];
+
+  const body = `
+    <div class="pa-form-doc">
+      <div class="pa-form-header-block">
+        <div class="pa-form-title">COMMONWEALTH OF PENNSYLVANIA INSURANCE DEPARTMENT</div>
+        <div class="pa-form-meta">
+          <span class="pa-form-rev">1609-PR (REV. 08/12)</span>
+          <span class="pa-form-note">(Must be included with SLL Affidavit type 1609-SLL/1609-PR)</span>
+        </div>
+      </div>
+      <div class="pa-form-two-boxes">
+        <div class="pa-form-box pa-form-box-left">
+          <div class="pa-form-box-title">Pennsylvania Surplus Lines Association</div>
+          <div class="pa-form-box-address">180 Sheree Blvd., Suite 3100</div>
+          <div class="pa-form-box-address">Exton, PA  19341</div>
+        </div>
+        <div class="pa-form-box pa-form-box-right">
+          <div class="pa-form-id-row"><span class="pa-form-id-label">Customer ID #</span><span class="pa-ul pa-ul-id"></span></div>
+          <div class="pa-form-id-row"><span class="pa-form-id-label">Policy #</span><span class="pa-ul pa-ul-id"></span></div>
+          <div class="pa-form-id-row"><span class="pa-form-id-label">Binder #</span><span class="pa-ul pa-ul-id"></span></div>
+        </div>
+      </div>
+      <p class="pa-form-intro">
+        Report of transactions with unlicensed insurer(s) in accordance with Section 1609 of Article XVI, Surplus Lines of the Insurance Company Law, Act of May 17, 1921, P.L. 682, No. 284, as amended
+      </p>
+      <div class="pa-form-section-title">DECLARATION BY PRODUCER</div>
+      <table class="pa-form-declaration-table" cellpadding="0" cellspacing="0">
+        <colgroup>
+          <col class="pa-form-col-label" />
+          <col class="pa-form-col-input" />
+          <col class="pa-form-col-small" />
+          <col class="pa-form-col-small" />
+          <col class="pa-form-col-small" />
+        </colgroup>
+        <tr>
+          <td class="pa-form-td-label">Insured Name</td>
+          <td class="pa-form-td-input" colspan="4"><span class="pa-ul pa-ul-long">${insuredName}</span></td>
+        </tr>
+        <tr>
+          <td class="pa-form-td-label">Location of Risk***</td>
+          <td class="pa-form-td-input"><span class="pa-ul pa-ul-mid">${location}</span></td>
+          <td class="pa-form-td-small"><span class="pa-form-cell-label">City</span><span class="pa-ul pa-ul-short">${city}</span></td>
+          <td class="pa-form-td-small"><span class="pa-form-cell-label">State</span><span class="pa-ul pa-ul-short">${state}</span></td>
+          <td class="pa-form-td-small"><span class="pa-form-cell-label">Zip</span><span class="pa-ul pa-ul-short">${zip}</span></td>
+        </tr>
+        <tr>
+          <td class="pa-form-td-label">Type of Coverage:</td>
+          <td class="pa-form-td-input"><span class="pa-ul pa-ul-long">${coverageType}</span></td>
+          <td class="pa-form-td-label">Description of Insured's Operation:</td>
+          <td class="pa-form-td-input" colspan="2"><span class="pa-ul pa-ul-long">${workDesc}</span></td>
+        </tr>
+        <tr>
+          <td class="pa-form-td-label">Amount of Insurance<br/><span class="pa-form-label-sub">(Total Insured Value)</span></td>
+          <td class="pa-form-td-small"><span class="pa-form-cell-label">Property*</span><span class="pa-ul pa-ul-amt">${aggregateLimit ? '$ ' + aggregateLimit : ''}</span></td>
+          <td class="pa-form-td-small" colspan="3"><span class="pa-form-cell-label">Casualty**</span><span class="pa-ul pa-ul-amt">${occurrenceLimit ? '$ ' + occurrenceLimit : ''}</span></td>
+        </tr>
+        <tr>
+          <td class="pa-form-td-label">Effective Dates<br/><span class="pa-form-label-sub">(term) of Coverage</span></td>
+          <td class="pa-form-td-small"><span class="pa-form-cell-label">FROM</span><span class="pa-ul pa-ul-date">${fromDate}</span></td>
+          <td class="pa-form-td-small" colspan="3"><span class="pa-form-cell-label">TO</span><span class="pa-ul pa-ul-date">${toDate}</span></td>
+        </tr>
+      </table>
+      <div class="pa-form-footnotes">
+        <span>*Total Insured Value</span>
+        <span>** General or Policy Aggregate</span>
+        <span>***If more than one location of risk, then give address with most exposure</span>
+      </div>
+      <p class="pa-form-declaration">
+        I declare under the penalties provided for perjury, that I have made a diligent effort to procure the insurance coverage described above from licensed insurers which are authorized to transact the kind of insurance involved and which provide, in the usual course of business, coverage comparable to the coverage being sought and have been unable to procure said insurance. I have documented a declination of coverage from at least three admitted insurers.
+      </p>
+      <p class="pa-form-declaration">
+        I further declare under the penalties provided for perjury, that at the time of presenting a quotation to the insured, the insured was given notice in writing, either directly or through the producer, that:
+      </p>
+      <p class="pa-form-notice">
+        The insurer with whom the insurance is to be placed is not admitted to transact business in this Commonwealth and is subject to limited regulation by the Department; and in the event of the insolvency of the insurer, losses will not be paid by the Pennsylvania Property and Casualty Insurance Guaranty Association.
+      </p>
+      <p class="pa-form-legal pa-form-legal-dark">
+        ALL applicable provisions of ARTICLE XVI of the Insurance Company Law (40 P.S. §991.1601 et seq.) and Title 31 PA Code, Chapter 124 have been or will be complied with.
+      </p>
+      <div class="pa-form-producer-block">
+        <div class="pa-form-producer-col">
+          <div class="pa-form-producer-row">
+            <span class="pa-form-label pa-form-label-dark">Name of Producer Agency:</span>
+            <span class="pa-ul pa-ul-producer">${data.agencyName || ''}</span>
+          </div>
+          <div class="pa-form-hint">(Type or Print Name of Producer Agency)</div>
+          <div class="pa-form-producer-row">
+            <span class="pa-form-label pa-form-label-dark">Name of Producer:</span>
+            <span class="pa-ul pa-ul-producer">${data.agencyContactName || ''}</span>
+          </div>
+          <div class="pa-form-hint">(Type or Print Name of Individual Producer)</div>
+        </div>
+        <div class="pa-form-producer-col">
+          <div class="pa-form-producer-row">
+            <span class="pa-form-label pa-form-label-dark">License # of Producer Agency:</span>
+            <span class="pa-ul pa-ul-producer"></span>
+          </div>
+          <div class="pa-form-hint">(Agency's License No.)</div>
+          <div class="pa-form-producer-row">
+            <span class="pa-form-label pa-form-label-dark">License # of Producer:</span>
+            <span class="pa-ul pa-ul-producer"></span>
+          </div>
+          <div class="pa-form-hint">(Individual's License No.)</div>
+        </div>
+      </div>
+      <div class="pa-form-signature-block">
+        <span class="pa-form-label pa-form-sig-label">Signature of Producer</span>
+        <span class="pa-ul pa-ul-sig"></span>
+        <span class="pa-form-label pa-form-date-label pa-form-label-dark">Date:</span>
+        <span class="pa-ul pa-ul-date-sig"></span>
+      </div>
+      <div class="pa-form-sig-hint">(Signature of Producer)</div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Pennsylvania 1609-PR – Page 1', body);
+}
+
+/**
+ * Pennsylvania 1609-SLL – Page 2: Electronic Signature Addendum to the Declaration
+ */
+function generatePennsylvaniaFormPage2(data: ApplicationPacketData): string {
+  const policyNum = ''; // Policy # filled at binding
+  const effectiveDate = data.desiredCoverageDates || '';
+  const [fromDate = ''] = effectiveDate.includes(' - ') ? effectiveDate.split(' - ').map((s: string) => s.trim()) : [effectiveDate];
+
+  const body = `
+    <div class="pa-form-doc pa-form-addendum">
+      <div class="pa-form-addendum-title">Electronic Signature 1609-SLL Addendum to the Declaration</div>
+      <p class="pa-form-addendum-intro">
+        With respect to this filing for Policy #<span class="pa-ul pa-ul-addendum">${policyNum}</span> with a policy effective date of <span class="pa-ul pa-ul-addendum">${fromDate}</span>,
+        consisting of the 1609-SLL and the 1609-PR in combination, the following is applicable.
+      </p>
+      <p class="pa-form-addendum-body">
+        By submitting this addendum to the Pennsylvania Surplus Lines Association, I affirm that I am a
+        duly licensed Surplus Lines Licensee, and that I have entered into an agreement with the duly
+        licensed Producer indicated on the 1609-PR, forming a part of this Surplus Lines filing. This
+        declaration is being submitted electronically and that the electronic signature appearing on this
+        1609-PR provided by the duly licensed producer is in accordance with said agreement.
+      </p>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Pennsylvania 1609-SLL – Page 2', body);
+}
+
+/**
+ * Washington Surplus Lines Certification form
+ */
+function generateWashingtonFormPage(data: ApplicationPacketData): string {
+  const stateName = toStateCode(data.applicantState || '') === 'WA' ? 'Washington' : (data.applicantState || '');
+  const insuredName = data.companyName || '';
+  const coverageProvided = data.coverageType || data.quoteType || '';
+  const producerName = data.agencyContactName || '';
+  const agencyName = data.agencyName || '';
+
+  const body = `
+    <div class="wa-form-doc">
+      <div class="wa-form-header">
+        <div class="wa-form-badge">OFFICIAL DOCUMENT</div>
+        <div class="wa-form-title">State of Washington</div>
+        <div class="wa-form-subtitle">Office of the Insurance Commissioner</div>
+        <div class="wa-form-doc-type">Surplus Lines Certification</div>
+      </div>
+      <div class="wa-form-info-block">
+        <div class="wa-form-block-label">Filing Information</div>
+        <div class="wa-form-field-row">
+          <span class="wa-form-field-label">To</span>
+          <span class="wa-form-field-sep">:</span>
+          <span class="wa-form-field-value">Insurance Commissioner</span>
+        </div>
+        <div class="wa-form-field-row">
+          <span class="wa-form-field-label">State</span>
+          <span class="wa-form-field-sep">:</span>
+          <span class="wa-form-ul wa-form-ul-long">${stateName}</span>
+          <span class="wa-form-field-hint">(State insured is located in)</span>
+        </div>
+        <div class="wa-form-field-row">
+          <span class="wa-form-field-label">Insured Name</span>
+          <span class="wa-form-field-sep">:</span>
+          <span class="wa-form-ul wa-form-ul-long">${insuredName}</span>
+        </div>
+        <div class="wa-form-field-row">
+          <span class="wa-form-field-label">Coverage Provided</span>
+          <span class="wa-form-field-sep">:</span>
+          <span class="wa-form-ul wa-form-ul-long">${coverageProvided}</span>
+        </div>
+      </div>
+      <div class="wa-form-producer-section">
+        <div class="wa-form-block-label">Certifying Party</div>
+        <div class="wa-form-producer-row">
+          <span class="wa-form-field-label">I</span>
+          <span class="wa-form-ul wa-form-ul-producer">${producerName}</span>
+          <span class="wa-form-field-label">of</span>
+          <span class="wa-form-ul wa-form-ul-agency">${agencyName}</span>
+        </div>
+        <div class="wa-form-producer-hints">
+          <span class="wa-form-producer-hint">Producer/Agent</span>
+          <span class="wa-form-producer-hint">Agency Name</span>
+        </div>
+      </div>
+      <div class="wa-form-certify-block">
+        <p class="wa-form-certify">
+          hereby certify that I have made diligent effort to place this insurance with companies
+          admitted to write business in the state of <span class="wa-form-ul wa-form-ul-inline">${stateName}</span> for this class. I am unable
+          to place the full amount or kind of insurance with companies admitted to transact and
+          who are actually writing the particular kind and class of insurance in this state. I am
+          therefore placing this insurance in the <span class="wa-form-emphasis">SURPLUS LINES MARKET</span>.
+        </p>
+      </div>
+      <div class="wa-form-disclosure-section">
+        <div class="wa-form-block-label">Required Disclosure</div>
+        <p class="wa-form-disclosure-intro">
+          The Insured was expressly advised prior to placement of this insurance in the <span class="wa-form-emphasis">SURPLUS LINES</span> market that:
+        </p>
+        <div class="wa-form-disclosure-list">
+          <div class="wa-form-disclosure-item">
+            <span class="wa-form-bullet">A</span>
+            <span>The Surplus Lines insurer with whom the insurance was placed is not licensed in this state and is not subject to its supervision.</span>
+          </div>
+          <div class="wa-form-disclosure-item">
+            <span class="wa-form-bullet">B</span>
+            <span>In the event of the insolvency of the SURPLUS LINES insurer, losses will not be paid by the STATE INSURANCE GUARANTY FUND.</span>
+          </div>
+        </div>
+      </div>
+      <div class="wa-form-signature-block">
+        <div class="wa-form-block-label">Authorized Signature</div>
+        <div class="wa-form-sig-row">
+          <span class="wa-form-sig-label">Signature of Producing Agent</span>
+          <span class="wa-form-ul wa-form-ul-sig"></span>
+        </div>
+        <div class="wa-form-date-row">
+          <span class="wa-form-date-label">Date</span>
+          <span class="wa-form-ul wa-form-ul-date"></span>
+        </div>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Washington Surplus Lines Certification', body);
+}
+
+/**
+ * Texas Diligent Effort form (Form No. 1.1) — SLTX style
+ * Uses sltxLogoBase64 when provided (from public/logos/sltx-logo.png)
+ */
+function generateTexasFormPage(data: ApplicationPacketData, sltxLogoBase64?: string): string {
+  const insuredName = data.companyName || '';
+  const agencyName = data.agencyName || '';
+  const agencyContactName = data.agencyContactName || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+  const carrierName = data.carrierName || '';
+
+  const body = `
+    <div class="tx-form-doc">
+      <div class="tx-form-header">
+        <div class="tx-form-logo">
+          ${sltxLogoBase64
+      ? `<img src="${sltxLogoBase64}" alt="SLTX" class="tx-logo-img" />`
+      : `<div class="tx-logo-wrapper">
+            <div class="tx-logo-svg-wrap">
+              <svg class="tx-logo-svg" viewBox="0 0 120 52" xmlns="http://www.w3.org/2000/svg">
+                <text x="0" y="34" fill="#ff6600" font-family="Arial,sans-serif" font-weight="bold" font-size="24">SL</text>
+                <text x="32" y="34" fill="none" stroke="#0066b3" stroke-width="1.2" font-family="Arial,sans-serif" font-weight="bold" font-size="24" paint-order="stroke">TX</text>
+                <line x1="72" y1="42" x2="112" y2="10" stroke="#0066b3" stroke-width="1.2"/>
+                <line x1="68" y1="46" x2="108" y2="14" stroke="#ff6600" stroke-width="1.2"/>
+                <line x1="2" y1="48" x2="44" y2="32" stroke="#0066b3" stroke-width="1.5"/>
+                <line x1="6" y1="46" x2="48" y2="30" stroke="#ff6600" stroke-width="1.5"/>
+                <line x1="10" y1="44" x2="52" y2="28" stroke="#d4a574" stroke-width="1.5"/>
+                <line x1="14" y1="42" x2="56" y2="26" stroke="#0066b3" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="tx-logo-text">
+              <span class="tx-logo-surplus">SURPLUS<sup>™</sup></span>
+              <span class="tx-logo-lines">LINES</span>
+              <span class="tx-logo-office">STAMPING OFFICE OF TEXAS</span>
+            </div>
+          </div>`}
+        </div>
+        <div class="tx-form-number">Form No. 1.1</div>
+      </div>
+      <h1 class="tx-form-title">Texas Diligent Effort</h1>
+      <p class="tx-form-intro">
+        Form may serve as evidence that diligent effort was performed in accordance with
+        <span class="tx-form-link">Texas Insurance Code §981.004</span>.
+      </p>
+      <div class="tx-form-section">
+        <div class="tx-section-title">BROKER INFORMATION</div>
+        <div class="tx-field-row"><span class="tx-field-label">Retail Broker:</span><span class="tx-ul tx-ul-long">${agencyName}</span></div>
+        <div class="tx-field-row"><span class="tx-field-label">Retail Broker License No.:</span><span class="tx-ul tx-ul-long"></span></div>
+        <div class="tx-field-row"><span class="tx-field-label">Surplus Lines Broker:</span><span class="tx-ul tx-ul-long"></span></div>
+        <div class="tx-field-row"><span class="tx-field-label">Surplus Lines Broker License No.:</span><span class="tx-ul tx-ul-long"></span></div>
+        <div class="tx-field-row tx-options-row">
+          <span class="tx-field-label">Broker Type:</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Wholesale Broker</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Managing General Agent</span>
+        </div>
+      </div>
+      <div class="tx-form-section">
+        <div class="tx-section-title">POLICY INFORMATION</div>
+        <div class="tx-field-row"><span class="tx-field-label">Policy/Binder No.:</span><span class="tx-ul tx-ul-long"></span></div>
+        <div class="tx-field-row"><span class="tx-field-label">Insured Name:</span><span class="tx-ul tx-ul-long">${insuredName}</span></div>
+        <div class="tx-field-row tx-options-row">
+          <span class="tx-field-label">Coverage Type:</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Personal</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Commercial</span>
+        </div>
+      </div>
+      <div class="tx-form-section tx-form-section-carrier">
+        <div class="tx-section-title">CARRIER INFORMATION</div>
+        <div class="tx-field-row"><span class="tx-field-label">Surplus Lines Carrier:</span><span class="tx-ul tx-ul-long">${carrierName}</span></div>
+        <div class="tx-field-row"><span class="tx-field-label">Declination(s):</span><span class="tx-ul tx-ul-long"></span></div>
+        <div class="tx-field-row tx-options-row tx-options-three">
+          <span class="tx-field-label">Declination Reason:</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Capacity Reached</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Underwriting Reason</span>
+          <span class="tx-option"><span class="tx-checkbox">□</span> Other</span>
+        </div>
+        <div class="tx-field-row"><span class="tx-field-label">Comment (if any):</span><span class="tx-ul tx-ul-long"></span></div>
+      </div>
+      <div class="tx-form-section">
+        <div class="tx-section-title">SURPLUS LINES PRINCIPAL BROKER ACKNOWLEDGEMENT</div>
+        <p class="tx-ack-statement">An attempt to place this business with the admitted market was performed.</p>
+        <div class="tx-sig-block">
+          <div class="tx-sig-row">
+            <span class="tx-field-label">Signed:</span><span class="tx-ul tx-ul-sig"></span>
+          </div>
+          <div class="tx-sig-row tx-sig-row-date">
+            <span class="tx-field-label">Date:</span><span class="tx-ul tx-ul-date"></span>
+          </div>
+          <div class="tx-sig-row">
+            <span class="tx-field-label">Printed Name:</span><span class="tx-ul tx-ul-long">${agencyContactName}</span>
+          </div>
+        </div>
+      </div>
+      <div class="tx-form-footer">
+        <p class="tx-footer-italic">Attach additional correspondence as evidence and file with SLTX and/or keep for your records in the event of audits, investigations, or lawsuits.</p>
+        <p class="tx-footer-italic">Texas does not have an export or white list for surplus lines coverage. Workers' compensation and private passenger auto are prohibited coverages in the Texas excess and surplus lines market.</p>
+        <p class="tx-footer-bullet"><span class="tx-form-link">*Exempt commercial purchasers (TIC 981.0031)</span> need not provide evidence of diligent effort.</p>
+        <p class="tx-footer-bullet"><span class="tx-form-link">*Industrial insureds (TIC 981.0033)</span> need not provide evidence of diligent effort.</p>
+        <p class="tx-disclaimer"><strong>Disclaimer:</strong> SLTX is not liable for determining if diligent effort has occurred, as determinations are made in Texas by a court of law.</p>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Texas Diligent Effort – Form No. 1.1', body);
+}
+
+/**
+ * Oregon Diligent Search Statement form
+ */
+function generateOregonFormPage(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+  const dates = data.desiredCoverageDates || '';
+  const [inceptionDate = '', expirationDate = ''] = dates.includes(' - ') ? dates.split(' - ').map((s: string) => s.trim()) : [dates, ''];
+
+  const body = `
+    <div class="or-form-doc">
+      <h1 class="or-form-title">DILIGENT SEARCH STATEMENT</h1>
+      <div class="or-form-fields">
+        <div class="or-field-row">
+          <span class="or-field-label">To:</span>
+          <span class="or-field-value">Insurance Commissioner, State of Oregon</span>
+        </div>
+        <div class="or-field-row">
+          <span class="or-field-label">Insured Name:</span>
+          <span class="or-ul or-ul-long">${insuredName}</span>
+        </div>
+        <div class="or-field-row">
+          <span class="or-field-label">Policy Number:</span>
+          <span class="or-ul or-ul-long"></span>
+        </div>
+        <div class="or-field-row">
+          <span class="or-field-label">Policy Inception Date:</span>
+          <span class="or-ul or-ul-long">${inceptionDate}</span>
+        </div>
+        <div class="or-field-row">
+          <span class="or-field-label">Policy Expiration Date:</span>
+          <span class="or-ul or-ul-long">${expirationDate}</span>
+        </div>
+        <div class="or-field-row">
+          <span class="or-field-label">Type of Coverage Provided:</span>
+          <span class="or-ul or-ul-long">${coverageType}</span>
+        </div>
+      </div>
+      <p class="or-paragraph">
+        I have determined that, as per the definition as stated in the federal <strong>Nonadmitted and Reinsurance Reform Act of 2010 Sec. 527</strong>, Oregon is the "home state" for this policy. (A copy of the federal Nonadmitted and Reinsurance Reform Act of 2010 can be viewed online at <a href="https://www.OregonSLA.org" class="or-link">www.OregonSLA.org</a> under "Publications").
+      </p>
+      <p class="or-paragraph or-indent">
+        The Insured was expressly advised prior to placement of this insurance in the <strong>SURPLUS LINE MARKET</strong> that:
+      </p>
+      <div class="or-bullets">
+        <p class="or-bullet"><strong>A.</strong> The Surplus Lines insurer with whom the insurance was placed is not licensed in this state and is not subject to its supervision.</p>
+        <p class="or-bullet"><strong>B.</strong> In the event of the insolvency of the <strong>SURPLUS LINES</strong> insurer, losses will not be paid by the <strong>STATE INSURANCE GUARANTY FUND</strong>.</p>
+      </div>
+      <div class="or-select-prompt">
+        <span class="or-select-text">Select (check) Statement 1, Statement 2, OR Statement 3:</span>
+      </div>
+      <div class="or-red-divider">
+        <span class="or-red-arrow">→</span>
+        <span class="or-red-dash"></span>
+      </div>
+      <div class="or-statement or-statement-1">
+        <p class="or-statement-title"><span class="or-checkbox"></span> Statement 1:</p>
+        <p class="or-statement-text">I hereby certify that I have made a diligent effort to place this insurance with companies admitted to write business in Oregon for this class. I am unable to place the full amount or kind of insurance with companies admitted to transact and who are actually writing the particular kind and class of insurance in this state. I am therefore placing this insurance in the <strong>SURPLUS LINE MARKET</strong>.</p>
+      </div>
+      <div class="or-dash-line"></div>
+      <div class="or-statement or-statement-2">
+        <p class="or-statement-title"><span class="or-checkbox"></span> Statement 2:</p>
+        <p class="or-statement-text">I have determined that the insured is currently registered with Oregon as a <strong>Risk Purchasing Group (RPG)</strong>, to purchase liability insurance on a group basis, and that this policy placement is exempt from the Diligent Search requirement.</p>
+      </div>
+      <div class="or-dash-line"></div>
+      <div class="or-statement or-statement-3">
+        <p class="or-statement-title"><span class="or-checkbox"></span> Statement 3:</p>
+        <p class="or-statement-text">I have determined that, as per the definition as stated in the <strong>Nonadmitted and Reinsurance Reform Act of 2010 Sec. 527</strong>, this insured is an <strong>exempt commercial purchaser</strong>, that the requirements as set forth in the federal <strong>Nonadmitted and Reinsurance Reform Act of 2010 Sec. 525</strong> have been complied with, and that this policy placement is exempt from the Diligent Search requirement. (A copy of the federal Nonadmitted and Reinsurance Reform Act of 2010 can be viewed online at <a href="https://www.OregonSLA.org" class="or-link">www.OregonSLA.org</a> under "Publications").</p>
+      </div>
+      <div class="or-dash-line"></div>
+      <div class="or-signature-block">
+        <div class="or-sig-row">
+          <span class="or-field-label">Printed Name of Producing Agent</span>
+          <span class="or-ul or-ul-sig">${data.agencyContactName || ''}</span>
+        </div>
+        <div class="or-sig-row">
+          <span class="or-field-label">Signature of Producing Agent</span>
+          <span class="or-ul or-ul-sig"></span>
+        </div>
+        <div class="or-sig-row">
+          <span class="or-field-label">Printed Name of Agency</span>
+          <span class="or-ul or-ul-sig">${data.agencyName || ''}</span>
+        </div>
+        <div class="or-sig-row">
+          <span class="or-field-label">Date Signed</span>
+          <span class="or-ul or-ul-date"></span>
+        </div>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Oregon Diligent Search Statement', body);
+}
+
+/**
+ * Nevada Surplus Lines Association – DECLINATION DETAIL (NSLA 105)
+ */
+function generateNevadaFormPage(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const brokerName = data.agencyContactName || '';
+  const agencyName = data.agencyName || '';
+
+  const body = `
+    <div class="nv-form-doc">
+      <div class="nv-form-header">
+        <h1 class="nv-form-org">Nevada Surplus Lines Association</h1>
+        <h2 class="nv-form-title">DECLINATION DETAIL</h2>
+      </div>
+      
+      <p class="nv-form-intro">
+        This form is to be used when the policy provides insurance for coverage that cannot be written with admitted insurers. (Category is not listed on open lines eligible for export). In pursuant of 685A.215 of NRS, identify three admitted insurers marketing the class of insurance that declined the risk. Include with this submission form NSLA 101.
+      </p>
+      
+      <div class="nv-form-field-row">
+        <span class="nv-form-label">NAME OF INSURED</span>
+        <span class="nv-form-ul nv-form-ul-long">${insuredName}</span>
+      </div>
+      <div class="nv-form-field-row">
+        <span class="nv-form-label">POLICY NUMBER</span>
+        <span class="nv-form-ul nv-form-ul-long"></span>
+      </div>
+      
+      <div class="nv-form-decline-block">
+        <p class="nv-form-decline-heading">1.</p>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Admitted Insurer</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Address</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row nv-form-row-two-col">
+          <span class="nv-form-label">Phone Number</span>
+          <span class="nv-form-ul nv-form-ul-phone"></span>
+          <span class="nv-form-label nv-form-label-underwriter">Underwriter</span>
+          <span class="nv-form-ul nv-form-ul-underwriter"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Reason For Declination (enter code from bottom)</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+      </div>
+      
+      <div class="nv-form-decline-block">
+        <p class="nv-form-decline-heading">2.</p>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Admitted Insurer</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Address</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row nv-form-row-two-col">
+          <span class="nv-form-label">Phone Number</span>
+          <span class="nv-form-ul nv-form-ul-phone"></span>
+          <span class="nv-form-label nv-form-label-underwriter">Underwriter</span>
+          <span class="nv-form-ul nv-form-ul-underwriter"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Reason For Declination (enter code from bottom)</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+      </div>
+      
+      <div class="nv-form-decline-block">
+        <p class="nv-form-decline-heading">3.</p>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Admitted Insurer</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Address</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+        <div class="nv-form-field-row nv-form-row-two-col">
+          <span class="nv-form-label">Phone Number</span>
+          <span class="nv-form-ul nv-form-ul-phone"></span>
+          <span class="nv-form-label nv-form-label-underwriter">Underwriter</span>
+          <span class="nv-form-ul nv-form-ul-underwriter"></span>
+        </div>
+        <div class="nv-form-field-row">
+          <span class="nv-form-label">Reason For Declination (enter code from bottom)</span>
+          <span class="nv-form-ul nv-form-ul-long"></span>
+        </div>
+      </div>
+      
+      <p class="nv-form-codes-heading">Reason for Declination Codes:</p>
+      <div class="nv-form-codes-grid">
+        <div class="nv-form-codes-col">
+          <p class="nv-form-code-item">1 – Unacceptable class of business</p>
+          <p class="nv-form-code-item">2 – Age of building</p>
+          <p class="nv-form-code-item">3 – Declined to quote</p>
+          <p class="nv-form-code-item">4 – Doesn't fit underwriting requirement</p>
+        </div>
+        <div class="nv-form-codes-col">
+          <p class="nv-form-code-item">5 – No Market</p>
+          <p class="nv-form-code-item">6 – No Prior Insurance</p>
+          <p class="nv-form-code-item">7 – Excessive claims</p>
+          <p class="nv-form-code-item">8 – Other (please explain)</p>
+        </div>
+      </div>
+      
+      <p class="nv-form-explanation">
+        <strong>PLEASE</strong> PROVIDE ANY ADDITIONAL EXPLANATION AND EFFORTS TO PLACE THIS INSURANCE WITH AN ADMITTED INSURER THAT WOULD HELP SUPPORT THE NEED TO PLACE THE POLICY WITH A SURPLUS LINES COMPANY.
+      </p>
+      
+      <div class="nv-form-sig-block">
+        <div class="nv-form-sig-row nv-form-sig-left">
+          <span class="nv-form-label">PRINT BROKER'S NAME</span>
+          <span class="nv-form-ul nv-form-ul-sig">${brokerName}</span>
+        </div>
+        <div class="nv-form-sig-row nv-form-sig-center">
+          <span class="nv-form-label">SIGNATURE</span>
+          <span class="nv-form-ul nv-form-ul-sig"></span>
+        </div>
+        <div class="nv-form-sig-row nv-form-sig-right">
+          <span class="nv-form-label">DATE</span>
+          <span class="nv-form-ul nv-form-ul-sig"></span>
+        </div>
+      </div>
+      
+      <div class="nv-form-footer">
+        <span class="nv-form-footer-left">NSLA 105 7/01/99</span>
+        <span class="nv-form-footer-right">*Signature date must be the effective date or prior*</span>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Nevada Surplus Lines Association – Declination Detail', body);
+}
+
+/**
+ * Florida Surplus Lines Disclosure and Acknowledgement
+ */
+function generateFloridaFormPage(data: ApplicationPacketData): string {
+  const agencyName = data.agencyName || '';
+  const insuredName = data.companyName || '';
+  const carrierName = data.carrierName || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+  const effectiveDate = data.desiredCoverageDates ? data.desiredCoverageDates.split(' - ').map((s: string) => s.trim())[0] || 'TBD' : 'TBD';
+
+  const body = `
+    <div class="fl-form-doc">
+      <h1 class="fl-form-title">Surplus Lines Disclosure and Acknowledgement</h1>
+      
+      <p class="fl-form-paragraph">
+        At my direction, <span class="fl-form-ul fl-form-ul-agency">${agencyName}</span> has placed my coverage in the surplus lines market.
+      </p>
+      <p class="fl-form-hint">*name of insurance agency*</p>
+      
+      <p class="fl-form-paragraph">
+        As required by Florida Statute 626.916, I have agreed to this placement. I understand that coverage may be available in the admitted market and that persons insured by surplus lines carriers are not protected by the Florida Insurance Guaranty Act with respect to any right of recovery for the obligation of an insolvent unlicensed insurer. Additionally, I understand surplus lines insurers' policy rates and forms are not approved by any Florida regulatory agency.
+      </p>
+      
+      <p class="fl-form-paragraph">
+        I further understand the policy forms, conditions, premiums, and deductibles used by surplus lines insurers may be different from those found in policies used in the admitted market. I have been advised to carefully read the entire policy.
+      </p>
+      
+      <div class="fl-form-field-block">
+        <span class="fl-form-ul fl-form-ul-field">${insuredName}</span>
+        <span class="fl-form-label-below">Named Insured</span>
+      </div>
+      
+      <div class="fl-form-sig-row">
+        <div class="fl-form-sig-left">
+          <div class="fl-form-sig-line-row">
+            <span class="fl-form-label-inline">By:</span>
+            <span class="fl-form-ul fl-form-ul-sig"></span>
+          </div>
+          <span class="fl-form-label-below">Signature of Named Insured</span>
+        </div>
+        <div class="fl-form-sig-right">
+          <div class="fl-form-sig-line-row">
+            <span class="fl-form-label-inline">Date</span>
+            <span class="fl-form-ul fl-form-ul-date"></span>
+          </div>
+          <span class="fl-form-label-below">Date</span>
+        </div>
+      </div>
+      
+      <div class="fl-form-field-block">
+        <span class="fl-form-ul fl-form-ul-long"></span>
+        <span class="fl-form-label-below">Printed Name and Title of Person Signing</span>
+      </div>
+      
+      <div class="fl-form-field-block">
+        <span class="fl-form-ul fl-form-ul-field">${carrierName}</span>
+        <span class="fl-form-label-below">Name of Excess and Surplus Lines Carrier</span>
+      </div>
+      
+      <div class="fl-form-field-block">
+        <span class="fl-form-ul fl-form-ul-field">${coverageType}</span>
+        <span class="fl-form-label-below">Type of Insurance</span>
+      </div>
+      
+      <div class="fl-form-field-block">
+        <span class="fl-form-ul fl-form-ul-field">${effectiveDate}</span>
+        <span class="fl-form-label-below">Effective Date of Coverage</span>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Florida Surplus Lines Disclosure and Acknowledgement', body);
+}
+
+/**
+ * California Important Notice – Surplus Line Disclosure (Page 1)
+ */
+function generateCaliforniaFormPage1(data: ApplicationPacketData): string {
+  const body = `
+    <div class="ca-form-doc">
+      <h1 class="ca-form-title">IMPORTANT NOTICE:</h1>
+      <div class="ca-form-content">
+        <p class="ca-form-item"><strong>1.</strong> The insurance policy that you are applying to purchase is being issued by an insurer that is not licensed by the State of California. These companies are called "nonadmitted" or "surplus line" insurers.</p>
+        <p class="ca-form-item"><strong>2.</strong> The insurer is not subject to the financial solvency regulation and enforcement that apply to California licensed insurers.</p>
+        <p class="ca-form-item"><strong>3.</strong> The insurer does not participate in any of the insurance guarantee funds created by California law. Therefore, these funds will not pay your claims or protect your assets if the insurer becomes insolvent and is unable to make payments as promised.</p>
+        <p class="ca-form-item"><strong>4.</strong> The insurer should be licensed either as a foreign insurer in another state in the United States or as a non-United States (alien) insurer. You should ask questions of your insurance agent, broker, or "surplus line" broker or contact the California Department of Insurance at the toll-free number 1-800-927-4357 or internet website www.insurance.ca.gov. Ask whether or not the insurer is licensed as a foreign or non-United States (alien) insurer and for additional information about the insurer. You may also visit the NAIC's internet website at www.naic.org. The NAIC—the National Association of Insurance Commissioners—is the regulatory support organization created and governed by the chief insurance regulators in the United States.</p>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'California Surplus Line Disclosure (Page 1)', body);
+}
+
+/**
+ * California Important Notice – Surplus Line Disclosure (Page 2)
+ */
+function generateCaliforniaFormPage2(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const body = `
+    <div class="ca-form-doc">
+      <div class="ca-form-content">
+        <p class="ca-form-item"><strong>5.</strong> Foreign insurers should be licensed by a state in the United States and you may contact that state's department of insurance to obtain more information about that insurer. You can find a link to each state from this NAIC internet website: https://naic.org/state_web_map.htm.</p>
+        <p class="ca-form-item"><strong>6.</strong> For non-United States (alien) insurers, the insurer should be licensed by a country outside of the United States and should be on the NAIC's International Insurers Department (IID) listing of approved nonadmitted non-United States insurers. Ask your agent, broker, or "surplus line" broker to obtain more information about that insurer.</p>
+        <p class="ca-form-item"><strong>7.</strong> California maintains a "List of Approved Surplus Line Insurers (LASLI)." Ask your agent or broker if the insurer is on that list, or view that list at the internet website of the California Department of Insurance: www.insurance.ca.gov/01-consumers/120-company/07-lasli/lasli.cfm.</p>
+        <p class="ca-form-item"><strong>8.</strong> If you, as the applicant, required that the insurance policy you have purchased be effective immediately, either because existing coverage was going to lapse within two business days or because you were required to have coverage within two business days, and you did not receive this disclosure form and a request for your signature until after coverage became effective, you have the right to cancel this policy within five days of receiving this disclosure. If you cancel coverage, the premium will be prorated and any broker's fee charged for this insurance will be returned to you.</p>
+      </div>
+      <div class="ca-form-sig-block">
+        <div class="ca-form-sig-row">
+          <span class="ca-form-label">Date:</span>
+          <span class="ca-form-ul"></span>
+        </div>
+        <div class="ca-form-sig-row">
+          <span class="ca-form-label">Insured:</span>
+          <span class="ca-form-ul">${insuredName}</span>
+        </div>
+      </div>
+      <div class="ca-form-footer">D-1 (Effective January 1, 2020)</div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'California Surplus Line Disclosure (Page 2)', body);
+}
+
+/**
+ * California DILIGENT SEARCH REPORT (SL-2 FORM) – Page 3
+ * The Surplus Line Association of California; exact layout, grey sections, black number boxes, table.
+ */
+function generateCaliforniaFormPage3(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+  const agentName = data.agencyContactName || '';
+  const agencyName = data.agencyName || '';
+
+  const body = `
+    <div class="ca-sl2-doc" style="page-break-inside: avoid;">
+      <div class="ca-sl2-header">
+        <p class="ca-sl2-org">The Surplus Line Association of California</p>
+        <p class="ca-sl2-title">DILIGENT SEARCH REPORT (SL-2 FORM)</p>
+      </div>
+      
+      <div class="ca-sl2-section">
+        <span class="ca-sl2-num">1</span>
+        <div class="ca-sl2-section-body">
+          <p class="ca-sl2-instruction">Before completing this report, please review the instructions on page 2.</p>
+          <p class="ca-sl2-statement">I, <span class="ca-sl2-ul ca-sl2-ul-name">${agentName}</span>, hereby submit that I performed or supervised this diligent search, and I am:</p>
+          <p class="ca-sl2-option"><strong>(A)</strong> licensed as an individual agent-broker for the applicable lines of insurance or surplus line broker under California license number <span class="ca-sl2-ul ca-sl2-ul-mid"></span></p>
+          <p class="ca-sl2-or">OR</p>
+          <p class="ca-sl2-option"><strong>(B)</strong> licensed and an endorsee on the license of <span class="ca-sl2-ul ca-sl2-ul-mid">${agencyName}</span> (Full Name of Organization), California license number <span class="ca-sl2-ul ca-sl2-ul-mid"></span></p>
+        </div>
+      </div>
+      
+      <div class="ca-sl2-section ca-sl2-section-grey">
+        <span class="ca-sl2-num">2</span>
+        <div class="ca-sl2-section-body">
+          <p class="ca-sl2-option"><strong>(A)</strong> Name of Insured: <span class="ca-sl2-ul ca-sl2-ul-long">${insuredName}</span></p>
+          <p class="ca-sl2-option"><strong>(B)</strong> Description of Risk: <span class="ca-sl2-ul ca-sl2-ul-long"></span></p>
+          <p class="ca-sl2-hint">(e.g., Tattoo Parlor, Cannabis Dispensary, Vacant Building, <strong>NOT TYPE OF COVERAGE</strong>)</p>
+          <p class="ca-sl2-option"><strong>(C)</strong> Type of Insurance or Coverage Code: <span class="ca-sl2-ul ca-sl2-ul-long">${coverageType}</span></p>
+        </div>
+      </div>
+      
+      <div class="ca-sl2-section">
+        <span class="ca-sl2-num">3</span>
+        <div class="ca-sl2-section-body">
+          <p class="ca-sl2-intro">Describe the diligent efforts made to place this coverage with admitted insurers by completing (A) or, if applicable, (B) below.</p>
+          <p class="ca-sl2-option"><strong>(A)</strong> List the insurers admitted in California who actually write the type of insurance described on lines 2(B) and 2(C) to which you or someone under your supervision submitted the risk described in lines 2(A) through 2(C). Please complete ALL sections of the table below.</p>
+          <div class="ca-sl2-table">
+            <div class="ca-sl2-table-row ca-sl2-table-header">
+              <div class="ca-sl2-table-cell ca-sl2-cell-header"><span>INSURER 1</span></div>
+              <div class="ca-sl2-table-cell ca-sl2-cell-header"><span>INSURER 2</span></div>
+              <div class="ca-sl2-table-cell ca-sl2-cell-header"><span>INSURER 3</span></div>
+            </div>
+            <div class="ca-sl2-table-row">
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">NAIC ID</span><span class="ca-sl2-input"></span></div>
+            </div>
+            <div class="ca-sl2-table-row">
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">MONTH, YEAR OF DECLINATION</span><span class="ca-sl2-input"></span></div>
+            </div>
+            <div class="ca-sl2-table-row">
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">FULL NAME OF ADMITTED INSURER</span><span class="ca-sl2-input"></span></div>
+            </div>
+            <div class="ca-sl2-table-row">
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
+              <div class="ca-sl2-table-cell"><span class="ca-sl2-cell-label">CONTACT INFORMATION</span><span class="ca-sl2-input ca-sl2-input-sub">FULL NAME</span><span class="ca-sl2-input ca-sl2-input-sub">PHONE / EMAIL</span><span class="ca-sl2-input ca-sl2-input-sub">OR WEBSITE</span></div>
+            </div>
+          </div>
+          <p class="ca-sl2-option"><strong>(B)</strong> If you did not list at least three insurers in 3(A) above, describe in detail how you determined that fewer than THREE admitted insurers write the type of insurance described on lines 2(B) and 2(C).</p>
+          <div class="ca-sl2-textarea"></div>
+        </div>
+      </div>
+      
+      <div class="ca-sl2-section ca-sl2-section-grey">
+        <span class="ca-sl2-num">4</span>
+        <div class="ca-sl2-section-body">
+          <p class="ca-sl2-option">Is the type of insurance you are reporting as identified in line 2(C) <strong>private passenger automobile liability or health</strong>? <span class="ca-sl2-yn">Yes <span class="ca-sl2-cb"></span> No <span class="ca-sl2-cb"></span></span></p>
+          <p class="ca-sl2-addendum">If you answered "yes," please complete the <span class="ca-sl2-link">Diligent Search Report Addendum</span>.</p>
+        </div>
+      </div>
+      
+      <p class="ca-sl2-cert">The undersigned licensee hereby certifies that this report is true and correct, and that this risk is not being placed with a non-admitted insurer for the sole purpose of securing a rate or premium lower than the lowest rate or premium available from an admitted insurer.</p>
+      
+      <div class="ca-sl2-sig-row">
+        <div class="ca-sl2-sig-block">
+          <span class="ca-sl2-ul ca-sl2-ul-sig"></span>
+          <span class="ca-sl2-sig-label">(Signature of Licensee Named on Line 1)</span>
+        </div>
+        <div class="ca-sl2-sig-block">
+          <span class="ca-sl2-ul ca-sl2-ul-sig"></span>
+          <span class="ca-sl2-sig-label">(Date)</span>
+        </div>
+      </div>
+      
+      <div class="ca-sl2-footer" style="page-break-inside: avoid;">SL-2 Form (Revised 01/2024)</div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'California Diligent Search Report (SL-2)', body);
+}
+
+/**
+ * Colorado Statement of Diligent Effort
+ * Dark blue header/border, grey underlines, watermark; fits on one page.
+ */
+function generateColoradoFormPage(data: ApplicationPacketData): string {
+  const agentName = data.agencyContactName || '';
+  const agencyName = data.agencyName || '';
+  const insuredName = data.companyName || '';
+  const coverageType = data.coverageType || data.quoteType || '';
+
+  const body = `
+    <div class="co-form-doc" style="page-break-inside: avoid;">
+      <div class="co-form-border">
+        <div class="co-form-watermark" aria-hidden="true">COLORADO<br>1876</div>
+        <header class="co-form-header">STATEMENT OF DILIGENT EFFORT</header>
+        
+        <div class="co-form-intro-row">
+          <span class="co-form-intro-text">I,</span>
+          <span class="co-form-ul co-form-ul-intro"></span>
+          <span class="co-form-intro-text">License #:</span>
+          <span class="co-form-ul co-form-ul-license"></span>
+        </div>
+        <div class="co-form-field-block co-form-field-centered">
+          <span class="co-form-label-above">Name of Retail/Producing Agent</span>
+          <span class="co-form-ul co-form-ul-long">${agentName}</span>
+        </div>
+        <div class="co-form-field-row">
+          <span class="co-form-label">Name of Agency:</span>
+          <span class="co-form-ul co-form-ul-long">${agencyName}</span>
+        </div>
+        <div class="co-form-field-row">
+          <span class="co-form-label">Have sought to obtain:</span>
+          <span class="co-form-ul co-form-ul-long"></span>
+        </div>
+        <div class="co-form-field-row co-form-row-inline">
+          <span class="co-form-label">Specific Type of Coverage</span>
+          <span class="co-form-ul co-form-ul-mid"></span>
+          <span class="co-form-label">for</span>
+          <span class="co-form-ul co-form-ul-mid"></span>
+          <span class="co-form-label">Named Insured</span>
+          <span class="co-form-ul co-form-ul-mid">${insuredName}</span>
+          <span class="co-form-label">from the following</span>
+        </div>
+        <div class="co-form-field-row">
+          <span class="co-form-label">authorized insurers currently writing this type of coverage:</span>
+          <span class="co-form-ul co-form-ul-long"></span>
+        </div>
+        
+        <div class="co-form-insurer-block">
+          <p class="co-form-insurer-num">(1) Authorized Insurer:</p>
+          <div class="co-form-field-row">
+            <span class="co-form-label">Person Contacted</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(or indicate if obtained online declination)</p>
+          <div class="co-form-field-row co-form-row-two">
+            <span class="co-form-label">Telephone Number/Email:</span>
+            <span class="co-form-ul co-form-ul-mid"></span>
+            <span class="co-form-label">Date of Contact:</span>
+            <span class="co-form-ul co-form-ul-date"></span>
+          </div>
+          <div class="co-form-field-row">
+            <span class="co-form-label">The reason(s) for declination by the insurer was (were) as follows</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(Attach electronic declinations if applicable)</p>
+        </div>
+        
+        <div class="co-form-insurer-block">
+          <p class="co-form-insurer-num">(2) Authorized Insurer:</p>
+          <div class="co-form-field-row">
+            <span class="co-form-label">Person Contacted</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(or indicate if obtained online declination)</p>
+          <div class="co-form-field-row co-form-row-two">
+            <span class="co-form-label">Telephone Number/Email:</span>
+            <span class="co-form-ul co-form-ul-mid"></span>
+            <span class="co-form-label">Date of Contact:</span>
+            <span class="co-form-ul co-form-ul-date"></span>
+          </div>
+          <div class="co-form-field-row">
+            <span class="co-form-label">The reason(s) for declination by the insurer was (were) as follows</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(Attach electronic declinations if applicable)</p>
+        </div>
+        
+        <div class="co-form-insurer-block">
+          <p class="co-form-insurer-num">(3) Authorized Insurer:</p>
+          <div class="co-form-field-row">
+            <span class="co-form-label">Person Contacted</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(or indicate if obtained online declination)</p>
+          <div class="co-form-field-row co-form-row-two">
+            <span class="co-form-label">Telephone Number/Email:</span>
+            <span class="co-form-ul co-form-ul-mid"></span>
+            <span class="co-form-label">Date of Contact:</span>
+            <span class="co-form-ul co-form-ul-date"></span>
+          </div>
+          <div class="co-form-field-row">
+            <span class="co-form-label">The reason(s) for declination by the insurer was (were) as follows</span>
+            <span class="co-form-ul co-form-ul-long"></span>
+          </div>
+          <p class="co-form-hint">(Attach electronic declinations if applicable)</p>
+        </div>
+        
+        <div class="co-form-sig-row">
+          <div class="co-form-sig-block">
+            <span class="co-form-label">Signature of Retail/Producing Agent</span>
+            <span class="co-form-ul co-form-ul-sig"></span>
+          </div>
+          <div class="co-form-sig-block">
+            <span class="co-form-label">Date</span>
+            <span class="co-form-ul co-form-ul-date"></span>
+          </div>
+        </div>
+        
+        <div class="co-form-attest">
+          <span class="co-form-checkbox"></span>
+          <p class="co-form-attest-text">OR, by checking this box, I attest that I am familiar with the insurance market and this particular risk cannot be placed in the admitted market. I understand that the requirement to satisfy due diligence by documentation that the coverage required was not procurable after a comprehensive search was made from a minimum of three admitted insurers shall be waived. A written record documenting knowledge of the insurance market shall be maintained by the broker and must be current within 90 days of writing this policy.</p>
+        </div>
+        <div class="co-form-sig-row">
+          <div class="co-form-sig-block">
+            <span class="co-form-label">Signature of Producing Agent</span>
+            <span class="co-form-ul co-form-ul-sig"></span>
+          </div>
+          <div class="co-form-sig-block">
+            <span class="co-form-label">Date</span>
+            <span class="co-form-ul co-form-ul-date"></span>
+          </div>
+        </div>
+        
+        <p class="co-form-definition">"Diligent effort" means seeking coverage from and having been rejected by at least three authorized insurers currently writing this type of coverage and documenting these rejections. Surplus lines agents must verify that a diligent effort form was completed by retaining a properly documented statement of diligent effort from the retail or producing agent. Declinations must be documented on a risk-by-risk basis.</p>
+        
+        <div class="co-form-footer-rev">Rev. 4/15/2025 | Colorado Division of Insurance</div>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'Colorado Statement of Diligent Effort', body);
+}
+
+/**
+ * New York Part C – Affidavit by Producing Broker (NYSID Form 41C)
+ */
+function generateNewYorkFormPage(data: ApplicationPacketData): string {
+  const name = data.agencyContactName || '';
+  const address = data.agencyAddress || '';
+  const city = data.agencyCity || '';
+  const state = data.agencyState || '';
+  const zip = data.agencyZip || '';
+  const insuredName = data.companyName || '';
+
+  const body = `
+    <div class="ny-form-doc ny-form-page1" style="page-break-inside: avoid;">
+      <h1 class="ny-form-title">PART C – AFFIDAVIT BY PRODUCING BROKER</h1>
+      <div class="ny-form-section ny-form-section-1">
+        <div class="ny-form-section-head-row">
+          <span class="ny-form-section-heading">1. PRODUCING BROKER INFORMATION</span>
+          <span class="ny-form-inline-label">AFFIDAVIT NO.</span>
+          <span class="ny-form-input-box ny-form-box-affidavit"></span>
+        </div>
+        <div class="ny-form-row-boxes">
+          <div class="ny-form-field-block">
+            <span class="ny-form-input-box ny-form-box-name">${name}</span>
+            <span class="ny-form-label-below">Name</span>
+          </div>
+          <div class="ny-form-field-block">
+            <span class="ny-form-input-box ny-form-box-license"></span>
+            <span class="ny-form-label-below">License No. BR-</span>
+          </div>
+        </div>
+        <div class="ny-form-row-boxes ny-form-row-address">
+          <div class="ny-form-field-block ny-form-field-addr">
+            <span class="ny-form-input-box ny-form-box-addr">${address}</span>
+            <span class="ny-form-label-below">Address</span>
+          </div>
+          <div class="ny-form-field-block">
+            <span class="ny-form-input-box ny-form-box-city">${city}</span>
+            <span class="ny-form-label-below">City</span>
+          </div>
+          <div class="ny-form-field-block">
+            <span class="ny-form-input-box ny-form-box-state">${state}</span>
+            <span class="ny-form-label-below">State</span>
+          </div>
+          <div class="ny-form-field-block">
+            <span class="ny-form-input-box ny-form-box-zip">${zip}</span>
+            <span class="ny-form-label-below">Zip Code</span>
+          </div>
+        </div>
+      </div>
+      <div class="ny-form-section ny-form-section-boxed">
+        <p class="ny-form-section-heading">2. RISK INFORMATION:</p>
+        <div class="ny-form-field-block ny-form-field-insured">
+          <span class="ny-form-input-box ny-form-box-insured">${insuredName}</span>
+          <span class="ny-form-label-below">Name of the Insured</span>
+        </div>
+        <p class="ny-form-note">(The name of the insured must be precisely the same in this affidavit and the declarations page, binder, cover note or confirmation of coverage.)</p>
+      </div>
+      <div class="ny-form-section ny-form-section-boxed">
+        <p class="ny-form-section-heading">3. DISCLOSURE INFORMATION</p>
+        <div class="ny-form-question-row">
+          <span class="ny-form-yn">
+            <span class="ny-form-cb"></span> Yes
+            <span class="ny-form-cb ny-form-cb-right"></span> No
+          </span>
+          <span class="ny-form-question">Did you personally provide a written Notice of Excess Line Placement (Form: NELP/2011) to the insured as required by Section 2118 of the New York Insurance Law and Regulation 41?</span>
+        </div>
+      </div>
+      <div class="ny-form-section ny-form-section-boxed">
+        <p class="ny-form-section-heading">4. DECLINATION INFORMATION</p>
+        <p class="ny-form-declination-item">
+          <span class="ny-form-yn"><span class="ny-form-cb"></span> Yes <span class="ny-form-cb ny-form-cb-right"></span> No</span>
+          <strong>(a)</strong> Has the Superintendent determined that declinations are not required for this type of risk? IF ANSWER TO QUESTION (a) IS "YES", SKIP QUESTIONS (b) AND (c) GO ON TO THE AFFIRMATION SECTION.
+        </p>
+        <p class="ny-form-declination-item">
+          <span class="ny-form-yn"><span class="ny-form-cb"></span> Yes <span class="ny-form-cb ny-form-cb-right"></span> No</span>
+          <strong>(b)</strong> Does the insured qualify as an "Exempt Commercial Purchaser" that made a written request consistent with the requirements of New York Insurance Law Section 2118(b)(3)(F)? IF ANSWER TO QUESTION (b) IS "YES", SKIP QUESTION (c) GO ON TO THE AFFIRMATION SECTION.
+        </p>
+        <p class="ny-form-declination-item">
+          <span class="ny-form-yn"><span class="ny-form-cb"></span> Yes <span class="ny-form-cb ny-form-cb-right"></span> No</span>
+          <strong>(c)</strong> Was the risk described above submitted by the producing broker to companies: (1) each authorized in New York to write coverages of the kind requested; (2) which the licensee has reason to believe might consider writing the type of coverage or class of insurance involved; and (3) was such risk declined by each such company? If the answer to QUESTION (c) above is "YES", COMPLETE THE FOLLOWING SCHEDULE:
+        </p>
+      </div>
+      <p class="ny-form-subsection-heading">AUTHORIZED COMPANIES DECLINING THE RISK</p>
+      <div class="ny-form-decline-schedule">
+        <div class="ny-form-decline-row">
+          <span class="ny-form-label">1. Name of company</span>
+          <span class="ny-form-ul ny-form-ul-company"></span>
+          <span class="ny-form-label ny-form-label-date">Date of Declin.:</span>
+          <span class="ny-form-ul ny-form-ul-date"></span>
+          <span class="ny-form-label ny-form-label-naic">NAIC Code</span>
+          <span class="ny-form-ul ny-form-ul-naic"></span>
+        </div>
+        <p class="ny-form-reason-intro">I believed this insurer would consider underwriting this risk because:</p>
+        <div class="ny-form-reason-list">
+          <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Recent acceptance by the insurer of a risk, requiring that type of coverage or class of Insurance.</div>
+          <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Advertising by the insurer or its agent indicating it entertains that type of risk/coverage.</div>
+          <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Media communications (Newspapers, Trade Magazines, Radio) which indicate the insurer will underwrite that type of coverage.</div>
+          <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Communications with other professionals, such as brokers, agents, risk managers, insurance department or ELANY Personnel indicating the insurer entertains such risks.</div>
+          <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Any other valid basis you can document. <span class="ny-form-ul ny-form-ul-other"></span></div>
+        </div>
+      </div>
+      <div class="ny-form-footer-combined" style="page-break-inside: avoid;">
+        <span class="ny-form-footer-left">NYSID Form 41C - W (Ed. January 2023)</span>
+        <span class="ny-form-footer-center">Page 1 of 2</span>
+        <span class="ny-form-footer-right">New York Part C – Affidavit by Producing Broker (Page 1)</span>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, '', body);
+}
+
+/**
+ * New York Part C – Affidavit by Producing Broker - Page 2 (NYSID Form 41C)
+ * AUTHORIZED COMPANIES DECLINING THE RISK (entries 2–3) and AFFIRMATION
+ */
+function generateNewYorkFormPage2(data: ApplicationPacketData): string {
+  const affiantName = data.agencyContactName || '';
+
+  const body = `
+    <div class="ny-form-doc ny-form-page2">
+      <h1 class="ny-form-title">PART C – AFFIDAVIT BY PRODUCING BROKER</h1>
+      <div class="ny-form-section ny-form-section-1">
+        <p class="ny-form-section-heading"><span class="ny-form-inline-label">AFFIDAVIT NO.</span> <span class="ny-form-ul ny-form-ul-affidavit"></span></p>
+      </div>
+      <p class="ny-form-subsection-heading">AUTHORIZED COMPANIES DECLINING THE RISK</p>
+      <div class="ny-form-decline-schedule">
+        <div class="ny-form-decline-block">
+          <div class="ny-form-decline-row">
+            <span class="ny-form-label">2. Name of Company</span>
+            <span class="ny-form-ul ny-form-ul-company"></span>
+            <span class="ny-form-label ny-form-label-date">Date of Declin.:</span>
+            <span class="ny-form-ul ny-form-ul-date"></span>
+          </div>
+          <div class="ny-form-decline-row">
+            <span class="ny-form-label">NAIC Code</span>
+            <span class="ny-form-ul ny-form-ul-naic"></span>
+          </div>
+          <p class="ny-form-reason-intro">I believed this insurer would consider underwriting this risk because:</p>
+          <div class="ny-form-reason-list">
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Recent acceptance by the insurer of a risk, requiring that type of coverage or class of Insurance.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Advertising by the insurer or its agent indicating it entertains that type of risk/coverage.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Media communications (Newspapers, Trade Magazines, Radio) which indicate the insurer will underwrite that type of coverage.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Communications with other professionals, such as brokers, agents, risk managers, insurance department or ELANY Personnel indicating the insurer entertains such risks.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Any other valid basis you can document. <span class="ny-form-ul ny-form-ul-other"></span></div>
+          </div>
+        </div>
+        <div class="ny-form-decline-block">
+          <div class="ny-form-decline-row">
+            <span class="ny-form-label">3. Name of Company</span>
+            <span class="ny-form-ul ny-form-ul-company"></span>
+            <span class="ny-form-label ny-form-label-date">Date of Declin.:</span>
+            <span class="ny-form-ul ny-form-ul-date"></span>
+          </div>
+          <div class="ny-form-decline-row">
+            <span class="ny-form-label">NAIC Code</span>
+            <span class="ny-form-ul ny-form-ul-naic"></span>
+          </div>
+          <p class="ny-form-reason-intro">I believed this insurer would consider underwriting this risk because:</p>
+          <div class="ny-form-reason-list">
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Recent acceptance by the insurer of a risk, requiring that type of coverage or class of Insurance.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Advertising by the insurer or its agent indicating it entertains that type of risk/coverage.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Media communications (Newspapers, Trade Magazines, Radio) which indicate the insurer will underwrite that type of coverage.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Communications with other professionals, such as brokers, agents, risk managers, insurance department or ELANY Personnel indicating the insurer entertains such risks.</div>
+            <div class="ny-form-reason-item"><span class="ny-form-cb"></span> Any other valid basis you can document. <span class="ny-form-ul ny-form-ul-other"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ny-form-affirmation-box">
+        <p class="ny-form-affirmation-heading">AFFIRMATION</p>
+        <p class="ny-form-affirmation-text">
+          I, <span class="ny-form-ul ny-form-ul-affiant">${affiantName}</span>, am the licensee or sublicensee of the named broker in Section 1 of this affirmation and I hereby affirm under penalties of perjury that all of the information contained herein is true to the best of my knowledge and belief.
+        </p>
+        <div class="ny-form-affirmation-sig-row">
+          <div class="ny-form-sig-left">
+            <span class="ny-form-label">Signature of Affiant</span>
+            <span class="ny-form-ul ny-form-ul-sig"></span>
+          </div>
+          <div class="ny-form-sig-right">
+            <span class="ny-form-label">Date</span>
+            <span class="ny-form-ul ny-form-ul-date"></span>
+          </div>
+        </div>
+      </div>
+      <div class="ny-form-footer">
+        <span class="ny-form-footer-left">NYSID Form 41C - W (Ed. January 2023)</span>
+        <span class="ny-form-footer-right">Page 2 of 2</span>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'New York Part C – Affidavit by Producing Broker (Page 2)', body);
+}
+
+/**
+ * New York Notice of Excess Line Placement - Page 3
+ * Cost breakdown and signature form
+ */
+function generateNewYorkFormPage3(data: ApplicationPacketData): string {
+  const insuredName = data.companyName || '';
+  const producerName = data.agencyContactName || '';
+
+  const body = `
+    <div class="ny-form-doc ny-form-page3" style="page-break-inside: avoid;">
+      <div class="ny-form-notice-box"></div>
+      <h1 class="ny-form-notice-title">NOTICE OF EXCESS LINE PLACEMENT</h1>
+      <div class="ny-form-notice-date">Date: <span class="ny-form-ul ny-form-ul-date"></span></div>
+      
+      <p class="ny-form-notice-text">
+        Consistent with the requirements of the New York Insurance Law and Regulation 41 
+        <span class="ny-form-ul ny-form-ul-insured">${insuredName}</span> is hereby advised that all or a portion of the required coverages have been 
+        placed by <span class="ny-form-ul ny-form-ul-producer">${producerName}</span> with insurers not authorized to do an insurance business in 
+        New York and which are not subject to supervision by this State. Placements with unauthorized insurers can 
+        only be made under one of the following circumstances:
+      </p>
+      
+      <div class="ny-form-notice-list">
+        <p class="ny-form-notice-list-item">
+          <strong>a)</strong> A diligent effort was first made to place the required insurance with companies authorized in New 
+          York to write coverages of the kind requested; or
+        </p>
+        <p class="ny-form-notice-list-item">
+          <strong>b)</strong> NO diligent effort was required because i) the coverage qualifies as an "Export List" risk, or ii) the 
+          insured qualifies as an "Exempt Commercial Purchaser."
+        </p>
+      </div>
+      
+      <p class="ny-form-notice-text">
+        Policies issued by such unauthorized insurers may not be subject to all of the regulations of the 
+        Superintendent of Financial Services pertaining to policy forms. In the event of insolvency of the 
+        unauthorized insurers, losses will not be covered by any New York State security fund.
+      </p>
+      
+      <h2 class="ny-form-cost-title">TOTAL COST FORM (NON TAX ALLOCATED PREMIUM TRANSACTION)</h2>
+      
+      <p class="ny-form-cost-text">
+        In consideration of your placing my insurance as described in the policy referenced below, I agree to pay the 
+        total cost below which includes all premiums, inspection charges<sup>(1)</sup> and a service fee that includes taxes, 
+        stamping fees, and (if indicated) a fee<sup>(1)</sup> for compensation in addition to commissions received, and other 
+        expenses<sup>(1)</sup>.
+      </p>
+      
+      <p class="ny-form-cost-text">
+        I further understand and agree that all fees, inspection charges and other expenses denoted by<sup>(1)</sup> are fully 
+        earned from the inception date of the policy and are non-refundable regardless of whether said policy is 
+        cancelled. Any policy changes which generate additional premium are subject to additional tax and stamping 
+        fee charges.
+      </p>
+      
+      <div class="ny-form-cost-table">
+        <div class="ny-form-cost-row ny-form-cost-header">
+          <div class="ny-form-cost-col-left">Re: Policy No.</div>
+          <div class="ny-form-cost-col-right">Insurer</div>
+        </div>
+        
+        <div class="ny-form-cost-row">
+          <div class="ny-form-cost-col-full"><strong>Policy Premium</strong></div>
+          <div class="ny-form-cost-col-amount">$</div>
+        </div>
+        
+        <div class="ny-form-cost-section">
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-full"><strong><u>Insurer Imposed Charges:</u></strong></div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Policy Fees<sup>(1)</sup></div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Inspection Fees<sup>(1)</sup></div>
+            <div class="ny-form-cost-col-amount">$__________________</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-full"><strong>Total Taxable Charges</strong></div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+        </div>
+        
+        <div class="ny-form-cost-section">
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-full"><strong><u>Service Fee Charges:</u></strong></div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Excess Line Tax (3.60%)</div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Stamping Fee</div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Broker Fee<sup>(1)</sup></div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Inspection Fee<sup>(1)</sup></div>
+            <div class="ny-form-cost-col-amount">$</div>
+          </div>
+          <div class="ny-form-cost-row">
+            <div class="ny-form-cost-col-left">Other Expenses (specify)<sup>(1)</sup> _____________________________</div>
+            <div class="ny-form-cost-col-amount">$ ___________________</div>
+          </div>
+          <div class="ny-form-cost-row ny-form-cost-total">
+            <div class="ny-form-cost-col-left"><strong>Total Policy Cost</strong></div>
+            <div class="ny-form-cost-col-amount"><strong>$ ___________________</strong></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ny-form-page3-footer" style="page-break-inside: avoid;">
+        <div class="ny-form-signature-section">
+          <div class="ny-form-signature-line">_____________________________________</div>
+          <div class="ny-form-signature-label">(Signature of Insured)</div>
+        </div>
+        <p class="ny-form-footnote"><sup>(1)</sup> = Fully earned</p>
+      </div>
+    </div>
+  `;
+  return paFormPageWrapper(data, 'New York Notice of Excess Line Placement (Page 3)', body);
+}
+
+/**
+ * Generate State-Specific Forms section (included only for approved quotes).
+ * Uses submission state (applicantState). Each state has different forms; content can be extended per state.
+ */
+function generateStateFormsPage(data: ApplicationPacketData): string {
+  const stateCode = toStateCode(data.applicantState || '');
+  const stateName = stateCode ? (STATE_DISPLAY_NAMES[stateCode] || data.applicantState || stateCode) : 'Applicant State';
+
+  return `
+    <div class="page state-forms-isc pa-form-no-sidebar" style="page-break-after: always;">
+      <div class="pa-form-content-full state-forms-content">
+        <div class="section-title-uppercase-page4">State-Specific Forms – ${stateName}</div>
+        <p class="state-forms-intro">This section contains the state-required forms for <strong>${stateName}</strong> (${stateCode || 'N/A'}) as applicable to this application.</p>
+        <div class="state-forms-placeholder">
+          <p><strong>Application ID:</strong> ${data.applicationId}</p>
+          <p><strong>Applicant:</strong> ${data.companyName}</p>
+          <p><strong>State of operation:</strong> ${stateName}</p>
+          <p class="state-forms-note">State-specific form content for ${stateName} will appear here. Forms vary by state.</p>
+        </div>
+        <div class="pa-form-page-number">State Forms – ${stateName}</div>
+      </div>
+    </div>
+  `;
+}
+
 /**
  * Map form submission data to ApplicationPacketData format
  */
+/**
+ * Helper function to load SLTX logo PNG (for Texas form)
+ * Place the file at: public/logos/sltx-logo.png
+ */
+export async function loadSltxLogo(): Promise<string | undefined> {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const logosDir = path.join(process.cwd(), 'public', 'logos');
+    const possibleNames = ['sltx-logo.png', 'sltx.png', 'sltx.logo.png'];
+    for (const name of possibleNames) {
+      const logoPath = path.join(logosDir, name);
+      if (fs.existsSync(logoPath)) {
+        const buffer = fs.readFileSync(logoPath);
+        return `data:image/png;base64,${buffer.toString('base64')}`;
+      }
+    }
+  } catch (error) {
+    console.warn('Could not load SLTX logo:', error);
+  }
+  return undefined;
+}
+
 /**
  * Helper function to load Capital & Co logo SVG
  */
@@ -1528,12 +2886,8 @@ export function mapFormDataToPacketData(
   // Extract class code and description
   const classCodeWork = formData.classCodeWork || {};
   const classCodes = Object.keys(classCodeWork);
-  const formattedClassCodes =
-    classCodes.length > 0
-      ? classCodes
-        .map(code => `${code} (${classCodeWork[code]}%)`)
-        .join(', ')
-      : '';
+  const firstClassCode = classCodes[0] || '';
+  const classCodeDescription = formData.carrierApprovedDescription || firstClassCode;
 
   // Calculate field employees
   const activeOwners = formData.activeOwnersInField || 0;
@@ -1563,15 +2917,13 @@ export function mapFormDataToPacketData(
     ? `${formData.streetAddress}${formData.aptSuite ? ', ' + formData.aptSuite : ''}`
     : '';
 
-
-
   // Format agency address
   const agencyAddress = agency?.address?.street || '';
   const agencyCity = agency?.address?.city || '';
   const agencyState = agency?.address?.state || '';
   const agencyZip = agency?.address?.zip || '';
 
-
+  // endorsements
   const endorsements: string[] = [];
 
   if (formData.blanketAdditionalInsured) {
@@ -1598,7 +2950,6 @@ export function mapFormDataToPacketData(
     endorsements.push("Notice of Cancellation to Third Parties");
   }
 
-
   return {
     // Application Metadata
     applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
@@ -1615,18 +2966,17 @@ export function mapFormDataToPacketData(
     agencyPhone: agency?.phone || '(310) 284-2136',
     agencyEmail: agency?.email || 'eidan@capcoinsurance.com',
 
-
-
     // Applicant/Insured Information
     companyName: formData.companyName || formData.business_name || '',
     dba: formData.dba,
     contactPerson: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || formData.contactPerson || '',
     applicantAddress: applicantAddress,
     applicantCity: formData.city || '',
-    applicantState: formData.state || '',
-    applicantZip: formData.zipCode || '',
+    applicantState: (formData.state || formData.addressState || '').trim(),
+    applicantZip: (formData.zipCode || formData.zip || '').trim(),
     applicantPhone: formData.phone || '',
     applicantEmail: formData.email || '',
+    fein: formData.companyFEIN || formData.EIN || 'N/A',
     entityType: formData.entityType || '',
     yearsInBusiness: formData.yearsInBusiness || 0,
     yearsExperienceInTrades: formData.yearsExperienceInTrades || 0,
@@ -1645,6 +2995,9 @@ export function mapFormDataToPacketData(
     carrierName: quote?.carrierName || 'Richmond National Insurance',
     coverageType: quote?.coverageType || 'Manuscript Occurrence',
     desiredCoverageDates: coverageDates,
+    // Include state forms when we have an applicant state (show in packet for new submissions and when quote approved)
+    includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
+      !!(quote?.status && ['APPROVED'].includes(quote.status)),
 
     // General Liability Coverages
     aggregateLimit: formData.generalLiabilityLimit || '$1,000,000',
@@ -1656,7 +3009,7 @@ export function mapFormDataToPacketData(
     selfInsuredRetention: formData.deductible || '$2,500',
 
     // Class Code & Gross Receipts
-    classCode: formattedClassCodes,
+    classCode: classCodeDescription || firstClassCode,
     grossReceipts: formData.estimatedGrossReceipts ? `$${parseInt(formData.estimatedGrossReceipts).toLocaleString()}` : '$0',
 
     // Current Exposures
@@ -1667,11 +3020,11 @@ export function mapFormDataToPacketData(
     numberOfFieldEmployees: numberOfFieldEmployees,
 
     // Work Performed
-    workDescription: formData.carrierApprovedDescription ?? '',
+    workDescription: formData.carrierApprovedDescription || '',
     percentageResidential: formData.residentialPercent || 0,
     percentageCommercial: formData.commercialPercent || 0,
     percentageNewConstruction: formData.newConstructionPercent || 0,
-    percentageRemodel: formData.remodelServiceRepairPercent || 0,
+    percentageRemodel: formData.remodelPercent || 0,
     maxInteriorStories: formData.maxInteriorStories || 0,
     maxExteriorStories: formData.maxExteriorStories || 0,
     maxExteriorDepthBelowGrade: formData.maxExteriorDepthBelowGrade || 0,
@@ -1697,11 +3050,11 @@ export function mapFormDataToPacketData(
     useHeavyEquipment: formData.useHeavyEquipment,
     heavyEquipmentExplanation: formData.heavyEquipmentExplanation,
     workOver5000SqFt: formData.workOver5000SqFt,
-    workOver5000SqFtPercent: formData.over5000SqFtPercent,
-    workOver5000SqFtExplanation: formData.over5000SqFtExplanation,
-    workCommercialOver20000SqFt: formData.workOver20000SqFt,
-    commercialOver20000SqFtPercent: formData.over20000SqFtPercent,
-    commercialOver20000SqFtExplanation: formData.over20000SqFtExplanation,
+    workOver5000SqFtPercent: formData.workOver5000SqFtPercent,
+    workOver5000SqFtExplanation: formData.workOver5000SqFtExplanation,
+    workCommercialOver20000SqFt: formData.workCommercialOver20000SqFt,
+    commercialOver20000SqFtPercent: formData.commercialOver20000SqFtPercent,
+    commercialOver20000SqFtExplanation: formData.commercialOver20000SqFtExplanation,
     licensingActionTaken: formData.licensingActionTaken,
     licensingActionExplanation: formData.licensingActionExplanation,
     allowedLicenseUseByOthers: formData.allowedLicenseUseByOthers,
@@ -1712,7 +3065,6 @@ export function mapFormDataToPacketData(
     lawsuitsExplanation: formData.lawsuitsExplanation,
     awareOfPotentialClaims: formData.awareOfPotentialClaims,
     potentialClaimsExplanation: formData.potentialClaimsExplanation,
-
 
     // Written Contract Questions
     haveWrittenContract: formData.haveWrittenContract,
@@ -1745,7 +3097,6 @@ export function mapFormDataToPacketData(
     requireSubsWorkersComp: formData.requireWorkersComp,
     subsWorkersCompExplanation: formData.requireWorkersCompExplanation,
 
-
     // Policy Endorsements (flags)
     blanketAdditionalInsured: formData.blanketAdditionalInsured ?? false,
     blanketWaiverOfSubrogation: formData.blanketWaiverOfSubrogation ?? false,
@@ -1766,14 +3117,6 @@ export function mapFormDataToPacketData(
     applicantTitle: formData.applicantTitle,
     producerSignature: formData.producerSignature,
     producerSignatureDate: formData.producerSignatureDate || formDate,
-
-    // Optional Additional Coverages
-    addInlandMarineEquipment: formData.addInlandMarineEquipment,
-    addBuildersRisk: formData.addBuildersRisk,
-    addEnvironmentalCoverage: formData.addEnvironmentalCoverage,
-
-
-
 
     // Page 9: Disclosure of Premium
     terrorismCoveragePremium: formData.terrorismCoveragePremium || '$126.66',
@@ -1861,7 +3204,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
   let qrCodeDataUrl: string;
 
   try {
-    qrCodeDataUrl = await generateQRCodeBase64(qrCodeText, 200);
+    qrCodeDataUrl = await generateQRCodeBase64(qrCodeText, 80);
   } catch (error) {
     console.error('[Application Packet] Error generating QR code, using placeholder:', error);
     qrCodeDataUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5RUiBDb2RlPC90ZXh0Pjwvc3ZnPg==';
@@ -1870,8 +3213,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
   // Add QR code data URL to data object for page generation
   const dataWithQR = { ...data, qrCodeDataUrl };
 
-  // Generate all pages first
-  const pages = [
+  // Generate all pages; state-specific forms (only for approved quotes) go just before Invoice Statement (page 12)
+  const pagesBeforeStateForms = [
     generatePage1(dataWithQR),
     generatePage2(dataWithQR),
     generatePage3(dataWithQR),
@@ -1883,8 +3226,41 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     generatePage9(dataWithQR),
     generatePage10(dataWithQR),
     generatePage11(dataWithQR),
-    generatePage12(dataWithQR)
-  ].join('');
+  ];
+  const stateFormPages: string[] = [];
+  if (data.includeStateForms && data.applicantState) {
+    const stateCode = toStateCode(data.applicantState);
+    if (stateCode === 'PA') {
+      stateFormPages.push(generatePennsylvaniaFormPage1(dataWithQR));
+      stateFormPages.push(generatePennsylvaniaFormPage2(dataWithQR));
+    } else if (stateCode === 'WA') {
+      stateFormPages.push(generateWashingtonFormPage(dataWithQR));
+    } else if (stateCode === 'TX') {
+      const sltxLogo = await loadSltxLogo();
+      stateFormPages.push(generateTexasFormPage(dataWithQR, sltxLogo));
+    } else if (stateCode === 'OR') {
+      stateFormPages.push(generateOregonFormPage(dataWithQR));
+    } else if (stateCode === 'NV') {
+      stateFormPages.push(generateNevadaFormPage(dataWithQR));
+    } else if (stateCode === 'FL') {
+      stateFormPages.push(generateFloridaFormPage(dataWithQR));
+    } else if (stateCode === 'CA') {
+      stateFormPages.push(generateCaliforniaFormPage1(dataWithQR));
+      stateFormPages.push(generateCaliforniaFormPage2(dataWithQR));
+      stateFormPages.push(generateCaliforniaFormPage3(dataWithQR));
+    } else if (stateCode === 'CO') {
+      stateFormPages.push(generateColoradoFormPage(dataWithQR));
+    } else if (stateCode === 'NY') {
+      stateFormPages.push(generateNewYorkFormPage(dataWithQR));
+      stateFormPages.push(generateNewYorkFormPage2(dataWithQR));
+      stateFormPages.push(generateNewYorkFormPage3(dataWithQR));
+    } else {
+      stateFormPages.push(generateStateFormsPage(dataWithQR));
+    }
+  }
+  const pages = [...pagesBeforeStateForms, ...stateFormPages, generatePage12(dataWithQR)].join('');
+  // Minify page body to reduce HTML size (PDFShift 2MB limit)
+  const pagesMinified = pages.replace(/>\s+</g, '><').replace(/\s+/g, ' ');
 
   const cssContent = `
     /* ============================================
@@ -1998,15 +3374,16 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     
     .page {
       width: 8.5in;
-      min-height: 11in;
-      max-height: 11in;
-      padding: 0;
-      margin: 0;
+      height: 11in;            /* FIXED height */
       display: flex;
       position: relative;
       background: #fff;
       page-break-after: always;
-      overflow: hidden; /* Ensure all content fits on single pages */
+      overflow: hidden;
+    }
+    .pa-form-page.page {
+      max-height: none;
+      overflow: visible;
     }
     
     .main-content {
@@ -2015,7 +3392,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .sidebar {
-      width: 1.25in;
+      width: 1.08in;
       background: linear-gradient(180deg, #f9fafb 0%, #ffffff 100%);
       padding: 0.4in 0.25in;
       display: flex;
@@ -2179,9 +3556,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     
     .main-content {
       flex: 1;
-      padding: 0.6in;
-      padding-left: 0.5in;
-      padding-right: 0.5in;
+      width: calc(8.5in - 1.08in);
+      padding: 0.45in 0.4in 0.35in 0.4in;
     }
     
     .header-info {
@@ -2315,7 +3691,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
        ============================================ */
     .page1-specific .sidebar-page1 {
       background: #e5e7eb;
-      width: 1.2in;
+      width: 1.08in;
+      min-height: 11in;
       padding: 0.35in 0.2in;
       border-right: 1px solid #d1d5db;
       box-shadow: none;
@@ -2346,9 +3723,9 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page1-specific .page1-title {
-      font-size: 24pt;
-      font-weight: 600;
-      color: #374151;
+      font-size: 30pt;
+      font-weight: 500;
+      color: #252D3B;
       letter-spacing: 2px;
       writing-mode: vertical-rl;
       text-orientation: mixed;
@@ -2364,8 +3741,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       flex-shrink: 0;
       margin-top: auto;
       margin-bottom: 0.3in;
-      position: relative;
-      bottom: auto;
+      position: absolute;
+      bottom: 0.22in;
     }
     
     .page1-specific .qr-text-page1 {
@@ -2430,7 +3807,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     .page1-specific .applicant-name-page1,
     .page1-specific .application-id-page1 {
       font-size: 11pt;
-      font-weight: 400;
+      font-weight: 600;
       color: #1f2937;
       margin-bottom: 0.05in;
       line-height: 1.5;
@@ -2440,7 +3817,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     .page1-specific .broker-name-page1 strong,
     .page1-specific .applicant-name-page1 strong,
     .page1-specific .application-id-page1 strong {
-      font-weight: 600;
+      font-weight: 400;
       color: #1f2937;
     }
     
@@ -2448,7 +3825,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 11pt;
       line-height: 1.6;
       color: #1f2937;
-      margin: 0.25in 0;
+      margin: 0.50in 0;
       padding: 0;
       background: transparent;
       border: none;
@@ -2458,6 +3835,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     
     .page1-specific .checklist-page1 {
       margin: 0.25in 0;
+      padding-left:30px;
     }
     
     .page1-specific .checklist-item-page1 {
@@ -2487,8 +3865,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       border-radius: 2px;
     }
     
-    .page1-specific .submission-instructions-page1,
-    .page1-specific .binding-instructions-page1 {
+    .page1-specific .last-text .submission-instructions-page1,
+    .page1-specific .last-text .binding-instructions-page1 {
       font-size: 11pt;
       line-height: 1.6;
       color: #1f2937;
@@ -2504,11 +3882,15 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       position: absolute;
       bottom: 0.4in;
       right: 0.6in;
-      font-size: 10pt;
+      font-size: 9pt;
       color: #6b7280;
       font-weight: 400;
     }
-    
+
+    .page1-specific .last-text {
+      margin-top: 0.50in;
+    }
+
     /* ============================================
        PAGE 2 SPECIFIC STYLES - ISC APPLICATION FORMAT
        ============================================ */
@@ -3370,6 +4752,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-weight: 400;
     }
 
+
     .loss-history-section {
       margin-top: 16px;
       font-size: 12px;
@@ -3391,7 +4774,6 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       background: #f5f5f5;
       font-weight: 600;
     }
-
     
     /* ============================================
        PAGE 5 - ISC FORMAT: WRITTEN CONTRACT & POLICY ENDORSEMENTS
@@ -4647,6 +6029,1796 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-weight: 400;
     }
     
+    .state-forms-isc .main-content-page12.state-forms-content {
+      padding: 0.25in 0.35in;
+      font-size: 10pt;
+      line-height: 1.35;
+      color: #1f2937;
+    }
+    .state-forms-isc .state-forms-intro {
+      margin-top: 0.1in;
+      margin-bottom: 0.15in;
+      color: #374151;
+    }
+    .state-forms-isc .state-forms-placeholder {
+      margin-top: 0.15in;
+      padding: 0.15in;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+    }
+    .state-forms-isc .state-forms-placeholder p {
+      margin: 0.08in 0;
+      color: #1f2937;
+    }
+    .state-forms-isc .state-forms-note {
+      margin-top: 0.12in;
+      font-size: 9pt;
+      color: #6b7280;
+    }
+    
+    /* State forms: full width, no sidebar */
+    .pa-form-no-sidebar {
+      display: block !important;
+      padding: 0;
+    }
+    .pa-form-no-sidebar .pa-form-content-full {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.5in 0.6in 0.55in 0.6in;
+      min-height: 11in;
+      position: relative;
+      font-size: 10pt;
+      line-height: 1.4;
+      color: #000000;
+    }
+    .pa-form-no-sidebar .pa-form-page-number {
+      position: absolute;
+      bottom: 0.35in;
+      right: 0.6in;
+      font-size: 9pt;
+      color: #4b5563;
+    }
+    .pa-form-no-sidebar .state-forms-content {
+      padding: 0.5in 0.6in;
+    }
+    
+    /* Pennsylvania 1609-PR form — clean, professional, easy to read */
+    .pa-form-doc {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111827;
+      line-height: 1.45;
+      font-size: 9pt;
+    }
+    .pa-form-header-block {
+      text-align: center;
+      margin-bottom: 0.16in;
+    }
+    .pa-form-title {
+      font-weight: 700;
+      font-size: 11pt;
+      letter-spacing: 0.03em;
+      color: #111827;
+    }
+    .pa-form-meta {
+      font-size: 8pt;
+      margin-top: 0.05in;
+      color: #4b5563;
+    }
+    .pa-form-rev { display: block; font-weight: 600; color: #374151; }
+    .pa-form-note {
+      font-size: 7pt;
+      display: block;
+      margin-top: 0.03in;
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+    .pa-form-two-boxes {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      margin-bottom: 0.16in;
+      gap: 0.22in;
+    }
+    .pa-form-box {
+      border: 1px solid #374151;
+      padding: 0.11in 0.14in;
+      font-size: 8pt;
+      line-height: 1.4;
+      background: #ffffff;
+    }
+    .pa-form-box-left { flex: 1; min-width: 0; }
+    .pa-form-box-right {
+      width: 2.1in;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .pa-form-box-title {
+      font-weight: 700;
+      margin-bottom: 0.05in;
+      font-size: 8.5pt;
+      color: #111827;
+    }
+    .pa-form-box-address {
+      margin-bottom: 0.02in;
+      color: #374151;
+    }
+    .pa-form-id-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.1in;
+      margin-bottom: 0.06in;
+    }
+    .pa-form-id-row:last-child { margin-bottom: 0; }
+    .pa-form-id-label {
+      white-space: nowrap;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #374151;
+    }
+    .pa-form-box-right .pa-ul-id {
+      border-bottom: none;
+      min-height: 0.9em;
+      flex: 1;
+      min-width: 1.2in;
+      display: inline-block;
+    }
+    
+    .pa-form-intro {
+      font-size: 8.5pt;
+      margin-bottom: 0.14in;
+      line-height: 1.5;
+      color: #374151;
+      text-align: justify;
+    }
+    .pa-form-section-title {
+      font-weight: 700;
+      margin-bottom: 0.1in;
+      font-size: 10pt;
+      letter-spacing: 0.02em;
+      color: #111827;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.05in;
+    }
+    .pa-form-declaration-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #374151;
+      margin-bottom: 0.12in;
+      font-size: 8.5pt;
+      table-layout: fixed;
+    }
+    .pa-form-col-label { width: 1.55in; }
+    .pa-form-col-input { width: auto; }
+    .pa-form-col-small { width: 1in; }
+    .pa-form-declaration-table td {
+      border: 1px solid #d1d5db;
+      border-bottom: none;
+      padding: 0.07in 0.1in;
+      vertical-align: middle;
+      min-height: 0.26in;
+    }
+    .pa-form-declaration-table tr:last-child td {
+      border-bottom: 1px solid #374151;
+    }
+    .pa-form-declaration-table .pa-ul {
+      min-height: 0.9em;
+      border-bottom: none;
+      display: inline;
+    }
+    .pa-form-td-label {
+      font-weight: 600;
+      font-size: 8pt;
+      background: #f8fafc;
+      color: #374151;
+    }
+    .pa-form-td-input { min-width: 0; color: #111827; }
+    .pa-form-td-small { text-align: center; color: #111827; }
+    .pa-form-cell-label {
+      display: block;
+      font-size: 7pt;
+      font-weight: 600;
+      margin-bottom: 0.02in;
+      color: #6b7280;
+      letter-spacing: 0.02em;
+    }
+    .pa-form-label-sub {
+      font-weight: normal;
+      font-size: 6.5pt;
+      color: #6b7280;
+    }
+    .pa-ul {
+      display: inline-block;
+      border-bottom: 1px solid #374151;
+      min-height: 1.15em;
+      vertical-align: bottom;
+    }
+    .pa-ul-mid { min-width: 1.4in; }
+    .pa-ul-short { min-width: 0.7in; }
+    .pa-ul-long { min-width: 2.8in; flex: 1; }
+    .pa-ul-amt { min-width: 1.1in; }
+    .pa-ul-date { min-width: 1.1in; }
+    .pa-ul-producer { min-width: 1.5in; flex: 1; }
+    .pa-ul-sig { min-width: 2.2in; flex: 1; margin-left: 0.1in; }
+    .pa-ul-date-sig { min-width: 1in; margin-left: 0.1in; }
+    .pa-form-footnotes {
+      font-size: 6.5pt;
+      margin-bottom: 0.12in;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.1in 0.25in;
+      color: #6b7280;
+      line-height: 1.35;
+    }
+    .pa-form-footnotes span { flex: 1; min-width: 1.2in; }
+    .pa-form-doc .pa-form-declaration {
+      margin-bottom: 0.1in;
+      line-height: 1.5;
+      font-size: 8pt;
+      color: #374151;
+      text-align: justify;
+    }
+    .pa-form-notice {
+      margin-left: 0.25in;
+      margin-bottom: 0.1in;
+      font-size: 8pt;
+      line-height: 1.5;
+      color: #4b5563;
+      text-align: justify;
+    }
+    .pa-form-legal {
+      font-weight: 700;
+      margin: 0.1in 0;
+      font-size: 8pt;
+      line-height: 1.45;
+      color: #374151;
+    }
+    .pa-form-legal-dark { color: #000000 !important; }
+    .pa-form-label-dark { color: #000000 !important; font-weight: 700; }
+    .pa-form-producer-block {
+      display: flex;
+      gap: 0.35in;
+      margin-top: 0.16in;
+      margin-bottom: 0.12in;
+      padding-top: 0.1in;
+      border-top: 1px solid #e5e7eb;
+    }
+    .pa-form-producer-col { flex: 1; }
+    .pa-form-producer-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.12in;
+      margin-bottom: 0.08in;
+    }
+    .pa-form-producer-row .pa-form-label {
+      min-width: 1.5in;
+      font-weight: 600;
+      font-size: 8pt;
+      color: #374151;
+    }
+    .pa-form-hint {
+      font-size: 6.5pt;
+      color: #9ca3af;
+      margin-bottom: 0.1in;
+    }
+    .pa-form-signature-block {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.12in;
+      margin-top: 0.14in;
+      padding-top: 0.06in;
+    }
+    .pa-form-sig-label {
+      color: #000000 !important;
+      font-weight: 700;
+    }
+    .pa-form-date-label {
+      margin-left: 0.25in;
+      min-width: auto !important;
+      font-weight: 600;
+      font-size: 8pt;
+      color: #374151;
+    }
+    .pa-form-sig-hint {
+      font-size: 6.5pt;
+      text-align: center;
+      margin-top: 0.03in;
+      color: #9ca3af;
+    }
+    
+    /* Pennsylvania 1609-SLL Addendum (Page 2) */
+    .pa-form-addendum .pa-form-addendum-title {
+      font-weight: 700;
+      font-size: 11pt;
+      color: #000000;
+      margin-bottom: 0.18in;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    .pa-form-addendum-intro {
+      font-size: 9pt;
+      line-height: 1.5;
+      color: #374151;
+      margin-bottom: 0.14in;
+    }
+    .pa-form-addendum-body {
+      font-size: 9pt;
+      line-height: 1.55;
+      color: #374151;
+    }
+    .pa-ul-addendum {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-width: 1.2in;
+      min-height: 1em;
+      vertical-align: bottom;
+    }
+    
+    /* Washington Surplus Lines — Fintech-grade professional */
+    .wa-form-doc {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.6;
+      font-size: 9pt;
+    }
+    .wa-form-header {
+      text-align: center;
+      margin-bottom: 0.28in;
+      padding-bottom: 0.2in;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .wa-form-badge {
+      font-size: 6.5pt;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: #64748b;
+      margin-bottom: 0.12in;
+    }
+    .wa-form-title {
+      font-weight: 600;
+      font-size: 14pt;
+      letter-spacing: 0.02em;
+      color: #0f172a;
+    }
+    .wa-form-subtitle {
+      font-size: 9pt;
+      font-weight: 500;
+      color: #64748b;
+      margin-top: 0.04in;
+    }
+    .wa-form-doc-type {
+      font-weight: 600;
+      font-size: 10pt;
+      color: #0f172a;
+      margin-top: 0.08in;
+    }
+    .wa-form-block-label {
+      font-size: 7pt;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 0.1in;
+      text-transform: uppercase;
+    }
+    .wa-form-info-block {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.16in 0.18in;
+      margin-bottom: 0.24in;
+      background: #f8fafc;
+    }
+    .wa-form-info-block .wa-form-block-label { margin-bottom: 0.12in; }
+    .wa-form-field-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.04in;
+      margin-bottom: 0.12in;
+    }
+    .wa-form-field-row:last-child { margin-bottom: 0; }
+    .wa-form-field-label {
+      font-weight: 500;
+      font-size: 9pt;
+      color: #334155;
+      min-width: 1.4in;
+    }
+    .wa-form-field-sep { color: #94a3b8; }
+    .wa-form-field-value { color: #475569; font-weight: 500; }
+    .wa-form-field-hint {
+      font-size: 7pt;
+      color: #94a3b8;
+      margin-left: 0.08in;
+    }
+    .wa-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #1e293b;
+      min-height: 1.15em;
+      vertical-align: bottom;
+    }
+    .wa-form-ul-long { min-width: 2.5in; flex: 1; }
+    .wa-form-ul-inline { min-width: 1.1in; }
+    .wa-form-ul-producer { min-width: 1.7in; }
+    .wa-form-ul-agency { min-width: 1.9in; flex: 1; }
+    .wa-form-ul-sig { min-width: 2.4in; flex: 1; }
+    .wa-form-ul-date { min-width: 1.4in; }
+    .wa-form-producer-section {
+      margin-bottom: 0.22in;
+    }
+    .wa-form-producer-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.1in;
+    }
+    .wa-form-producer-hints {
+      display: flex;
+      gap: 1.35in;
+      margin-top: 0.05in;
+      padding-left: 0.12in;
+    }
+    .wa-form-producer-hint {
+      font-size: 7pt;
+      color: #94a3b8;
+    }
+    .wa-form-certify-block {
+      margin-bottom: 0.22in;
+    }
+    .wa-form-certify {
+      font-size: 9pt;
+      line-height: 1.65;
+      color: #475569;
+      margin: 0;
+      text-align: justify;
+    }
+    .wa-form-emphasis {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .wa-form-disclosure-section {
+      margin-bottom: 0.26in;
+    }
+    .wa-form-disclosure-intro {
+      font-size: 9pt;
+      line-height: 1.6;
+      color: #475569;
+      margin-bottom: 0.12in;
+    }
+    .wa-form-disclosure-list {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.14in 0.18in;
+      background: #ffffff;
+    }
+    .wa-form-disclosure-item {
+      display: flex;
+      gap: 0.12in;
+      font-size: 9pt;
+      line-height: 1.6;
+      color: #475569;
+      margin-bottom: 0.1in;
+      text-align: justify;
+    }
+    .wa-form-disclosure-item:last-child { margin-bottom: 0; }
+    .wa-form-bullet {
+      font-weight: 600;
+      color: #0f172a;
+      min-width: 0.2in;
+    }
+    .wa-form-signature-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.16in;
+      padding: 0.2in 0;
+      margin-top: 0.06in;
+      border-top: 1px solid #e2e8f0;
+    }
+    .wa-form-sig-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.14in;
+    }
+    .wa-form-date-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.14in;
+    }
+    .wa-form-sig-label {
+      font-weight: 600;
+      font-size: 9pt;
+      color: #0f172a;
+      white-space: nowrap;
+      min-width: 2in;
+    }
+    .wa-form-date-label {
+      font-weight: 600;
+      font-size: 9pt;
+      color: #0f172a;
+      min-width: 0.45in;
+    }
+    
+    /* Texas Diligent Effort — clean, professional, easy to read */
+    .tx-form-doc {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      color: #1e293b;
+      font-size: 9pt;
+      line-height: 1.5;
+      padding-bottom: 0.3in;
+    }
+    .tx-form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.24in;
+      padding-bottom: 0.16in;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tx-form-logo {
+      display: flex;
+      align-items: flex-start;
+    }
+    .tx-logo-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.1in;
+    }
+    .tx-logo-img {
+      height: 0.85in;
+      width: auto;
+      max-width: 2.5in;
+      object-fit: contain;
+    }
+    .tx-logo-svg-wrap {
+      width: 1.9in;
+      flex-shrink: 0;
+    }
+    .tx-logo-svg {
+      width: 100%;
+      height: auto;
+    }
+    .tx-logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .tx-logo-surplus {
+      font-weight: 700;
+      font-size: 14pt;
+      color: #0f172a;
+    }
+    .tx-logo-surplus sup {
+      font-size: 0.55em;
+      vertical-align: super;
+    }
+    .tx-logo-lines {
+      font-weight: 400;
+      font-size: 10pt;
+      color: #0f172a;
+    }
+    .tx-logo-office {
+      font-size: 7pt;
+      color: #64748b;
+      margin-top: 0.02in;
+    }
+    .tx-form-number {
+      font-size: 9pt;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .tx-form-title {
+      font-weight: 700;
+      font-size: 17pt;
+      text-align: center;
+      margin: 0 0 0.14in 0;
+      color: #0f172a;
+      letter-spacing: 0.02em;
+    }
+    .tx-form-intro {
+      font-size: 9pt;
+      text-align: center;
+      margin-bottom: 0.16in;
+      color: #475569;
+      line-height: 1.55;
+    }
+    .tx-form-link {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    .tx-form-section {
+      margin-bottom: 0.14in;
+      padding: 0.1in 0.14in;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    .tx-section-title {
+      font-weight: 700;
+      font-size: 9pt;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.08in;
+      color: #0f172a;
+    }
+    .tx-field-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.08in;
+      margin-bottom: 0.06in;
+    }
+    .tx-field-row:last-child { margin-bottom: 0; }
+    .tx-field-label {
+      font-size: 9pt;
+      font-weight: 500;
+      color: #334155;
+      min-width: 2.1in;
+    }
+    .tx-ul {
+      display: inline-block;
+      border-bottom: 1px solid #334155;
+      min-height: 1.15em;
+      vertical-align: bottom;
+      flex: 1;
+      min-width: 2in;
+    }
+    .tx-ul-long { min-width: 3in; flex: 1; }
+    .tx-ul-sig { min-width: 2.2in; flex: 1; }
+    .tx-ul-date {
+      min-width: 1.2in;
+      max-width: 1.5in;
+      flex: none;
+    }
+    .tx-options-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.22in;
+      margin-bottom: 0.1in;
+    }
+    .tx-options-three {
+      gap: 0.35in;
+      flex-wrap: wrap;
+    }
+    .tx-form-section-carrier .tx-options-row {
+      margin-top: 0.02in;
+      margin-bottom: 0.1in;
+      align-items: baseline;
+    }
+    .tx-option { font-size: 9pt; color: #475569; }
+    .tx-checkbox { font-family: Arial; }
+    .tx-ack-statement {
+      font-size: 9pt;
+      margin: 0 0 0.14in 0;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .tx-sig-block {
+      margin-top: 0.12in;
+      padding-top: 0.1in;
+      border-top: 1px solid #e2e8f0;
+    }
+    .tx-sig-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.1in;
+      margin-bottom: 0.1in;
+      flex-wrap: wrap;
+    }
+    .tx-sig-row-date .tx-ul-date {
+      max-width: 1.5in;
+    }
+    .tx-form-footer {
+      margin-top: 0.18in;
+      padding-top: 0.12in;
+      border-top: 1px solid #334155;
+      page-break-inside: avoid;
+    }
+    .tx-footer-italic {
+      font-size: 8pt;
+      font-style: italic;
+      color: #334155;
+      margin-bottom: 0.06in;
+      line-height: 1.45;
+    }
+    .tx-footer-bullet {
+      font-size: 8pt;
+      font-style: italic;
+      color: #334155;
+      margin-bottom: 0.05in;
+      line-height: 1.45;
+    }
+    .tx-disclaimer {
+      font-size: 8pt;
+      font-style: italic;
+      color: #334155;
+      margin: 0.08in 0 0 0;
+      line-height: 1.45;
+    }
+    
+    /* Oregon Diligent Search Statement — matches official form */
+    .or-form-doc {
+      font-family: 'Times New Roman', Times, serif;
+      color: #000000;
+      font-size: 10pt;
+      line-height: 1.4;
+    }
+    .or-form-title {
+      font-size: 14pt;
+      font-weight: bold;
+      text-align: center;
+      margin: 0 0 0.2in 0;
+      letter-spacing: 0.15em;
+    }
+    .or-form-fields { margin-bottom: 0.18in; }
+    .or-field-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.06in;
+    }
+    .or-field-label {
+      min-width: 2.2in;
+      font-size: 10pt;
+    }
+    .or-field-value {
+      font-size: 10pt;
+      margin-left: 0.1in;
+    }
+    .or-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 1.1em;
+      flex: 1;
+      min-width: 2.5in;
+      margin-left: 0.1in;
+      vertical-align: bottom;
+    }
+    .or-ul-long { min-width: 3in; }
+    .or-ul-sig { min-width: 3in; }
+    .or-ul-date { min-width: 1.5in; }
+    .or-paragraph {
+      margin: 0 0 0.1in 0;
+      font-size: 10pt;
+      text-align: justify;
+    }
+    .or-indent { margin-left: 0.2in; }
+    .or-bullets { margin: 0.1in 0 0.18in 0.4in; }
+    .or-bullet {
+      margin: 0 0 0.06in 0;
+      font-size: 10pt;
+      text-align: justify;
+    }
+    .or-select-prompt { margin-bottom: 0.08in; }
+    .or-select-text {
+      color: #c00;
+      font-weight: bold;
+      text-decoration: underline;
+      font-size: 10pt;
+    }
+    .or-red-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.08in;
+      margin-bottom: 0.14in;
+    }
+    .or-red-arrow {
+      color: #c00;
+      font-size: 12pt;
+    }
+    .or-red-dash {
+      flex: 1;
+      height: 0;
+      border-bottom: 2px dashed #c00;
+    }
+    .or-statement {
+      margin-bottom: 0.12in;
+    }
+    .or-statement-title {
+      font-weight: bold;
+      margin: 0 0 0.06in 0;
+      font-size: 10pt;
+      color: #c00;
+      display: flex;
+      align-items: center;
+      gap: 0.08in;
+    }
+    .or-checkbox {
+      display: inline-block;
+      width: 0.14in;
+      height: 0.14in;
+      border: 2px solid #c00;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .or-statement-text {
+      margin: 0 0 0 0.25in;
+      font-size: 10pt;
+      line-height: 1.45;
+      text-align: justify;
+    }
+    .or-dash-line {
+      border-bottom: 2px dashed #000000;
+      margin: 0.12in 0;
+    }
+    .or-link {
+      color: #000000;
+      text-decoration: underline;
+    }
+    .or-signature-block { margin-top: 0.2in; }
+    .or-sig-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.1in;
+    }
+    .or-sig-row .or-field-label { min-width: 2.2in; }
+    .or-sig-row .or-ul { margin-left: 0.1in; }
+    
+    /* Nevada Surplus Lines Association – DECLINATION DETAIL (NSLA 105) */
+    .nv-form-doc {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 10pt;
+      color: #000000;
+      line-height: 1.4;
+    }
+    .nv-form-header {
+      text-align: center;
+      margin-bottom: 0.2in;
+    }
+    .nv-form-org {
+      font-size: 12pt;
+      font-weight: bold;
+      font-style: italic;
+      margin: 0 0 0.08in 0;
+      color: #000000;
+    }
+    .nv-form-title {
+      font-size: 12pt;
+      font-weight: bold;
+      font-style: italic;
+      margin: 0;
+      color: #000000;
+    }
+    .nv-form-intro {
+      text-align: left;
+      margin: 0 0 0.18in 0;
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+    .nv-form-field-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.12in;
+    }
+    .nv-form-label {
+      font-weight: bold;
+      font-size: 10pt;
+      min-width: 2.8in;
+      flex-shrink: 0;
+    }
+    .nv-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 1.1em;
+      flex: 1;
+      min-width: 2in;
+      margin-left: 0.1in;
+      vertical-align: bottom;
+    }
+    .nv-form-ul-long { min-width: 3.5in; }
+    .nv-form-row-two-col {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.15in;
+    }
+    .nv-form-ul-phone { min-width: 1.5in; }
+    .nv-form-label-underwriter { min-width: 1in; margin-left: 0.2in; }
+    .nv-form-ul-underwriter { min-width: 2in; }
+    .nv-form-decline-block {
+      margin-bottom: 0.2in;
+      padding-bottom: 0.15in;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .nv-form-decline-heading {
+      font-weight: bold;
+      font-size: 10pt;
+      margin: 0 0 0.12in 0;
+    }
+    .nv-form-codes-heading {
+      font-weight: bold;
+      font-style: italic;
+      text-align: center;
+      margin: 0.2in 0 0.12in 0;
+      font-size: 10pt;
+      color: #000000;
+    }
+    .nv-form-codes-grid {
+      display: flex;
+      gap: 0.5in;
+      margin-bottom: 0.2in;
+    }
+    .nv-form-codes-col {
+      flex: 1;
+    }
+    .nv-form-code-item {
+      margin: 0 0 0.06in 0;
+      font-size: 10pt;
+      color: #000000;
+    }
+    .nv-form-explanation {
+      font-size: 9pt;
+      margin: 0 0 0.2in 0;
+      line-height: 1.5;
+      text-align: left;
+    }
+    .nv-form-sig-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.2in;
+      margin: 0.2in 0 0.15in 0;
+    }
+    .nv-form-sig-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.04in;
+      flex: 1;
+    }
+    .nv-form-sig-center { align-items: center; }
+    .nv-form-sig-right { align-items: flex-end; }
+    .nv-form-sig-right .nv-form-ul { margin-left: 0; }
+    .nv-form-ul-sig {
+      min-width: 2in;
+      width: 100%;
+    }
+    .nv-form-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.15in;
+      padding-top: 0.08in;
+      font-size: 9pt;
+      color: #333;
+    }
+    .nv-form-footer-left {}
+    .nv-form-footer-right {}
+    
+    /* Florida Surplus Lines Disclosure and Acknowledgement */
+    .fl-form-doc {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #000000;
+      line-height: 1.4;
+    }
+    .fl-form-title {
+      font-size: 12pt;
+      font-weight: bold;
+      margin: 0 0 0.2in 0;
+      text-align: left;
+    }
+    .fl-form-paragraph {
+      margin: 0 0 0.15in 0;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .fl-form-paragraph .fl-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-width: 3in;
+      min-height: 1.1em;
+      margin: 0 0.05in;
+      vertical-align: bottom;
+    }
+    .fl-form-ul-agency { min-width: 3.5in; }
+    .fl-form-hint {
+      font-size: 9pt;
+      font-style: italic;
+      color: #555;
+      margin: -0.08in 0 0.15in 0;
+    }
+    .fl-form-field-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.03in;
+      margin-bottom: 0.2in;
+    }
+    .fl-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 1.1em;
+      min-width: 2in;
+    }
+    .fl-form-ul-field { min-width: 3.5in; }
+    .fl-form-ul-long { min-width: 4.5in; width: 100%; }
+    .fl-form-label-below {
+      font-size: 10pt;
+      color: #000000;
+    }
+    .fl-form-sig-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.3in;
+      margin-bottom: 0.2in;
+    }
+    .fl-form-sig-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.03in;
+    }
+    .fl-form-sig-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.03in;
+    }
+    .fl-form-sig-line-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.1in;
+    }
+    .fl-form-sig-right .fl-form-sig-line-row {
+      flex-direction: row;
+      align-items: baseline;
+    }
+    .fl-form-ul-sig { min-width: 3in; flex: 1; }
+    .fl-form-ul-date { min-width: 1.5in; }
+    .fl-form-label-inline {
+      font-size: 10pt;
+      flex-shrink: 0;
+    }
+    .fl-form-label-date {}
+    
+    /* California Surplus Line Disclosure (D-1) – two pages */
+    .ca-form-doc {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #000000;
+      line-height: 1.5;
+    }
+    .ca-form-title {
+      font-size: 12pt;
+      font-weight: bold;
+      margin: 0 0 0.2in 0;
+    }
+    .ca-form-content {
+      margin-bottom: 0.2in;
+    }
+    .ca-form-item {
+      margin: 0 0 0.15in 0;
+      text-align: left;
+    }
+    .ca-form-sig-block {
+      margin-top: 0.25in;
+    }
+    .ca-form-sig-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.15in;
+      gap: 0.15in;
+    }
+    .ca-form-sig-row .ca-form-label {
+      flex-shrink: 0;
+    }
+    .ca-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 1.1em;
+      flex: 1;
+      min-width: 2in;
+    }
+    .ca-form-footer {
+      margin-top: 0.3in;
+      font-size: 9pt;
+      color: #333;
+    }
+    
+    /* California DILIGENT SEARCH REPORT (SL-2 FORM) – Page 3 */
+    .ca-sl2-doc {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8.5pt;
+      color: #000000;
+      line-height: 1.3;
+      padding-bottom: 0.08in;
+    }
+    .ca-sl2-header {
+      text-align: center;
+      margin-bottom: 0.1in;
+    }
+    .ca-sl2-org {
+      margin: 0 0 0.04in 0;
+      font-size: 9.5pt;
+    }
+    .ca-sl2-title {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+    .ca-sl2-section {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.08in;
+      margin-bottom: 0.08in;
+    }
+    .ca-sl2-section-grey .ca-sl2-section-body {
+      background: #f1f5f9;
+      border: 1px solid #000000;
+      padding: 0.08in;
+    }
+    .ca-sl2-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0.22in;
+      height: 0.22in;
+      background: #000000;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 10pt;
+      flex-shrink: 0;
+    }
+    .ca-sl2-section-body { flex: 1; }
+    .ca-sl2-instruction {
+      margin: 0 0 0.06in 0;
+      font-size: 8.5pt;
+    }
+    .ca-sl2-statement { margin: 0 0 0.06in 0; }
+    .ca-sl2-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 0.9em;
+      min-width: 1.5in;
+    }
+    .ca-sl2-ul-name { min-width: 3in; }
+    .ca-sl2-ul-mid { min-width: 2in; }
+    .ca-sl2-ul-long { min-width: 2.5in; }
+    .ca-sl2-ul-sig { min-width: 2.5in; width: 100%; }
+    .ca-sl2-option { margin: 0 0 0.05in 0; }
+    .ca-sl2-or {
+      text-align: center;
+      margin: 0.02in 0;
+      font-size: 8.5pt;
+    }
+    .ca-sl2-hint {
+      font-size: 7.5pt;
+      color: #333;
+      margin: -0.03in 0 0.05in 0;
+    }
+    .ca-sl2-intro { margin: 0 0 0.06in 0; }
+    .ca-sl2-table {
+      border: 1px solid #000000;
+      margin: 0.06in 0;
+      width: 100%;
+    }
+    .ca-sl2-table-row {
+      display: flex;
+      border-bottom: 1px solid #000000;
+    }
+    .ca-sl2-table-row:last-child { border-bottom: none; }
+    .ca-sl2-table-cell {
+      flex: 1;
+      border-right: 1px solid #000000;
+      padding: 0.04in;
+      display: flex;
+      flex-direction: column;
+      gap: 0.02in;
+    }
+    .ca-sl2-table-cell:last-child { border-right: none; }
+    .ca-sl2-cell-header {
+      background: #000000;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 7pt;
+      padding: 0.04in;
+      justify-content: center;
+      align-items: center;
+    }
+    .ca-sl2-cell-header span { text-align: center; }
+    .ca-sl2-cell-label {
+      font-size: 7pt;
+      font-weight: bold;
+    }
+    .ca-sl2-input {
+      border: 1px solid #000000;
+      min-height: 0.18in;
+      background: #fff;
+    }
+    .ca-sl2-input-sub {
+      min-height: 0.14in;
+      margin-top: 0.01in;
+    }
+    .ca-sl2-textarea {
+      border: 1px solid #000000;
+      min-height: 0.45in;
+      background: #fff;
+      margin-top: 0.05in;
+    }
+    .ca-sl2-yn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.06in;
+    }
+    .ca-sl2-cb {
+      display: inline-block;
+      width: 0.1in;
+      height: 0.1in;
+      border: 1.5px solid #000000;
+      background: #fff;
+      vertical-align: middle;
+    }
+    .ca-sl2-addendum { margin: 0.05in 0 0 0; }
+    .ca-sl2-link {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    .ca-sl2-cert {
+      margin: 0.08in 0;
+      font-size: 8.5pt;
+      line-height: 1.35;
+    }
+    .ca-sl2-sig-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.2in;
+      margin: 0.08in 0;
+    }
+    .ca-sl2-sig-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.02in;
+      flex: 1;
+    }
+    .ca-sl2-sig-label {
+      font-size: 7.5pt;
+      color: #333;
+    }
+    .ca-sl2-footer {
+      font-size: 7.5pt;
+      color: #333;
+      margin-top: 0.05in;
+      margin-bottom: 0;
+    }
+    
+    /* Colorado Statement of Diligent Effort */
+    .co-form-doc {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 9pt;
+      color: #000000;
+      line-height: 1.3;
+      position: relative;
+      padding: 0.15in;
+    }
+    .co-form-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 42pt;
+      font-weight: bold;
+      color: rgba(0, 0, 0, 0.07);
+      text-align: center;
+      pointer-events: none;
+      line-height: 1.2;
+    }
+    .co-form-watermark-sub {
+      font-size: 12pt;
+      display: block;
+      margin: 0.02in 0;
+    }
+    .co-form-border {
+      position: relative;
+      border: 2px solid #1e3a5f;
+      padding: 0.15in;
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .co-form-border > .co-form-watermark {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .co-form-header {
+      position: relative;
+      z-index: 1;
+      background: #1e3a5f;
+      color: #ffffff;
+      font-size: 11pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0.12in 0.15in;
+      margin: -0.15in -0.15in 0.15in -0.15in;
+    }
+    .co-form-intro-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.1in;
+      margin-bottom: 0.06in;
+    }
+    .co-form-intro-text { flex-shrink: 0; }
+    .co-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #999999;
+      min-height: 1em;
+      flex: 1;
+      min-width: 1in;
+    }
+    .co-form-ul-intro { min-width: 2in; }
+    .co-form-ul-license { min-width: 1.2in; }
+    .co-form-ul-long { min-width: 2.5in; }
+    .co-form-ul-mid { min-width: 1.2in; }
+    .co-form-ul-date { min-width: 1.2in; }
+    .co-form-ul-sig { min-width: 2in; }
+    .co-form-field-block { margin-bottom: 0.06in; }
+    .co-form-field-centered {
+      text-align: center;
+    }
+    .co-form-field-centered .co-form-ul { margin: 0 auto; }
+    .co-form-label-above {
+      display: block;
+      font-size: 9pt;
+      margin-bottom: 0.02in;
+      text-align: center;
+    }
+    .co-form-field-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.1in;
+      margin-bottom: 0.05in;
+      flex-wrap: wrap;
+    }
+    .co-form-label {
+      flex-shrink: 0;
+      font-size: 9pt;
+    }
+    .co-form-row-inline { flex-wrap: wrap; }
+    .co-form-insurer-block {
+      margin-bottom: 0.1in;
+      padding-bottom: 0.08in;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .co-form-insurer-num {
+      font-weight: bold;
+      margin: 0 0 0.05in 0;
+      font-size: 9pt;
+    }
+    .co-form-hint {
+      font-size: 8pt;
+      font-style: italic;
+      color: #000000;
+      margin: -0.02in 0 0.04in 0;
+    }
+    .co-form-row-two {
+      flex-wrap: wrap;
+    }
+    .co-form-sig-divider {
+      border: none;
+      border-top: 1px solid #cbd5e1;
+      margin: 0.12in 0 0.08in 0;
+    }
+    .co-form-sig-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.2in;
+      margin: 0.1in 0;
+    }
+    .co-form-sig-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.02in;
+      flex: 1;
+    }
+    .co-form-definition {
+      font-size: 8.5pt;
+      line-height: 1.4;
+      margin: 0.1in 0;
+      text-align: left;
+    }
+    .co-form-footer-rev {
+      font-size: 8pt;
+      text-align: right;
+      margin: 0.08in 0;
+    }
+    .co-form-attest {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.1in;
+      margin: 0.1in 0;
+    }
+    .co-form-checkbox {
+      display: inline-block;
+      width: 0.14in;
+      height: 0.14in;
+      border: 2px solid #000000;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .co-form-attest-text {
+      flex: 1;
+      font-size: 8.5pt;
+      line-height: 1.4;
+      margin: 0;
+    }
+    
+    /* New York Part C – Affidavit by Producing Broker (NYSID Form 41C) */
+    .ny-form-doc {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 9.5pt;
+      color: #000000;
+      line-height: 1.25;
+    }
+    .ny-form-page1 {
+      padding-bottom: 0.15in;
+      page-break-inside: avoid;
+    }
+    .ny-form-page1 .ny-form-title {
+      font-size: 11pt;
+      font-weight: bold;
+      text-align: center;
+      margin: 0 0 0.1in 0;
+    }
+    .ny-form-page1 .ny-form-section { margin-bottom: 0.08in; }
+    .ny-form-section-heading {
+      font-weight: bold;
+      margin: 0 0 0.05in 0;
+      font-size: 9.5pt;
+    }
+    .ny-form-inline-label { font-weight: normal; }
+    .ny-form-section-head-row {
+      display: flex;
+      align-items: center;
+      gap: 0.1in;
+      margin-bottom: 0.08in;
+      flex-wrap: wrap;
+    }
+    .ny-form-input-box {
+      display: inline-block;
+      border: 1px solid #000000;
+      min-height: 0.28in;
+      padding: 0.04in 0.08in;
+      font-size: 10pt;
+      background: #fff;
+    }
+    .ny-form-box-affidavit { min-width: 1.2in; }
+    .ny-form-box-name { min-width: 2.2in; }
+    .ny-form-box-license { min-width: 1.5in; }
+    .ny-form-box-addr { min-width: 2.5in; flex: 1; }
+    .ny-form-box-city { min-width: 1.4in; }
+    .ny-form-box-state { min-width: 0.7in; }
+    .ny-form-box-zip { min-width: 1in; }
+    .ny-form-field-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.03in;
+    }
+    .ny-form-label-below {
+      font-size: 9pt;
+      color: #000;
+    }
+    .ny-form-row-boxes {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.1in;
+      margin-bottom: 0.08in;
+      flex-wrap: wrap;
+    }
+    .ny-form-row-address { margin-bottom: 0.06in; }
+    .ny-form-field-addr { flex: 1; min-width: 2in; }
+    .ny-form-field-addr .ny-form-input-box { width: 100%; }
+    .ny-form-field-insured .ny-form-input-box { min-width: 3in; }
+    .ny-form-footer-combined {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.12in;
+      padding-top: 0.08in;
+      font-size: 7.5pt;
+      color: #333;
+      flex-wrap: wrap;
+      gap: 0.08in;
+      page-break-inside: avoid;
+    }
+    .ny-form-footer-center { flex: 1; text-align: center; }
+    .ny-form-section-boxed {
+      border: 3px solid #000000;
+      padding: 0.08in;
+      margin: 0.08in 0;
+    }
+    .ny-form-row-inline {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 0.06in;
+      flex-wrap: wrap;
+      gap: 0.05in;
+    }
+    .ny-form-row-city-state-zip { flex-wrap: wrap; }
+    .ny-form-label {
+      font-size: 10pt;
+      white-space: nowrap;
+    }
+    .ny-form-label-state { margin-left: 0.2in; }
+    .ny-form-label-date { margin-left: 0.15in; }
+    .ny-form-label-naic { margin-left: 0.15in; }
+    .ny-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-height: 1.1em;
+      flex: 1;
+      min-width: 1.5in;
+      vertical-align: bottom;
+    }
+    .ny-form-ul-affidavit { min-width: 1.2in; max-width: 2in; }
+    .ny-form-ul-license { min-width: 1.5in; }
+    .ny-form-ul-name { min-width: 2.5in; }
+    .ny-form-ul-addr { min-width: 3in; }
+    .ny-form-ul-city { min-width: 1.5in; }
+    .ny-form-ul-state { min-width: 0.8in; }
+    .ny-form-ul-zip { min-width: 1in; }
+    .ny-form-ul-insured { min-width: 3in; }
+    .ny-form-ul-company { min-width: 2.5in; }
+    .ny-form-ul-date { min-width: 1.2in; }
+    .ny-form-ul-naic { min-width: 1in; }
+    .ny-form-ul-other { min-width: 1.5in; margin-left: 0.1in; }
+    .ny-form-note {
+      font-size: 8.5pt;
+      color: #333;
+      margin: 0.04in 0 0 0;
+      font-style: italic;
+    }
+    .ny-form-question-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.1in;
+      margin-bottom: 0.05in;
+    }
+    .ny-form-yn {
+      flex-shrink: 0;
+      font-size: 10pt;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.04in;
+    }
+    .ny-form-question { flex: 1; }
+    .ny-form-cb {
+      display: inline-block;
+      width: 0.12in;
+      height: 0.12in;
+      border: 1.5px solid #000000;
+      background: #fff;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .ny-form-cb-right { margin-left: 0.08in; }
+    .ny-form-declination-item {
+      margin: 0 0 0.08in 0;
+      font-size: 9.5pt;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.08in;
+    }
+    .ny-form-declination-item .ny-form-yn { margin-top: 0.02in; }
+    .ny-form-subsection-heading {
+      font-weight: bold;
+      text-align: center;
+      margin: 0.1in 0 0.08in 0;
+      font-size: 9.5pt;
+    }
+    .ny-form-decline-schedule { margin-top: 0.08in; }
+    .ny-form-decline-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.06in;
+      margin-bottom: 0.06in;
+    }
+    .ny-form-reason-intro { margin: 0.06in 0 0.05in 0; font-size: 9.5pt; }
+    .ny-form-reason-list { margin-left: 0; }
+    .ny-form-reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.06in;
+      margin-bottom: 0.04in;
+      font-size: 9pt;
+    }
+    .ny-form-reason-item .ny-form-cb { flex-shrink: 0; margin-top: 0.02in; }
+    .ny-form-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.25in;
+      padding-top: 0.1in;
+      font-size: 9pt;
+      color: #333;
+    }
+    .ny-form-footer-left {}
+    .ny-form-footer-right {}
+    .ny-form-decline-block {
+      margin-bottom: 0.2in;
+    }
+    .ny-form-affirmation-box {
+      border: 3px solid #000000;
+      padding: 0.15in;
+      margin-top: 0.2in;
+    }
+    .ny-form-affirmation-heading {
+      font-weight: bold;
+      text-align: center;
+      margin: 0 0 0.12in 0;
+      font-size: 11pt;
+    }
+    .ny-form-affirmation-text {
+      margin: 0 0 0.15in 0;
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+    .ny-form-affirmation-sig-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.2in;
+      margin-top: 0.15in;
+    }
+    .ny-form-sig-left, .ny-form-sig-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.04in;
+    }
+    .ny-form-sig-left { flex: 1; min-width: 2.5in; }
+    .ny-form-sig-right { align-items: flex-end; }
+    .ny-form-affirmation-sig-row .ny-form-ul-date { min-width: 1.2in; }
+    .ny-form-ul-affiant { min-width: 2in; }
+    .ny-form-ul-sig { min-width: 2.5in; width: 100%; }
+    
+    /* New York Page 3 - Notice of Excess Line Placement */
+    .ny-form-page3 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 9.5pt;
+      line-height: 1.3;
+      color: #000000;
+      padding-bottom: 0.1in;
+    }
+    .ny-form-notice-box {
+      width: 100%;
+      height: 0.4in;
+      border: 2px solid #000000;
+      margin: 0 auto 0.08in auto;
+      max-width: 4in;
+    }
+    .ny-form-notice-title {
+      font-size: 11pt;
+      font-weight: bold;
+      text-align: center;
+      margin: 0 0 0.08in 0;
+    }
+    .ny-form-notice-date {
+      text-align: center;
+      margin-bottom: 0.08in;
+      font-size: 9.5pt;
+    }
+    .ny-form-notice-date .ny-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-width: 1.5in;
+      min-height: 1em;
+    }
+    .ny-form-notice-text {
+      text-align: justify;
+      margin: 0 0 0.06in 0;
+      font-size: 9.5pt;
+      line-height: 1.35;
+    }
+    .ny-form-notice-text .ny-form-ul {
+      display: inline-block;
+      border-bottom: 1px solid #000000;
+      min-width: 2in;
+      min-height: 1em;
+      margin: 0 0.05in;
+    }
+    .ny-form-ul-insured { min-width: 2.5in; }
+    .ny-form-ul-producer { min-width: 2in; }
+    .ny-form-notice-list {
+      margin: 0.06in 0 0.06in 0.2in;
+    }
+    .ny-form-notice-list-item {
+      margin: 0 0 0.05in 0;
+      text-indent: -0.3in;
+      padding-left: 0.3in;
+      line-height: 1.35;
+    }
+    .ny-form-cost-title {
+      font-size: 10pt;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: underline;
+      margin: 0.1in 0 0.08in 0;
+    }
+    .ny-form-cost-text {
+      text-align: justify;
+      margin: 0 0 0.06in 0;
+      font-size: 9.5pt;
+      line-height: 1.35;
+    }
+    .ny-form-cost-text sup {
+      font-size: 7pt;
+      vertical-align: super;
+    }
+    .ny-form-cost-table {
+      margin: 0.1in 0;
+      font-size: 9.5pt;
+    }
+    .ny-form-cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.02in 0;
+      border-bottom: 1px solid #000000;
+    }
+    .ny-form-cost-header {
+      border-bottom: 2px solid #000000;
+      padding-bottom: 0.04in;
+      margin-bottom: 0.05in;
+    }
+    .ny-form-cost-col-left {
+      flex: 1;
+      padding-right: 0.2in;
+    }
+    .ny-form-cost-col-right {
+      flex: 1;
+      text-align: right;
+    }
+    .ny-form-cost-col-full {
+      flex: 1;
+    }
+    .ny-form-cost-col-amount {
+      min-width: 1.5in;
+      text-align: right;
+      padding-left: 0.2in;
+    }
+    .ny-form-cost-section {
+      margin: 0.08in 0;
+    }
+    .ny-form-cost-total {
+      border-top: 2px solid #000000;
+      border-bottom: 3px double #000000;
+      padding: 0.05in 0;
+      margin-top: 0.05in;
+    }
+    .ny-form-page3-footer {
+      margin-top: 0.1in;
+    }
+    .ny-form-signature-section {
+      margin: 0 0 0.06in 0;
+    }
+    .ny-form-signature-line {
+      border-bottom: 1px solid #000000;
+      width: 3.5in;
+      min-height: 0.25in;
+      margin-bottom: 0.03in;
+    }
+    .ny-form-signature-label {
+      font-size: 8.5pt;
+      color: #000;
+    }
+    .ny-form-footnote {
+      margin-top: 0.06in;
+      margin-bottom: 0;
+      font-size: 8.5pt;
+      color: #333;
+    }
+    .ny-form-footnote sup {
+      font-size: 7pt;
+      vertical-align: super;
+    }
+    
     .header-section {
       display: flex;
       justify-content: space-between;
@@ -5662,11 +8834,10 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
   `;
 
-  // Optimize CSS and minify HTML to reduce size for PDFShift
+  // Optimize CSS and minify HTML to reduce size for PDFShift 2MB limit
   const optimizedCSS = optimizeCSS(cssContent);
-  const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${optimizedCSS}</style></head><body>${pages}</body></html>`;
+  const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${optimizedCSS}</style></head><body>${pagesMinified}</body></html>`;
 
-  // Minify the final HTML
   return minifyHTML(fullHTML);
 }
 

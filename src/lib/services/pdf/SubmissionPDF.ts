@@ -2992,7 +2992,8 @@ export function mapFormDataToPacketData(
     coverageType: quote?.coverageType || 'Manuscript Occurrence',
     desiredCoverageDates: coverageDates,
     // Include state forms when we have an applicant state (show in packet for new submissions and when quote approved)
-    includeStateForms: !!((formData.state || formData.addressState || '').trim()),
+    includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
+      !!(quote?.status && ['APPROVED'].includes(quote.status)),
 
     // General Liability Coverages
     aggregateLimit: formData.generalLiabilityLimit || '$1,000,000',

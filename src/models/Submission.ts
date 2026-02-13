@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import Counter from "./Counter";
 
 export type SubmissionStatus =
   | "DRAFT"
@@ -51,27 +52,30 @@ export interface ISubmission extends Document {
   clientContact: IClientContact;
   ccpaConsent: boolean;
   state: string; // CA, etc.
-  
+
+  //for updating submission to small number
+  submissionNumber: number;
+
   // Program/Product Info
   programId?: string; // e.g., "advantage-contractor-gl"
   programName?: string; // e.g., "Advantage Contractor GL"
-  
+
   // Application PDF (sent to carrier)
   applicationPdfUrl?: string;
   submittedToCarrierAt?: Date;
   carrierEmail?: string;
-  
+
   // E-Signature fields
   signedDocuments: ISignedDocument[];
   esignCompleted: boolean;
   esignCompletedAt?: Date;
-  
+
   // Payment fields
   paymentStatus: "PENDING" | "PAID" | "FAILED";
   paymentDate?: Date;
   paymentMethod?: string;
   paymentAmount?: number;
-  
+
   // Bind Request fields
   // Bind Request only after e-sign + payment
   // Admin must bind manually
@@ -80,7 +84,7 @@ export interface ISubmission extends Document {
   bindApproved?: boolean;
   bindApprovedAt?: Date;
   bindStatus?: "NOT_REQUESTED" | "REQUESTED" | "BOUND";
-  
+
   // Final Policy Documents (uploaded by admin after carrier issues policy)
   finalPolicyDocuments?: {
     finalBinderPdfUrl?: string;
@@ -91,10 +95,10 @@ export interface ISubmission extends Document {
     certificateUploadedAt?: Date;
     uploadedByAdminId?: mongoose.Types.ObjectId;
   };
-  
+
   // Admin notes (internal notes visible to agencies)
   adminNotes?: string;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -143,6 +147,11 @@ const ClientContactSchema: Schema = new Schema({
 
 const SubmissionSchema: Schema = new Schema(
   {
+    submissionNumber: {
+      type: Number,
+      unique: true,
+      index: true,
+    },
     agencyId: {
       type: Schema.Types.ObjectId,
       ref: "Agency",
@@ -270,6 +279,24 @@ const SubmissionSchema: Schema = new Schema(
 // Indexes for faster queries
 SubmissionSchema.index({ agencyId: 1, status: 1 });
 SubmissionSchema.index({ createdAt: -1 });
+
+SubmissionSchema.pre("save", async function (next) {
+  if (this.isNew && !this.submissionNumber) {
+    const counter = await Counter.findOneAndUpdate(
+      { name: "submissionNumber" },
+      { $inc: { seq: 1 } },
+      { new: true }
+    );
+
+    if (!counter) {
+      return next(new Error("Counter not initialized"));
+    }
+
+    this.submissionNumber = counter.seq;
+  }
+
+  next();
+});
 
 const Submission: Model<ISubmission> =
   mongoose.models.Submission ||

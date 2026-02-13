@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     await connectDB();
-    
+
     // Ensure FormTemplate model is registered before population
     await import("@/models/FormTemplate");
 
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     // Format response
     const formattedSubmissions = submissions.map((sub: any) => ({
       _id: sub._id.toString(),
-      submissionId: sub._id.toString(),
+      submissionNumber: sub.submissionNumber ?? 0,
       industry: sub.templateId?.industry || "Unknown",
       subtype: sub.templateId?.subtype || "Unknown",
       templateTitle: sub.templateId?.title || "Unknown",

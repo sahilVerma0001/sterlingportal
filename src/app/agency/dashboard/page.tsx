@@ -13,7 +13,7 @@ import { signOut } from "next-auth/react";
 
 interface Submission {
   _id: string;
-  submissionId: string;
+  submissionNumber: number;
   industry: string;
   clientName: string;
   status: string;
@@ -141,7 +141,7 @@ function AgencyDashboardContent() {
       filtered = filtered.filter(
         s =>
           s.clientName.toLowerCase().includes(q) ||
-          s.submissionId.toLowerCase().includes(q) ||
+          String(s.submissionNumber).includes(q) ||
           s.industry.toLowerCase().includes(q)
       );
     }
@@ -246,7 +246,7 @@ function AgencyDashboardContent() {
                     >
                       <td className="px-4 py-2 font-medium">
                         <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#00BCD4]">
-                          {sub.submissionId}
+                          {sub.submissionNumber}
                         </Link>
                       </td>
                       <td className="px-4 py-2">{sub.clientName}</td>
