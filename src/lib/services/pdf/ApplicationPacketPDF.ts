@@ -300,81 +300,82 @@ function generateQRCodeHTML(qrCodeDataUrl: string): string {
 
 // Generate Page 1: Bind Request Checklist
 
-function generatePage1(data: ApplicationPacketData): string {
-  const qrCodeText = `${data.applicationId}`;
-  const qrCodePageText = `00${data.applicationId}P1`;
+// function generatePage1(data: ApplicationPacketData): string {
+//   const qrCodeText = `${data.applicationId}`;
+//   const qrCodePageText = `00${data.applicationId}P1`;
 
-  return `
-    <div class="page page1-specific" style="page-break-after: always;">
-      <div class="sidebar sidebar-page1">
-        <div class="logo-container logo-page1">
-          <div class="logo logo-sterling-page1">
-            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-              <defs>
-                <linearGradient id="sterlingGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#00BCD4" stop-opacity="0.9" />
-                  <stop offset="100%" stop-color="#0097A7" stop-opacity="0.95" />
-                </linearGradient>
-                <linearGradient id="sterlingGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25" />
-                  <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1" />
-                </linearGradient>
-              </defs>
-              <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#sterlingGradient1)" />
-              <path d="M50 25 L65 40 L50 70 L35 40 Z" fill="url(#sterlingGradient2)" />
-              <path d="M50 30 L50 65" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
-              <path d="M40 47 L60 47" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
-            </svg>
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page1-title">Bind Request Checklist</div>
-        <div class="qr-container qr-page1">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page1">${qrCodeText}</div>
-          <div class="qr-page qr-page-text">${qrCodePageText}</div>
-          <div class="producer-icon">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="16" r="8" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M12 50c0-6.627 5.373-12 12-12h8c6.627 0 12 5.373 12 12" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="20" y="30" width="16" height="12" rx="2" stroke="#1f2937" stroke-width="2.5" fill="none"/>
-              <path d="M24 30V26c0-1.105.895-2 2-2h4c1.105 0 2 .895 2 2v4" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <line x1="26" y1="36" x2="30" y2="36" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="producer-label">Producer</div>
-        </div>
-      </div>
-      <div class="main-content main-content-page1">
-        <div class="header-info-page1">
-          <div class="broker-name-page1"><strong>Broker Name:</strong> ${data.agencyName}</div>
-          <div class="applicant-name-page1"><strong>Applicant Name:</strong> ${data.companyName}</div>
-          <div class="application-id-page1"><strong>Application ID:</strong> ${data.applicationId}</div>
-        </div>
-        <div class="instructions-page1">
-          Thank you for your business. In order to expedite your request efficiently, we will need you to submit the following documents:
-        </div>
-        <div class="checklist-page1">
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Application</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Loss Warranty Letter</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Terrorism Coverage Disclosure Notice</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Surplus Lines Affidavit</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Copy of Applicant Contractor License (If Applicable)</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Invoice Statement</div>
-          <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Finance Agreement</div>
-        </div>
-        <div class="last-text">
-          <div class="submission-instructions-page1">
-            Please submit complete and approved apps by visiting the application detail page for App ${data.applicationId} and uploading the above documents.
-          </div>
-          <div class="binding-instructions-page1">
-            All documents must be submitted to be bound by Integrated Specialty Coverages, LLC, no binds are in effect until Broker receives confirmation from Integrated Specialty Coverages, LLC via email.
-          </div>
-        </div>
-        <div class="page-number page-number-page1">Page 1 of 1</div>
-      </div>
-    </div>
-  `;
-}
+//   return `
+//     <div class="page page1-specific" style="page-break-after: always;">
+//       <div class="sidebar sidebar-page1">
+//         <div class="logo-container logo-page1">
+//           <div class="logo logo-sterling-page1">
+//           ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
+//             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+//               <defs>
+//                 <linearGradient id="sterlingGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+//                   <stop offset="0%" stop-color="#00BCD4" stop-opacity="0.9" />
+//                   <stop offset="100%" stop-color="#0097A7" stop-opacity="0.95" />
+//                 </linearGradient>
+//                 <linearGradient id="sterlingGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+//                   <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25" />
+//                   <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1" />
+//                 </linearGradient>
+//               </defs>
+//               <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#sterlingGradient1)" />
+//               <path d="M50 25 L65 40 L50 70 L35 40 Z" fill="url(#sterlingGradient2)" />
+//               <path d="M50 30 L50 65" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+//               <path d="M40 47 L60 47" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
+//             </svg>
+//           </div>
+//         </div>
+//         <div class="sidebar-title-vertical page1-title">Bind Request Checklist</div>
+//         <div class="qr-container qr-page1">
+//           ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
+//           <div class="qr-text qr-text-page1">${qrCodeText}</div>
+//           <div class="qr-page qr-page-text">${qrCodePageText}</div>
+//           <div class="producer-icon">
+//             <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
+//               <circle cx="28" cy="16" r="8" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+//               <path d="M12 50c0-6.627 5.373-12 12-12h8c6.627 0 12 5.373 12 12" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+//               <rect x="20" y="30" width="16" height="12" rx="2" stroke="#1f2937" stroke-width="2.5" fill="none"/>
+//               <path d="M24 30V26c0-1.105.895-2 2-2h4c1.105 0 2 .895 2 2v4" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+//               <line x1="26" y1="36" x2="30" y2="36" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+//             </svg>
+//           </div>
+//           <div class="producer-label">Producer</div>
+//         </div>
+//       </div>
+//       <div class="main-content main-content-page1">
+//         <div class="header-info-page1">
+//           <div class="broker-name-page1"><strong>Broker Name:</strong> ${data.agencyName}</div>
+//           <div class="applicant-name-page1"><strong>Applicant Name:</strong> ${data.companyName}</div>
+//           <div class="application-id-page1"><strong>Application ID:</strong> ${data.applicationId}</div>
+//         </div>
+//         <div class="instructions-page1">
+//           Thank you for your business. In order to expedite your request efficiently, we will need you to submit the following documents:
+//         </div>
+//         <div class="checklist-page1">
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Application</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Loss Warranty Letter</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Terrorism Coverage Disclosure Notice</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Surplus Lines Affidavit</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Copy of Applicant Contractor License (If Applicable)</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Invoice Statement</div>
+//           <div class="checklist-item-page1"><span class="checkbox-square"></span> Signed Finance Agreement</div>
+//         </div>
+//         <div class="last-text">
+//           <div class="submission-instructions-page1">
+//             Please submit complete and approved apps by visiting the application detail page for App ${data.applicationId} and uploading the above documents.
+//           </div>
+//           <div class="binding-instructions-page1">
+//             All documents must be submitted to be bound by Integrated Specialty Coverages, LLC, no binds are in effect until Broker receives confirmation from Integrated Specialty Coverages, LLC via email.
+//           </div>
+//         </div>
+//         <div class="page-number page-number-page1">Page 1 of 1</div>
+//       </div>
+//     </div>
+//   `;
+// }
 
 /**
  * Generate Page 2: Insurance Application - ISC Format (All details on one page)
@@ -385,115 +386,134 @@ function generatePage2(data: ApplicationPacketData): string {
 
   return `
     <div class="page page2-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page2">
-        <div class="logo-container logo-page2">
-          <div class="logo logo-capital-co-hands">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page2-title">Insurance Application</div>
-        <div class="qr-container qr-page2">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page2">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page2">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page2">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <defs>
-                <linearGradient id="personGradPage2" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#1f2937"/>
-                  <stop offset="100%" stop-color="#374151"/>
-                </linearGradient>
-              </defs>
-              <circle cx="28" cy="18" r="9" stroke="url(#personGradPage2)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="url(#personGradPage2)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page2">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page2">
-        <div class="header-top-page2">
-          <div class="agency-info-page2-left">
-            <div class="agency-name-page2">${data.agencyName}</div>
-            <div class="agency-contact-page2">${data.agencyContactName}</div>
-            <div class="agency-address-page2">${data.agencyAddress}</div>
-            <div class="agency-city-state-zip-page2">${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
-            <div class="agency-phone-page2">${data.agencyPhone}</div>
-            <div class="agency-email-page2">email: ${data.agencyEmail}</div>
-          </div>
-          <div class="logo-brand-page2">
-            <div class="logo-icon-page2-hands">
-              ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
+
+            <!-- Top Agency + Logo -->
+            <div class="header-top-page2">
+                <div class="agency-info-page2-left">
+                    <div class="agency-name-page2">${data.agencyName}</div>
+                    <div>${data.agencyContactName}</div>
+                    <div>${data.agencyAddress}</div>
+                    <div>${data.agencyCity}, ${data.agencyState} ${data.agencyZip}</div>
+                    <div>${data.agencyPhone}</div>
+                    <div>email: ${data.agencyEmail}</div>
+                </div>
+
+                <div class="logo-icon-page2-hands">
+                    ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
+                </div>
             </div>
-          </div>
+
+            <!-- Application ID -->
+            <div class="application-id-large-page2">
+                General Liability Application ID: ${data.applicationId}
+            </div>
+
+            <!-- 3 Column Layout -->
+            <div class="app-id-quote-parallel-page2">
+
+                <!-- Date -->
+                <div>
+                    <div class="section-title-page2">Date</div>
+                    <div class="date-section-page2">${data.formDate}</div>
+                </div>
+
+                <!-- Insured Information -->
+                <div>
+                    <div class="section-title-page2">Insured Information</div>
+                    <div class="insured-detail-page2"><strong>${data.companyName}</strong></div>
+                    <div class="insured-detail-page2">${data.contactPerson}</div>
+                    <div class="insured-detail-page2">${data.applicantAddress}</div>
+                    <div class="insured-detail-page2">
+                        ${data.applicantCity}, ${data.applicantState} ${data.applicantZip}
+                    </div>
+                    <div class="insured-detail-page2">${data.applicantPhone}</div>
+                    <div class="insured-detail-page2">email: ${data.applicantEmail}</div>
+                </div>
+
+                <!-- Quote Information -->
+                <div>
+                    <div class="section-title-page2">Quote Information</div>
+                    <div class="quote-detail-page2">${data.quoteType}</div>
+                    <div class="quote-detail-page2">${data.carrierName}</div>
+                    <div class="quote-detail-page2">${data.coverageType}</div>
+                    <div class="quote-detail-page2">
+                        Desired Coverage Dates: ${data.desiredCoverageDates}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="applicant-info-section-page2">
+                <div class="section-title-underline-page2">APPLICANT INFORMATION</div>
+                <div class="applicant-field-page2"><strong>Mailing Address:</strong> ${data.applicantAddress}</div>
+                <div class="applicant-field-page2"><strong>FEIN:</strong> ${data.fein || 'N/A'}</div>
+                <div class="applicant-field-page2"><strong>Entity of Company:</strong> ${data.entityType}</div>
+                <div class="applicant-field-page2"><strong>Years in Business:</strong> ${data.yearsInBusiness}</div>
+                <div class="applicant-field-page2"><strong>Years of experience in the Trades:</strong>
+                    ${data.yearsExperienceInTrades}</div>
+                <div class="applicant-field-page2"><strong>States of Operation:</strong> ${data.statesOfOperation}</div>
+                <div class="applicant-field-page2"><strong>Work in 5 Boroughs:</strong> ${data.workIn5Boroughs ? 'Yes' :
+      'No'}</div>
+                <div class="applicant-field-page2"><strong>Other Business Names:</strong> ${data.otherBusinessNames ||
+    'No'}</div>
+                <div class="applicant-field-page2"><strong>Payment Option:</strong> ${data.paymentOption}</div>
+            </div>
+
+            <div class="coverages-section-page2">
+                <div class="section-title-underline-page2">GENERAL LIABILITY COVERAGES</div>
+                <table class="coverages-table-page2">
+                    <tr>
+                        <td><strong>Aggregate:</strong></td>
+                        <td>${data.aggregateLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Occurrence:</strong></td>
+                        <td>${data.occurrenceLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Products/Completed Ops:</strong></td>
+                        <td>${data.productsCompletedOpsLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Personal/Advertising Injury:</strong></td>
+                        <td>${data.personalAdvertisingInjuryLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fire Legal:</strong></td>
+                        <td>${data.fireLegalLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Med Pay:</strong></td>
+                        <td>${data.medPayLimit}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Deductible:</strong></td>
+                        <td>${data.selfInsuredRetention}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section-divider-page2"></div>
+
+            <div class="class-code-gross-section-page2">
+
+                <div>
+                    <div class="class-code-title-page2">CLASS CODE</div>
+                    <div class="class-code-value-page2">${data.classCode}</div>
+                </div>
+
+                <div>
+                    <div class="gross-receipts-title-page2">GROSS RECEIPTS</div>
+                    <div class="gross-receipts-value-page2">${data.grossReceipts}</div>
+                </div>
+
+            </div>
+
+
+            <div class="page-number-page2">Page 1 of 11</div>
+
         </div>
-        
-        <div class="app-id-quote-parallel-page2">
-          <div class="app-id-column-page2">
-            <div class="application-id-large-page2"><strong>General Liability Application ID:</strong> ${data.applicationId}</div>
-            <div class="date-section-page2"><strong>Date</strong> ${data.formDate}</div>
-          </div>
-          <div class="quote-column-page2">
-            <div class="section-title-page2"><strong>Quote Information</strong></div>
-            <div class="quote-detail-page2"><strong>Type:</strong> ${data.quoteType}</div>
-            <div class="quote-detail-page2"><strong>Insurance Company:</strong> ${data.carrierName}</div>
-            <div class="quote-detail-page2"><strong>Coverage Type:</strong> ${data.coverageType}</div>
-            <div class="quote-detail-page2"><strong>Desired Coverage Dates:</strong> ${data.desiredCoverageDates}</div>
-          </div>
-        </div>
-        
-        <div class="insured-info-section-page2">
-          <div class="section-title-page2"><strong>Insured Information</strong></div>
-          <div class="insured-detail-page2">${data.companyName}</div>
-          <div class="insured-detail-page2">${data.contactPerson}</div>
-          <div class="insured-detail-page2">${data.applicantAddress}</div>
-          <div class="insured-detail-page2">${data.applicantCity}, ${data.applicantState} ${data.applicantZip}</div>
-          <div class="insured-detail-page2">${data.applicantPhone}</div>
-          <div class="insured-detail-page2">email: ${data.applicantEmail}</div>
-        </div>
-        
-        <div class="applicant-info-section-page2">
-          <div class="section-title-underline-page2"><strong>APPLICANT INFORMATION</strong></div>
-          <div class="applicant-field-page2"><strong>Mailing Address:</strong> ${data.applicantAddress}</div>
-          <div class="applicant-field-page2"><strong>FEIN:</strong> ${data.fein || 'N/A'}</div>
-          <div class="applicant-field-page2"><strong>Entity of Company:</strong> ${data.entityType}</div>
-          <div class="applicant-field-page2"><strong>Years in Business:</strong> ${data.yearsInBusiness}</div>
-          <div class="applicant-field-page2"><strong>Years of experience in the Trades for which you are applying for insurance:</strong> ${data.yearsExperienceInTrades}</div>
-          <div class="applicant-field-page2"><strong>States in which you do business that for which you are currently applying for insurance:</strong> ${data.statesOfOperation}</div>
-          <div class="applicant-field-page2"><strong>Will any of your work be performed in the 5 boroughs:</strong> ${data.workIn5Boroughs ? 'Yes' : 'No'}</div>
-          <div class="applicant-field-page2"><strong>Are there any other business names which you have used in the past or are currently using in addition to that for which you're currently applying for insurance?</strong> ${data.otherBusinessNames || 'No'}</div>
-          <div class="applicant-field-page2"><strong>Payment Option Details:</strong> ${data.paymentOption}</div>
-        </div>
-        
-        <div class="coverages-section-page2">
-          <div class="section-title-underline-page2"><strong>GENERAL LIABILITY COVERAGES</strong></div>
-          <table class="coverages-table-page2">
-            <tr><td><strong>Aggregate:</strong></td><td>${data.aggregateLimit}</td></tr>
-            <tr><td><strong>Occurrence:</strong></td><td>${data.occurrenceLimit}</td></tr>
-            <tr><td><strong>Products/Completed Operations:</strong></td><td>${data.productsCompletedOpsLimit}</td></tr>
-            <tr><td><strong>Personal/Advertising Injury:</strong></td><td>${data.personalAdvertisingInjuryLimit}</td></tr>
-            <tr><td><strong>Fire Legal:</strong></td><td>${data.fireLegalLimit}</td></tr>
-            <tr><td><strong>Med Pay:</strong></td><td>${data.medPayLimit}</td></tr>
-            <tr><td><strong>Self-Insured Retention:</strong></td><td>${data.selfInsuredRetention}</td></tr>
-          </table>
-        </div>
-        
-        <div class="section-divider-page2"></div>
-        
-        <div class="class-code-gross-section-page2">
-          <div class="class-code-column-page2">
-            <div class="class-code-title-page2"><strong>CLASS CODE</strong></div>
-            <div class="class-code-value-page2">${data.classCode}</div>
-          </div>
-          <div class="class-code-divider-page2"></div>
-          <div class="gross-receipts-column-page2">
-            <div class="gross-receipts-title-page2"><strong>GROSS RECEIPTS</strong></div>
-            <div class="gross-receipts-value-page2">${data.grossReceipts}</div>
-          </div>
-        </div>
-        
-        <div class="page-number page-number-page2">Page 2 of 12</div>
-      </div>
     </div>
   `;
 }
@@ -507,55 +527,54 @@ function generatePage3(data: ApplicationPacketData): string {
 
   return `
     <div class="page page3-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page3">
-        <div class="logo-container logo-page3">
-          <div class="logo logo-capital-co-hands-page3">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page3-title">Insurance Application</div>
-        <div class="qr-container qr-page3">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page3">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page3">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page3">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page3">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page3">
         <div class="section-title-uppercase-page3">CURRENT EXPOSURES</div>
         <div class="exposures-grid-page3">
-          <div class="exposure-item-page3"><strong>Estimated Total Gross Receipts:</strong> ${data.estimatedTotalGrossReceipts}</div>
-          <div class="exposure-item-page3"><strong>Estimated Sub Contracting Costs:</strong> ${data.estimatedSubContractingCosts}</div>
-          <div class="exposure-item-page3"><strong>Estimated Material Costs:</strong> ${data.estimatedMaterialCosts}</div>
-          <div class="exposure-item-page3"><strong>Estimated Total Payroll:</strong> ${data.estimatedTotalPayroll}</div>
-          <div class="exposure-item-page3"><strong>Number of Field Employees*:</strong> ${data.numberOfFieldEmployees}</div>
+          <div class="exposure-item-page3">Estimated Total Gross Receipts:<strong> ${data.estimatedTotalGrossReceipts}</strong></div>
+          <div class="exposure-item-page3">Estimated Sub Contracting Costs:<strong> ${data.estimatedSubContractingCosts}</strong> </div>
+          <div class="exposure-item-page3">Estimated Material Costs:<strong> ${data.estimatedMaterialCosts}</strong></div>
+          <div class="exposure-item-page3">Estimated Total Payroll: <strong> ${data.estimatedTotalPayroll}</strong> </div>
+          <div class="exposure-item-page3">Number of Field Employees*:<strong> ${data.numberOfFieldEmployees}</strong> </div>
         </div>
         <div class="footnote-page3">* For purposes of this application, "Employee" is defined as an individual working for you (the applicant), which receives a W-2 tax form or you withhold & pay employment related taxes for that individual.</div>
         
         <div class="section-title-uppercase-page3">WORK PERFORMED</div>
-        <div class="work-description-page3"><strong>Complete Descriptions of operations that for which you are currently applying for insurance:</strong> ${data.workDescription || ''}</div>
+        <div class="work-description-page3">Complete Descriptions of operations that for which you are currently applying for insurance:<strong> ${data.workDescription || ''}</strong> </div>
         <div class="work-percentages-page3">
-          <div class="percentage-item-page3"><strong>Percentage of Residential work performed:</strong> ${data.percentageResidential}%</div>
-          <div class="percentage-item-page3"><strong>Percentage of Commercial work performed:</strong> ${data.percentageCommercial}%</div>
-          <div class="percentage-item-page3"><strong>Percentage of New (Ground Up) work performed:</strong> ${data.percentageNewConstruction}%</div>
-          <div class="percentage-item-page3"><strong>Percentage of Remodel/Service/Repair work performed:</strong> ${data.percentageRemodel}%</div>
+          <div class="percentage-item-page3">Percentage of Residential work performed:<strong> ${data.percentageResidential}</strong> %</div>
+          <div class="percentage-item-page3">Percentage of Commercial work performed:<strong> ${data.percentageCommercial}</strong> %</div>
+          <div class="percentage-item-page3">Percentage of New (Ground Up) work performed:<strong> ${data.percentageNewConstruction}</strong> %</div>
+          <div class="percentage-item-page3">Percentage of Remodel/Service/Repair work performed:<strong> ${data.percentageRemodel}</strong> %</div>
         </div>
         <div class="structural-details-page3">
-          <div class="detail-item-page3"><strong>Maximum # of Interior Stories:</strong> ${data.maxInteriorStories}</div>
-          <div class="detail-item-page3"><strong>Maximum # of Exterior Stories:</strong> ${data.maxExteriorStories}</div>
-          <div class="detail-item-page3"><strong>Maximum Exterior Depth Below Grade in Feet:</strong> ${data.maxExteriorDepthBelowGrade}</div>
+          <div class="detail-item-page3">Maximum # of Interior Stories:<strong> ${data.maxInteriorStories}</strong> </div>
+          <div class="detail-item-page3">Maximum # of Exterior Stories: <strong>${data.maxExteriorStories}</strong></div>
+          <div class="detail-item-page3">Maximum Exterior Depth Below Grade in Feet: <strong>${data.maxExteriorDepthBelowGrade}</strong></div>
         </div>
         <div class="ocip-section-page3">
-          <div class="ocip-question-page3"><strong>Will you perform OCIP (Wrap-up) work:</strong> ${formatYesNo(data.performOCIPWork)}</div>
-          ${data.performOCIPWork ? `<div class="ocip-followup-page3"><strong>If "Yes", what are the estimated receipts for work covered separately under OCIP/Wrap-up:</strong> ${data.ocipReceipts || ''}</div>` : ''}
-          <div class="ocip-receipts-page3"><strong>Estimated Receipts for non-Wrap/OCIP:</strong> ${data.nonOCIPReceipts || ''}</div>
-          <div class="losses-page3"><strong>Number of losses in the last 5 years:</strong> ${data.lossesInLast5Years}</div>
+          <div class="ocip-question-page3">
+            Will you perform OCIP (Wrap-up) work?
+            <div class="ocip-answer">
+              ${formatYesNo(data.performOCIPWork)}
+            </div>
+          </div>
+
+          ${data.performOCIPWork ? `
+          <div class="ocip-followup-page3">
+            If "Yes", what are the estimated receipts for work covered separately under OCIP/Wrap-up:
+            <strong>${data.ocipReceipts || ''}</strong>
+          </div>
+          ` : ''}
+
+          <div class="ocip-receipts-page3">
+            Estimated Receipts for non-Wrap/OCIP:
+            <strong>${data.nonOCIPReceipts || ''}</strong>
+          </div>
+
+          <div class="losses-page3">
+            Number of losses in the last 5 years:
+            <strong>${data.lossesInLast5Years}</strong>
+          </div>
         </div>
         
         <div class="section-title-uppercase-page3">WORK EXPERIENCE</div>
@@ -563,38 +582,38 @@ function generatePage3(data: ApplicationPacketData): string {
           <div class="question-item-page3">
             <div class="question-text-page3">Will you or do you perform or subcontract any work involving the following: blasting operations, hazardous waste, asbestos, mold, PCBs, oil fields, dams/levees, bridges, quarries, railroads, earthquake retrofitting, fuel tanks, pipelines, or foundation repair?</div>
             <div class="yes-no-options-page3">${formatYesNo(data.performHazardousWork)}</div>
-            ${data.performHazardousWork ? `<div class="explanation-field-page3"><strong>If "Yes", please explain:</strong> ${data.hazardousWorkExplanation || ''}</div>` : ''}
+            ${data.performHazardousWork ? `<div class="explanation-field-page3">If "Yes", please explain: ${data.hazardousWorkExplanation || ''}</div>` : ''}
           </div>
           
           <div class="question-item-page3">
             <div class="question-text-page3">Will you or do you perform or subcontract any work involving the following: medical facilities (including new construction), hospitals (including new construction), churches or other house of worship, museums, historic buildings, airports, schools/playgrounds/recreational facilities (including new construction)?</div>
             <div class="yes-no-options-page3">${formatYesNo(data.performMedicalFacilitiesWork)}</div>
-            ${data.performMedicalFacilitiesWork ? `<div class="explanation-field-page3"><strong>If "Yes", please explain:</strong> ${data.medicalFacilitiesExplanation || ''}</div>` : ''}
+            ${data.performMedicalFacilitiesWork ? `<div class="explanation-field-page3">If "Yes", please explain: ${data.medicalFacilitiesExplanation || ''}</div>` : ''}
           </div>
           
           <div class="question-item-page3">
-            <div class="question-text-page3"><strong>Will you perform structural work?</strong></div>
+            <div class="question-text-page3">Will you perform structural work?</div>
             <div class="yes-no-options-page3">${formatYesNo(data.performStructuralWork)}</div>
           </div>
           
           <div class="question-item-page3">
-            <div class="question-text-page3"><strong>Will you perform work in new tract home developments of 25 or more units?</strong></div>
+            <div class="question-text-page3">Will you perform work in new tract home developments of 25 or more units?</div>
             <div class="yes-no-options-page3">${formatYesNo(data.performTractHomeWork)}</div>
-            ${data.performTractHomeWork ? `<div class="explanation-field-page3"><strong>If "Yes", please explain:</strong> ${data.tractHomeExplanation || ''}</div>` : ''}
+            ${data.performTractHomeWork ? `<div class="explanation-field-page3">If "Yes", please explain: ${data.tractHomeExplanation || ''}</div>` : ''}
           </div>
           
           <div class="question-item-page3">
-            <div class="question-text-page3"><strong>Will any of your work involve the construction of or be for new condominiums/townhouses/multi-unit residences?:</strong></div>
+            <div class="question-text-page3">Will any of your work involve the construction of or be for new condominiums/townhouses/multi-unit residences?: </div>
             <div class="yes-no-options-page3">${formatYesNo(data.workCondoConstruction)}</div>
           </div>
           
           <div class="question-item-page3">
-            <div class="question-text-page3"><strong>Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences?:</strong></div>
+            <div class="question-text-page3">Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences?:</div>
             <div class="yes-no-options-page3">${formatYesNo(data.performCondoRepairOnly)}</div>
           </div>
         </div>
         
-        <div class="page-number page-number-page3">Page 3 of 12</div>
+        <div class="page-number page-number-page3">Page 2 of 11</div>
       </div>
     </div>
   `;
@@ -729,7 +748,7 @@ function generatePage4(data: ApplicationPacketData): string {
 
         </div>
         
-        <div class="page-number page-number-page4">Page 4 of 12</div>
+        <div class="page-number page-number-page4">Page 3 of 11</div>
       </div>
     </div>
   `;
@@ -3036,7 +3055,7 @@ export function mapFormDataToPacketData(
     // Work Experience Questions
     performHazardousWork: formData.performHazardousWork,
     hazardousWorkExplanation: formData.hazardousWorkExplanation,
-    performMedicalFacilitiesWork: formData.performMedicalFacilitiesWork,
+    performMedicalFacilitiesWork: formData.performMedicalFacilities,
     medicalFacilitiesExplanation: formData.medicalFacilitiesExplanation,
     performStructuralWork: formData.performStructuralWork || false,
     performTractHomeWork: formData.workNewTractHomes,
@@ -3215,7 +3234,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
 
   // Generate all pages; state-specific forms (only for approved quotes) go just before Invoice Statement (page 12)
   const pagesBeforeStateForms = [
-    generatePage1(dataWithQR),
+    // generatePage1(dataWithQR),
     generatePage2(dataWithQR),
     generatePage3(dataWithQR),
     generatePage4(dataWithQR),
@@ -3895,550 +3914,494 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
        PAGE 2 SPECIFIC STYLES - ISC APPLICATION FORMAT
        ============================================ */
     .page2-isc .sidebar-page2 {
-      background: #e5e7eb;
-      width: 1.8in;
-      padding: 0.35in 0.2in;
-      border-right: 1px solid #d1d5db;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
+        background: #e5e7eb;
+        width: 1.8in;
+        padding: 0.25in 0.15in;
+        border-right: 1px solid #d1d5db;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
     }
-    
+
     .page2-isc .logo-capital-co-hands {
-      width: 1.8in;
-      height: 1.8in;
-      background: transparent;
-      border-radius: 0;
-      margin-bottom: 0.25in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      flex-shrink: 0;
-      padding: 0;
+        width: 1.8in;
+        height: 1.8in;
+        background: transparent;
+        border-radius: 0;
+        margin-bottom: 0.25in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-shrink: 0;
+        padding: 0;
     }
-    
+
     .page2-isc .logo-capital-co-hands svg,
     .page2-isc .logo-capital-co-hands img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain;
     }
-    
+
     .page2-isc .qr-container.qr-page2 {
-      flex-shrink: 0;
-      margin-top: auto;
-      margin-bottom: 0.3in;
-      position: relative;
-      bottom: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      visibility: visible;
-      opacity: 1;
+        flex-shrink: 0;
+        margin-top: auto;
+        margin-bottom: 0.15in;
+        position: relative;
+        bottom: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        visibility: visible;
+        opacity: 1;
     }
-    
+
     .page2-isc .qr-container.qr-page2 .qr-code {
-      display: block;
-      visibility: visible;
-      opacity: 1;
-      margin-bottom: 0.05in;
+        display: block;
+        visibility: visible;
+        opacity: 1;
+        margin-bottom: 0.05in;
     }
-    
+
     .page2-isc .qr-container.qr-page2 .qr-code img {
-      display: block;
-      visibility: visible;
-      opacity: 1;
-      width: 0.7in !important;
-      height: 0.7in !important;
+        display: block;
+        visibility: visible;
+        opacity: 1;
+        width: 0.7in !important;
+        height: 0.7in !important;
     }
-    
+
     .page2-isc .page2-title {
-      font-size: 24pt;
-      font-weight: 600;
-      color: #374151;
-      letter-spacing: 2px;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      white-space: nowrap;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(180deg);
-      margin: 0;
+        font-size: 24pt;
+        font-weight: 600;
+        color: #374151;
+        letter-spacing: 2px;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        white-space: nowrap;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(180deg);
+        margin: 0;
     }
-    
+
     .page2-isc .qr-page2 {
-      bottom: 0.3in;
+        bottom: 0.3in;
     }
-    
+
     .page2-isc .qr-text-page2 {
-      font-size: 9pt;
-      margin-top: 0.06in;
-      font-weight: 500;
+        font-size: 9pt;
+        margin-top: 0.06in;
+        font-weight: 500;
     }
-    
+
     .page2-isc .qr-page-text-page2 {
-      font-size: 7pt;
-      margin-top: 0.02in;
-      color: #6b7280;
+        font-size: 7pt;
+        margin-top: 0.02in;
+        color: #6b7280;
     }
-    
+
     .page2-isc .applicant-icon-page2 {
-      width: 0.55in;
-      height: 0.55in;
-      margin-top: 0.12in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f8f9fa;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-      padding: 0.08in;
+        width: 0.55in;
+        height: 0.55in;
+        margin-top: 0.12in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        padding: 0.08in;
     }
-    
+
     .page2-isc .applicant-icon-page2 svg {
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
     }
-    
+
     /* General applicant icon styling for all pages */
     .applicant-icon {
-      width: 0.55in;
-      height: 0.55in;
-      margin-top: 0.12in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f8f9fa;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-      padding: 0.08in;
+        width: 0.55in;
+        height: 0.55in;
+        margin-top: 0.12in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        padding: 0.08in;
     }
-    
+
     .applicant-icon svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+        width: 100%;
+        height: 100%;
+        display: block;
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
     }
-    
+
     .page2-isc .applicant-label-page2 {
-      font-size: 9pt;
-      margin-top: 0.05in;
-      color: #374151;
-      font-weight: 500;
-      text-transform: none;
-      background: transparent;
-      border: none;
-      padding: 0;
+        font-size: 9pt;
+        margin-top: 0.05in;
+        color: #374151;
+        font-weight: 500;
+        text-transform: none;
+        background: transparent;
+        border: none;
+        padding: 0;
     }
-    
+
     .page2-isc .main-content-page2 {
-      padding: 0.25in 0.4in 0.2in 0.4in;
-      font-size: 11pt;
-      line-height: 1.3;
-      max-height: 11in;
-      overflow: visible;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+        padding: 0.35in 0.45in 0.25in 0.45in;
+        font-size: 9.5pt;
+        line-height: 1.25;
+        color: #1f2937;
+        max-height: 11in;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
-    
+
     .page2-isc .header-top-page2 {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.06in;
-      padding-bottom: 0.03in;
-      flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.2in;
+        padding-bottom: 0.03in;
+        flex-shrink: 0;
     }
-    
+
     .page2-isc .agency-info-page2-left {
-      font-size: 10pt;
-      line-height: 1.4;
-      color: #1f2937;
-      text-align: left;
-      flex: 1;
+        font-size: 10pt;
+        line-height: 1.5;
+        color: #1f2937;
+        text-align: left;
+        flex: 1;
     }
-    
+
     .page2-isc .logo-brand-page2 {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 0;
-      flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0;
+        flex-shrink: 0;
     }
-    
+
     .page2-isc .logo-icon-page2-hands {
-      width: 1.8in;
-      height: 1.8in;
-      background: transparent;
-      border-radius: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      padding: 0;
+        width: 2in;
+        height: auto;
+        background: transparent;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        padding: 0;
     }
-    
+
     .page2-isc .logo-icon-page2-hands svg,
     .page2-isc .logo-icon-page2-hands img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
     }
-    
+
     .page2-isc .agency-info-page2 {
-      font-size: 10pt;
-      line-height: 1.4;
-      color: #1f2937;
-      text-align: right;
+        font-size: 10pt;
+        line-height: 1.4;
+        color: #1f2937;
+        text-align: right;
     }
-    
+
     .page2-isc .agency-name-page2 {
-      font-weight: 600;
-      margin-bottom: 0.02in;
+        font-weight: 600;
+        margin-bottom: 2px;
     }
-    
+
     .page2-isc .agency-contact-page2,
     .page2-isc .agency-address-page2,
     .page2-isc .agency-city-state-zip-page2,
     .page2-isc .agency-phone-page2,
     .page2-isc .agency-email-page2 {
-      margin-bottom: 0.015in;
-      font-size: 9.5pt;
+        margin-bottom: 0.015in;
+        font-size: 9.5pt;
     }
-    
+
     .page2-isc .agency-info-page2-left .agency-name-page2,
     .page2-isc .agency-info-page2-left .agency-contact-page2,
     .page2-isc .agency-info-page2-left .agency-address-page2,
     .page2-isc .agency-info-page2-left .agency-city-state-zip-page2,
     .page2-isc .agency-info-page2-left .agency-phone-page2,
     .page2-isc .agency-info-page2-left .agency-email-page2 {
-      margin-bottom: 0.015in;
+        margin-bottom: 0.015in;
     }
-    
+
     .page2-isc .app-id-quote-parallel-page2 {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.05in;
-      gap: 0.2in;
-      flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1.5fr 1.5fr;
+        column-gap: 0.35in;
+        margin-top: 0.05in;
+        align-items: flex-start;
+        margin-bottom: 0.05in;
+        gap: 0.2in;
+        flex-shrink: 0;
     }
-    
+
     .page2-isc .app-id-column-page2 {
-      flex: 1;
+        flex: 1;
     }
-    
+
     .page2-isc .quote-column-page2 {
-      flex: 1;
-      text-align: right;
+        flex: 1;
+        text-align: right;
     }
-    
+
     .page2-isc .application-id-large-page2 {
-      font-size: 10.5pt;
-      font-weight: 600;
-      margin-bottom: 0.05in;
-      color: #1f2937;
-      line-height: 1.25;
+        margin: 0.15in 0 0.15in 0;
+        font-size: 9.5pt;
+        font-weight: 600;
+        /* margin-bottom: 0.05in; */
+        color: #1f2937;
+        line-height: 1.25;
     }
-    
+
     .page2-isc .date-section-page2 {
-      font-size: 10.5pt;
-      color: #1f2937;
-      line-height: 1.25;
+        font-size: 10.5pt;
+        color: #1f2937;
+        line-height: 1.25;
     }
-    
+
     .page2-isc .insured-info-section-page2 {
-      margin-bottom: 0.04in;
-      padding-bottom: 0.02in;
-      flex-shrink: 0;
+        margin-bottom: 0.04in;
+        padding-bottom: 0.02in;
+        flex-shrink: 0;
     }
-    
+
     .page2-isc .section-title-page2 {
-      font-size: 11pt;
-      font-weight: 600;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-      line-height: 1.2;
+        font-size: 11pt;
+        font-weight: 600;
+        margin-bottom: 0.08in;
+        color: #1f2937;
+        line-height: 1.2;
     }
-    
+
     .page2-isc .insured-detail-page2 {
-      font-size: 9.5pt;
-      line-height: 1.2;
-      margin-bottom: 0.01in;
-      color: #1f2937;
+        font-size: 9.5pt;
+        line-height: 1.2;
+        margin-bottom: 0.01in;
+        color: #1f2937;
     }
-    
+
+    .insured-detail-page2,
+    .quote-detail-page2,
+    .date-section-page2 {
+        margin-bottom: 3px;
+        font-size: 10pt;
+    }
+
     .page2-isc .quote-detail-page2 {
-      font-size: 9.5pt;
-      line-height: 1.2;
-      margin-bottom: 0.03in;
-      color: #1f2937;
-      text-align: right;
+        font-size: 9.5pt;
+        line-height: 1.2;
+        margin-bottom: 0.03in;
+        color: #1f2937;
+        text-align: left;
     }
-    
+
     .page2-isc .quote-column-page2 .section-title-page2 {
-      text-align: right;
+        text-align: left;
     }
-    
+
     .page2-isc .applicant-info-section-page2 {
-      margin-bottom: 0.05in;
-      flex-shrink: 0;
+        margin-bottom: 0.05in;
+        flex-shrink: 0;
     }
-    
+
+    .applicant-info-section-page2,
+    .coverages-section-page2 {
+        margin-top: 0.18in;
+    }
+
     .page2-isc .section-title-underline-page2 {
-      font-size: 10.5pt;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 0.04in;
-      padding-bottom: 0.02in;
-      border-bottom: 2px solid #0f172a;
-      color: #0f172a;
-      letter-spacing: 0.8px;
-      line-height: 1.2;
-      position: relative;
+        font-size: 10pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        padding-bottom: 2px;
+        border-bottom: 2px solid #000;
+        color: #0f172a;
+        letter-spacing: 0.3px;
+        line-height: 1.2;
+        position: relative;
     }
-    
+
     .page2-isc .section-title-underline-page2::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -2px;
-      width: 0.3in;
-      height: 2px;
-      background: #4A9EFF;
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0.3in;
+        height: 2px;
+        background: #4F391E;
     }
-    
+
     .page2-isc .applicant-field-page2 {
-      font-size: 9.5pt;
-      line-height: 1.15;
-      margin-bottom: 0.02in;
-      color: #1f2937;
+        font-size: 10pt;
+        line-height: 1.25;
+        margin-bottom: 2px;
+        color: #1f2937;
     }
-    
+
     .page2-isc .coverages-section-page2 {
-      margin-bottom: 0.04in;
-      flex-shrink: 0;
+        margin-bottom: 0.04in;
+        flex-shrink: 0;
     }
-    
+
     .page2-isc .section-divider-page2 {
-      width: 100%;
-      height: 2px;
-      background: #0f172a;
-      margin-bottom: 0.06in;
-      margin-top: 0.03in;
-      flex-shrink: 0;
-      position: relative;
+        width: 100%;
+        height: 2px;
+        background: #0f172a;
+        margin-bottom: 0.06in;
+        margin-top: 0.03in;
+        flex-shrink: 0;
+        position: relative;
     }
-    
+
     .page2-isc .section-divider-page2::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      width: 0.3in;
-      height: 2px;
-      background: #4A9EFF;
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0.3in;
+        height: 2px;
+        background: #4A9EFF;
     }
-    
+
     .page2-isc .coverages-table-page2 {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 9.5pt;
-      margin-top: 0.03in;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+        margin-top: 0.03in;
     }
-    
+
     .page2-isc .coverages-table-page2 td {
-      padding: 0.025in 0.04in;
-      border-bottom: 1px solid #e5e7eb;
-      color: #1f2937;
-      vertical-align: top;
-      line-height: 1.2;
+        padding: 1px 0;
+        border-bottom: none;
+        color: #1f2937;
+        vertical-align: top;
+        line-height: 1.2;
     }
-    
+
     .page2-isc .coverages-table-page2 td:first-child {
-      width: 60%;
-      font-weight: 600;
+        width: 70%;
+        font-weight: 600;
     }
-    
+
     .page2-isc .coverages-table-page2 td:last-child {
-      width: 40%;
+        width: 30%;
+        text-align: right;
+        font-weight: 600;
     }
-    
+
     .page2-isc .class-code-gross-section-page2 {
-      display: flex !important;
-      justify-content: flex-start;
-      align-items: flex-start;
-      margin-bottom: 0.1in;
-      margin-top: 0;
-      gap: 0;
-      flex-shrink: 0;
-      visibility: visible !important;
-      opacity: 1 !important;
-      position: relative;
-      z-index: 10;
-      width: 100% !important;
-      min-height: 1in;
-      padding: 0.05in 0;
-      clear: both;
-      page-break-inside: avoid;
+        margin-top: 0.18in;
+        border-top: 2px solid #000;
+        padding-top: 6px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 0.35in;
     }
-    
+
     .page2-isc .class-code-column-page2,
     .page2-isc .gross-receipts-column-page2 {
-      flex: 1;
-      visibility: visible;
-      opacity: 1;
-      display: flex;
-      flex-direction: column;
+        flex: 1;
+        visibility: visible;
+        opacity: 1;
+        display: flex;
+        flex-direction: column;
     }
-    
+
     .page2-isc .class-code-title-page2,
     .page2-isc .gross-receipts-title-page2 {
-      font-size: 11pt;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 0.05in;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      line-height: 1.2;
+        font-size: 10.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 3px;
     }
-    
+
     .page2-isc .class-code-divider-page2 {
-      width: 1px;
-      height: 1.1in;
-      background: #1f2937;
-      flex-shrink: 0;
-      margin: 0 0.2in;
-      align-self: flex-start;
-      margin-top: 0.2in;
+        width: 1px;
+        height: 1.1in;
+        background: #1f2937;
+        flex-shrink: 0;
+        margin: 0 0.2in;
+        align-self: flex-start;
+        margin-top: 0.2in;
     }
-    
+
     .page2-isc .class-code-value-page2,
     .page2-isc .gross-receipts-value-page2 {
-      font-size: 11pt;
-      font-weight: 500;
-      margin-top: 0;
-      color: #1f2937;
-      padding: 0.1in 0.12in;
-      background: #f5f5f5;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      line-height: 1.3;
-      min-height: 0.45in;
-      display: flex !important;
-      align-items: center;
-      visibility: visible !important;
-      opacity: 1 !important;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      text-align: left;
+        font-size: 10pt;
+        font-weight: 600;
+        background: none;
+        border: none;
+        padding: 0;
     }
-      display: flex;
-      align-items: center;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      text-align: left;
-    }
-    
+
     .page2-isc .page-number-page2 {
-      position: absolute;
-      bottom: 0.35in;
-      right: 0.4in;
-      font-size: 10pt;
-      color: #6b7280;
-      font-weight: 400;
+        position: absolute;
+        bottom: 0.35in;
+        right: 0.4in;
+        font-size: 10pt;
+        color: #6b7280;
+        font-weight: 400;
+    }
+
+    .applicant-field-page2 strong {
+        font-weight: 600;
+    }
+
+    /* Remove fancy divider */
+    .section-divider-page2 {
+        display: none;
+    }
+
+    /* Remove vertical divider */
+    .class-code-divider-page2 {
+        display: none;
     }
     
     /* ============================================
        PAGE 3 - ISC FORMAT: CURRENT EXPOSURES, WORK PERFORMED, WORK EXPERIENCE
        ============================================ */
-    .page3-isc .sidebar-page3 {
-      background: #e5e7eb;
-      width: 1.8in;
-      padding: 0.35in 0.2in;
-      border-right: 1px solid #d1d5db;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    
-    .page3-isc .logo-capital-co-hands-page3 {
-      width: 1.8in;
-      height: 1.8in;
-      background: transparent;
-      border-radius: 0;
-      margin-bottom: 0.25in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      flex-shrink: 0;
-      padding: 0;
-    }
-    
-    .page3-isc .logo-capital-co-hands-page3 svg,
-    .page3-isc .logo-capital-co-hands-page3 img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
-    }
-    
-    .page3-isc .logo-isc-blue {
-      width: 0.55in;
-      height: 0.55in;
-      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-      border-radius: 8px;
-      font-size: 16pt;
-      margin-bottom: 0.25in;
-    }
-    
-    .page3-isc .page3-title {
-      font-size: 24pt;
-      font-weight: 600;
-      color: #374151;
-      letter-spacing: 2px;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      white-space: nowrap;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(180deg);
-      margin: 0;
-    }
-    
+
     .page3-isc .main-content-page3 {
-      padding: 0.25in 0.35in;
-      font-size: 10pt;
-      line-height: 1.25;
-      max-height: 10.5in;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      width: 87.5%; /* Use 85-90% of page width */
-      max-width: 87.5%;
+      padding: 0.4in 0.5in;
+      font-size: 9.5pt;
+      line-height: 1.2;
+      width: 100%;
+      max-width: 100%;
     }
-    
+
+    /* SECTION HEADERS */
     .page3-isc .section-title-uppercase-page3 {
-      font-size: 11pt;
-      font-weight: 800;
+      font-size: 10pt;
+      font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 0.08in;
-      margin-top: 0.1in;
-      color: #0f172a;
-      letter-spacing: 0.8px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 0.03in;
-      position: relative;
+      margin-top: 0.2in;
+      margin-bottom: 6px;
+      padding-bottom: 3px;
+      border-bottom: 2px solid #000;
+      letter-spacing: 0.4px;
+      color: #000;
     }
-    
+
     .page3-isc .section-title-uppercase-page3::before {
       content: '';
       position: absolute;
@@ -4446,143 +4409,128 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       bottom: -2px;
       width: 0.3in;
       height: 2px;
-      background: #4A9EFF;
+      background: #4F391E;
     }
-    
-    .page3-isc .exposures-grid-page3 {
-      margin-bottom: 0.1in;
-    }
-    
+
+    /* CURRENT EXPOSURES */
     .page3-isc .exposure-item-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-    }
-    
-    .page3-isc .footnote-page3 {
-      font-size: 9pt;
-      line-height: 1.3;
-      margin-bottom: 0.1in;
-      color: #6b7280;
-      font-style: italic;
-    }
-    
-    .page3-isc .work-description-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.08in;
-      color: #1f2937;
-    }
-    
-    .page3-isc .work-percentages-page3 {
-      margin-bottom: 0.08in;
-    }
-    
-    .page3-isc .percentage-item-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-    }
-    
-    .page3-isc .structural-details-page3 {
-      margin-bottom: 0.08in;
-    }
-    
-    .page3-isc .detail-item-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-    }
-    
-    .page3-isc .ocip-section-page3 {
-      margin-bottom: 0.1in;
-    }
-    
-    .page3-isc .ocip-question-page3,
-    .page3-isc .ocip-followup-page3,
-    .page3-isc .ocip-receipts-page3,
-    .page3-isc .losses-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-    }
-    
-    .page3-isc .work-experience-questions-page3 {
-      margin-top: 0.08in;
-    }
-    
-    .page3-isc .question-item-page3 {
-      margin-bottom: 0.12in; /* Increased spacing between questions */
-    }
-    
-    .page3-isc .question-text-page3 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.08in; /* Increased spacing before Yes/No */
-      color: #1f2937;
-    }
-    
-    .page3-isc .yes-no-options-page3 {
-      font-size: 11pt;
-      font-weight: 500; /* Inter Medium */
-      margin-bottom: 0.08in; /* Increased spacing after Yes/No */
-      color: #1f2937;
-      display: flex;
-      gap: 0.3in; /* Space between Yes and No */
-      align-items: center;
-    }
-    
-    .page3-isc .yes-no-options-page3 .yes-option,
-    .page3-isc .yes-no-options-page3 .no-option {
-      padding: 0.08in 0.2in;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      min-width: 0.8in;
-      text-align: center;
-      font-weight: 500;
-      color: #1f2937;
-    }
-    
-    .page3-isc .yes-no-options-page3 .yes-option.selected {
-      background: transparent;
-      border: none;
-      color: #1f2937;
-      font-weight: 500;
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    
-    .page3-isc .yes-no-options-page3 .no-option.selected {
-      background: transparent;
-      border: none;
-      color: #1f2937;
-      font-weight: 500;
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    
-    .page3-isc .explanation-field-page3 {
-      font-size: 9pt;
-      line-height: 1.25;
-      margin-top: 0.03in;
-      margin-left: 0.15in;
-      color: #4b5563;
-    }
-    
-    .page3-isc .page-number-page3 {
-      position: absolute;
-      bottom: 0.35in;
-      right: 0.35in;
-      font-size: 10pt;
-      color: #6b7280;
+      margin-bottom: 2px;
       font-weight: 400;
     }
-    
+
+    .page3-isc .exposure-item-page3 strong {
+      font-weight: 600;
+    }
+
+    /* FOOTNOTE */
+    .page3-isc .footnote-page3 {
+      font-size: 8.5pt;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      color: #000;
+      font-style: normal;
+    }
+
+    /* WORK PERFORMED */
+    .page3-isc .work-description-page3,
+    .page3-isc .percentage-item-page3,
+    .page3-isc .detail-item-page3,
+    .page3-isc .ocip-question-page3,
+    .page3-isc .ocip-receipts-page3,
+    .page3-isc .losses-page3 {
+    margin-bottom: 2px;
+    }
+
+    .page3-isc .percentage-item-page3 strong,
+    .page3-isc .detail-item-page3 strong,
+    .page3-isc .work-description-page3 strong,
+    .page3-isc .ocip-question-page3 strong,
+    .page3-isc .ocip-receipts-page3 strong,
+    .page3-isc .losses-page3 strong {
+      font-weight: 600;
+    }
+
+    /* WORK EXPERIENCE */
+    .page3-isc .question-item-page3 {
+      font-weight: 400 !important;
+      position: relative;
+      margin-bottom: 14px;
+      padding-right: 1.2in;
+    }
+
+    .page3-isc .question-text-page3 strong {
+      font-weight: 400 !important;
+      line-height: 1.2;
+    }
+
+    .page3-isc .yes-option,
+    .page3-isc .no-option {
+      font-weight: 400;
+    }
+
+    .page3-isc .selected {
+      font-weight: 700;
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+    }
+    .page3-isc .question-text-page3 {
+      font-weight: 400 !important;
+      color: #000;
+      margin-bottom: 2px;
+    }
+
+    /* YES / NO RIGHT SIDE */
+    .page3-isc .yes-no-options-page3 {
+      position: absolute;
+      right: 0;
+      top: 0;
+      display: flex;
+      gap: 0.3in;
+      font-size: 9.5pt;
+    }
+    .page3-isc .yes-no-options-page3,
+    .page3-isc .ocip-answer {
+      position: absolute;
+      right: 0;
+      top: 0;
+      display: flex;
+      gap: 0.25in;  /* SAME gap as OCIP */
+      font-size: 9pt;
+    }
+
+    .page3-isc .yes-no-options-page3 strong {
+      font-weight: 400;
+    }
+
+    /* SELECTED OPTION */
+    .page3-isc .yes-no-options-page3 .selected {
+      font-weight: 700;
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+    }
+
+    /* Explanation */
+    .page3-isc .explanation-field-page3 {
+      font-size: 8.8pt;
+      margin-top: 3px;
+      margin-left: 0.15in;
+      color: #000;
+    }
+
+    /* Remove extra spacing blocks */
+    .page3-isc .work-percentages-page3,
+    .page3-isc .structural-details-page3,
+    .page3-isc .ocip-section-page3,
+    .page3-isc .work-experience-questions-page3 {
+      margin-bottom: 6px;
+    }
+
+    .page3-isc .question-item-page3,
+    .page3-isc .ocip-question-page3 {
+      position: relative;
+      padding-right: 1.4in;
+    }
+
     /* ============================================
        PAGE 4 - ISC FORMAT: WORK EXPERIENCE - CONT.
        ============================================ */

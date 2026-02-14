@@ -525,7 +525,15 @@ const toggleDoc = (doc: string) => {
                 Quick Quote
               </button>
 
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-400 cursor-not-allowed">
+              <button
+                onClick={() =>
+                  window.open(
+                    `/api/agency/applications/${submissionId}/pdf`,
+                    "_blank"
+                  )
+                }
+                className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              >
                 App Packet
               </button>
 
@@ -533,8 +541,35 @@ const toggleDoc = (doc: string) => {
                 Edit
               </button>
 
-              <button className="px-5 py-2 rounded-md bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-semibold transition-colors">
-                Request Approval
+              <button
+                onClick={async () => {
+                  if (!confirm("Are you sure you want to request bind approval?")) return;
+
+                  try {
+                    const res = await fetch(
+                      `/api/agency/submissions/${submissionId}/request-bind`,
+                      {
+                        method: "POST",
+                      }
+                    );
+
+                    const result = await res.json();
+
+                    if (!res.ok) {
+                      throw new Error(result.error || "Failed to request approval");
+                    }
+
+                    toast.success("Bind request sent to admin successfully!");
+
+                    // Refresh page data
+                    fetchSubmission();
+                  } catch (err: any) {
+                    toast.error(err.message || "Something went wrong");
+                  }
+                }}
+                className="px-5 py-2 rounded-md bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-semibold transition-colors"
+              >
+                Request Bind
               </button>
 
               <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
