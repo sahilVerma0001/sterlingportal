@@ -286,312 +286,181 @@ function AgencyDashboardContent() {
 
     if (status === "unauthenticated") return null;
 
-    return (
-        <div className="min-h-screen bg-[#F5F6F7] flex">
-            {/* Sidebar - Matching ISC */}
-            <BrokerSidebar />
+return (
+  <div className="min-h-screen bg-[#F3F0ED] flex">
 
+    {/* LEFT DARK SIDEBAR */}
 
-            {/* Main Content */}
-            <div className="flex-1">
-                {/* Top Header */}
-                <header className="h-20 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-8">
-                    <h1 className="text-3xl font-normal text-[#111827]">Sales Pipeline</h1>
+    {/* RIGHT MAIN WRAPPER */}
+    <div className="flex-1 flex flex-col">
 
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setViewMode('my')}
-                            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${viewMode === 'my'
-                                ? 'bg-[#9A8B7A] text-white'
+      {/* PAGE HEADER */}
+      <div className="px-10 pt-8 pb-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-[34px] font-semibold text-[#2D2D2D]">
+            Sales Pipeline
+          </h1>
 
-                                : 'bg-white text-[#111827] border border-[#E5E7EB] hover:bg-[#F3F0ED]'
+          <div className="flex gap-3">
+            <button
+              onClick={() => setViewMode("my")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-medium transition ${
+                viewMode === "my"
+                  ? "bg-[#9A8B7A] text-white shadow-md"
+                  : "bg-white border border-gray-300 text-gray-700"
+              }`}
+            >
+              My Sales Pipeline
+            </button>
 
-                                }`}
-                        >
-                            My Sales Pipeline
-                        </button>
-                        <button
-                            onClick={() => setViewMode('agency')}
-                            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${viewMode === 'agency'
-                                ? 'bg-[#9A8B7A] text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                }`}
-                        >
-                            Agency Sales Pipeline
-                        </button>
-                    </div>
-                </header>
-
-                {/* Quote Notifications */}
-                {newQuotes.length > 0 && (
-                    <div className="bg-[#9A8B7A] text-white px-8 py-3 border-b border-[#7A6F64]">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <span className="text-lg">🔔</span>
-                                <div>
-                                    <p className="font-semibold">
-                                        {newQuotes.length} New Quote{newQuotes.length > 1 ? 's' : ''} Ready!
-                                    </p>
-                                    <p className="text-sm text-cyan-50">
-                                        You have {newQuotes.length} new quote{newQuotes.length > 1 ? 's' : ''} waiting for your review.
-                                    </p>
-                                </div>
-                            </div>
-                            <Link
-                                href="/agency/quotes?status=POSTED"
-                                className="px-4 py-2 bg-white text-[#9A8B7A] rounded-lg font-medium hover:bg-cyan-50 transition-colors text-sm"
-                            >
-                                View Quotes →
-                            </Link>
-                        </div>
-                    </div>
-                )}
-
-                {/* Main Content Area */}
-                <div className="flex h-[calc(100vh-80px)]">
-                    {/* Left Sidebar - Pipeline Stages */}
-                    <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-                        <div className="p-6 space-y-2">
-                            {pipelineStages.map((stage) => (
-                                <button
-                                    key={stage.id}
-                                    onClick={() => setSelectedStage(stage.id)}
-                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all ${selectedStage === stage.id
-                                        ? 'bg-[#9A8B7A] text-white font-medium'
-                                        : 'text-[#111827] hover:bg-[#F3F0ED]'
-                                        }`}
-                                >
-                                    <span className="text-sm">{stage.label}</span>
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${selectedStage === stage.id
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        {stage.count}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </aside>
-
-                    {/* Main Table Area */}
-                    <main className="flex-1 overflow-auto">
-                        {/* Filter Bar */}
-                        <div className="bg-white border-b border-gray-200 px-6 py-4">
-                            <div className="flex items-center gap-4">
-                                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                                    <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-
-                                <div className="relative flex-1 max-w-md">
-                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                    <input
-                                        type="text"
-                                        placeholder="Search"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-[#9A8B7A] focus:border-transparent"
-                                    />
-                                </div>
-
-                                <select
-                                    value={filterType}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
-                                >
-                                    <option value="ALL">All Types</option>
-                                    <option value="SUBMITTED">New Business</option>
-                                    <option value="ROUTED">Renewal</option>
-                                </select>
-
-                                <select
-                                    value={filterProgram}
-                                    onChange={(e) => setFilterProgram(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
-                                >
-                                    <option value="ALL">All Programs</option>
-                                    {Array.from(new Set(allSubmissions.map(s => s.industry))).map(industry => (
-                                        <option key={industry} value={industry}>{industry}</option>
-                                    ))}
-                                </select>
-
-                                <input
-                                    type="date"
-                                    value={filterStartDate}
-                                    onChange={(e) => setFilterStartDate(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
-                                    placeholder="Created Date"
-                                />
-
-                                {(filterType !== "ALL" || filterProgram !== "ALL" || filterStartDate) && (
-                                    <button
-                                        onClick={() => {
-                                            setFilterType("ALL");
-                                            setFilterProgram("ALL");
-                                            setFilterStartDate("");
-                                            setFilterEndDate("");
-                                        }}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                                    >
-                                        Clear Filters
-                                    </button>
-                                )}
-
-                                <div className="ml-auto text-sm text-gray-600 font-medium">
-                                    {submissions.length} of {allSubmissions.length}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Data Table */}
-                        {loading ? (
-                            <div className="flex items-center justify-center h-96">
-                                <div className="text-center">
-                                    <div className="relative w-12 h-12 mx-auto mb-4">
-                                        <div className="absolute inset-0 border-4 border-[#F3F0ED] rounded-full"></div>
-                                        <div className="absolute inset-0 border-4 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
-                                    </div>
-                                    <p className="text-sm text-gray-600">Loading submissions...</p>
-                                </div>
-                            </div>
-                        ) : submissions.length === 0 ? (
-                            <div className="flex items-center justify-center h-96">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No submissions found</h3>
-                                    <p className="text-sm text-gray-600 mb-6">Try adjusting your filters or create a new submission</p>
-                                    <Link
-                                        href="/agency/submit"
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] text-white hover:bg-[#7A6F64] rounded-lg text-sm font-medium hover:bg-[#00ACC1] transition-colors"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        New Submission
-                                    </Link>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="overflow-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left">
-                                                <button className="flex items-center gap-2 text-xs font-semibold text-gray-700 uppercase tracking-wider hover:text-gray-900">
-                                                    Type
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                                                    </svg>
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left">
-                                                <button className="flex items-center gap-2 text-xs font-semibold text-gray-700 uppercase tracking-wider hover:text-gray-900">
-                                                    App ID
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                                                    </svg>
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left">
-                                                <button className="flex items-center gap-2 text-xs font-semibold text-gray-700 uppercase tracking-wider hover:text-gray-900">
-                                                    Applicant Company
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                                                    </svg>
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left">
-                                                <button className="flex items-center gap-2 text-xs font-semibold text-gray-700 uppercase tracking-wider hover:text-gray-900">
-                                                    Program
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                                                    </svg>
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left">
-                                                <button className="flex items-center gap-2 text-xs font-semibold text-gray-700 uppercase tracking-wider hover:text-gray-900">
-                                                    Effective Date
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                                                    </svg>
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left">
-                                                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    Line of Business
-                                                </span>
-                                            </th>
-                                            <th className="px-6 py-3 text-center">
-                                                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    Info
-                                                </span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {submissions.map((sub, index) => (
-                                            <tr key={sub._id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
-                                                        {index % 3 === 0 ? (
-                                                            <>
-                                                                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                                                                <span className="text-sm text-gray-900">New business</span>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <svg className="w-4 h-4 text-[#9A8B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                                </svg>
-                                                                <span className="text-sm text-gray-900">Renewal</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#9A8B7A]">
-                                                        {sub.submissionNumber}
-                                                    </Link>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900 max-w-xs truncate">{sub.clientName}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{sub.industry}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
-                                                        {new Date(sub.createdAt).toISOString().split('T')[0]}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{sub.subtype}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                                                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </main>
-                </div>
-            </div>
+            <button
+              onClick={() => setViewMode("agency")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-medium transition ${
+                viewMode === "agency"
+                  ? "bg-[#9A8B7A] text-white shadow-md"
+                  : "bg-white border border-gray-300 text-gray-700"
+              }`}
+            >
+              Agency Sales Pipeline
+            </button>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* NOTIFICATION BAR */}
+      {newQuotes.length > 0 && (
+        <div className="mx-10 mb-6 bg-[#9A8B7A] text-white rounded-xl shadow-sm px-6 py-4 flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-lg">
+              🔔 {newQuotes.length} New Quotes Ready!
+            </p>
+            <p className="text-sm text-[#F3F0ED]">
+              You have {newQuotes.length} new quotes waiting for your review.
+            </p>
+          </div>
+
+          <Link
+            href="/agency/quotes?status=POSTED"
+            className="bg-white text-[#9A8B7A] px-5 py-2 rounded-lg text-sm font-semibold"
+          >
+            View Quotes →
+          </Link>
+        </div>
+      )}
+
+      {/* MAIN CARD CONTAINER */}
+      <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden">
+
+        {/* LEFT PIPELINE */}
+        <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
+
+          {pipelineStages.map((stage) => (
+            <button
+              key={stage.id}
+              onClick={() => setSelectedStage(stage.id)}
+              className={`w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm transition ${
+                selectedStage === stage.id
+                  ? "bg-white shadow-sm font-semibold"
+                  : "hover:bg-white"
+              }`}
+            >
+              <span>{stage.label}</span>
+              <span className="bg-[#E7E3DF] text-[#5A5A5A] text-xs px-2 py-1 rounded-md">
+                {stage.count}
+              </span>
+            </button>
+          ))}
+
+        </div>
+
+        {/* RIGHT TABLE SECTION */}
+        <div className="flex-1 flex flex-col">
+
+          {/* FILTER BAR */}
+          <div className="p-6 border-b border-[#ECEAE7] flex items-center gap-4">
+
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-4 py-2 w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+            />
+
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+            >
+              <option value="ALL">All Types</option>
+              <option value="SUBMITTED">New Business</option>
+              <option value="ROUTED">Renewal</option>
+            </select>
+
+            <select
+              value={filterProgram}
+              onChange={(e) => setFilterProgram(e.target.value)}
+              className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+            >
+              <option value="ALL">All Programs</option>
+              {Array.from(new Set(allSubmissions.map(s => s.industry))).map(ind => (
+                <option key={ind} value={ind}>{ind}</option>
+              ))}
+            </select>
+
+            <div className="ml-auto text-sm text-gray-600">
+              {submissions.length} of {allSubmissions.length}
+            </div>
+          </div>
+
+          {/* TABLE */}
+          <div className="overflow-y-auto">
+
+            <table className="w-full text-sm">
+              <thead className="bg-[#F9F8F7] text-[#6B6B6B] uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-4 text-left">Type</th>
+                  <th className="px-6 py-4 text-left">App ID</th>
+                  <th className="px-6 py-4 text-left">Applicant Company</th>
+                  <th className="px-6 py-4 text-left">Program</th>
+                  <th className="px-6 py-4 text-left">Effective Date</th>
+                  <th className="px-6 py-4 text-left">Line of Business</th>
+                  <th className="px-6 py-4 text-center">Info</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-[#ECEAE7]">
+                {submissions.map((sub) => (
+                  <tr key={sub._id} className="hover:bg-[#F9F8F7] transition">
+                    <td className="px-6 py-4">
+                      {sub.status === "SUBMITTED" ? "New business" : "Renewal"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/agency/submissions/${sub._id}`}
+                        className="text-[#9A8B7A] font-medium"
+                      >
+                        {sub.submissionNumber}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4">{sub.clientName}</td>
+                    <td className="px-6 py-4">{sub.industry}</td>
+                    <td className="px-6 py-4">
+                      {new Date(sub.createdAt).toISOString().split("T")[0]}
+                    </td>
+                    <td className="px-6 py-4">{sub.subtype}</td>
+                    <td className="px-6 py-4 text-center">ⓘ</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 }
 
 export default function AgencyDashboard() {

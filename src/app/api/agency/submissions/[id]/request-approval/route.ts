@@ -17,14 +17,14 @@ export async function POST(
       );
     }
 
-    submission.status = "BIND_REQUESTED";
+    submission.status = "QUOTED";
     await submission.save();
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to request bind" },
+      { error: "Failed to request approval" },
       { status: 500 }
     );
   }
