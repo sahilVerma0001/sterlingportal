@@ -2969,6 +2969,24 @@ export function mapFormDataToPacketData(
     endorsements.push("Notice of Cancellation to Third Parties");
   }
 
+
+  // Get applicant state safely
+  const applicantState = formData.state?.toString().trim() || "";
+
+  // Normalize quote status safely
+  const quoteStatus = quote?.status?.toString().trim().toUpperCase() || "";
+
+  // Check if approved
+  const isApproved = quoteStatus === "POSTED";
+
+  // Final condition for including state forms
+  const includeStateForms = applicantState !== "" && isApproved;
+
+  console.log("Applicant State:", applicantState);
+  console.log("Quote Status:", quoteStatus);
+  console.log("Include State Forms:", includeStateForms);
+
+
   return {
     // Application Metadata
     applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
@@ -2991,7 +3009,12 @@ export function mapFormDataToPacketData(
     contactPerson: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || formData.contactPerson || '',
     applicantAddress: applicantAddress,
     applicantCity: formData.city || '',
-    applicantState: (formData.state || formData.addressState || '').trim(),
+
+
+    // applicantState: (formData.state || formData.addressState || '').trim(),
+    applicantState: applicantState,
+
+
     applicantZip: (formData.zipCode || formData.zip || '').trim(),
     applicantPhone: formData.phone || '',
     applicantEmail: formData.email || '',
@@ -3014,9 +3037,13 @@ export function mapFormDataToPacketData(
     carrierName: quote?.carrierName || 'Richmond National Insurance',
     coverageType: quote?.coverageType || 'Manuscript Occurrence',
     desiredCoverageDates: coverageDates,
+
     // Include state forms when we have an applicant state (show in packet for new submissions and when quote approved)
-    includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
-      !!(quote?.status && ['APPROVED'].includes(quote.status)),
+    // includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
+          // !!(quote?.status && ['APPROVED'].includes(quote.status)),
+
+    includeStateForms: includeStateForms,
+
 
     // General Liability Coverages
     aggregateLimit: formData.generalLiabilityLimit || '$1,000,000',

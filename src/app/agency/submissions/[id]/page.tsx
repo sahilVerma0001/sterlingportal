@@ -87,6 +87,7 @@ interface SubmissionDetails {
 }
 
 function SubmissionDetailsContent() {
+
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
@@ -105,13 +106,13 @@ function SubmissionDetailsContent() {
           body: formData,
         }
       );
-const toggleNoteFilter = (filter: string) => {
-  setNoteFilters((prev) =>
-    prev.includes(filter)
-      ? prev.filter((f) => f !== filter)
-      : [...prev, filter]
-  );
-};
+      const toggleNoteFilter = (filter: string) => {
+        setNoteFilters((prev) =>
+          prev.includes(filter)
+            ? prev.filter((f) => f !== filter)
+            : [...prev, filter]
+        );
+      };
 
       if (!res.ok) throw new Error("Upload failed");
 
@@ -126,6 +127,52 @@ const toggleNoteFilter = (filter: string) => {
       setUploading(false);
     }
   };
+
+  const handleRequestApproval = async () => {
+  if (!confirm("Send request for approval?")) return;
+
+  try {
+    const res = await fetch(
+      `/api/agency/submissions/${submissionId}/request-approval`,
+      { method: "POST" }
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error);
+
+    toast.success("Approval request sent!");
+    fetchSubmission();
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+};
+
+// ================= ISC BUTTON STYLES =================
+
+const iscOutlineBtn =
+  "h-[42px] px-6 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-800 transition-all duration-200 hover:border-black hover:shadow-[0_0_0_1px_black]";
+
+const iscPrimaryBtn =
+  "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#4EC4C4] text-white transition-all duration-200 hover:bg-[#38b2b2]";
+
+const handleRequestBind = async () => {
+  if (!confirm("Request bind approval?")) return;
+
+  try {
+    const res = await fetch(
+      `/api/agency/submissions/${submissionId}/request-bind`,
+      { method: "POST" }
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error);
+
+    toast.success("Bind request sent!");
+    fetchSubmission();
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+};
   const toggleNoteFilter = (filter: string) => {
   setNoteFilters((prev) =>
     prev.includes(filter)
@@ -178,12 +225,33 @@ const toggleDoc = (doc: string) => {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (status === "authenticated" && submissionId) {
-      fetchSubmission();
-      fetchActivityLogs();
-    }
-  }, [status, submissionId]);
+const fetchSubmission = async () => {
+  
+  if (!submissionId) return;
+
+  try {
+    setLoading(true);
+
+    const res = await fetch(
+      `/api/agency/submissions/${submissionId}`
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error);
+
+    setData(result);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+useEffect(() => {
+  if (status === "authenticated" && submissionId) {
+    fetchSubmission();
+    fetchActivityLogs();
+  }
+}, [status, submissionId]); 
 
   const fetchActivityLogs = async () => {
     if (!submissionId) return;
@@ -231,28 +299,6 @@ const toggleDoc = (doc: string) => {
     }
   };
 
-  const fetchSubmission = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/agency/submissions/${submissionId}`);
-      const data = await response.json();
-
-      if (data.submission) {
-        setData({
-          submission: data.submission,
-          routingLogs: data.routingLogs || [],
-          quotes: data.quotes || [],
-        });
-      } else if (data.error) {
-        setError(data.error);
-      }
-    } catch (err: any) {
-      console.error("Error fetching submission:", err);
-      setError("Failed to load submission details");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -293,6 +339,7 @@ const toggleDoc = (doc: string) => {
   };
 
   if (status === "loading" || loading) {
+
     return (
       <div className="flex items-center justify-center py-20 bg-gray-50">
         <div className="text-center">
@@ -520,64 +567,83 @@ const toggleDoc = (doc: string) => {
             </div>
 
             {/* RIGHT BUTTONS */}
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
-                Quick Quote
-              </button>
+<div className="flex items-center gap-3">
 
-              <button
-                onClick={() =>
-                  window.open(
-                    `/api/agency/applications/${submissionId}/pdf`,
-                    "_blank"
-                  )
-                }
-                className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                App Packet
-              </button>
+  {/* ================= SUBMITTED (IN PROGRESS) ================= */}
+  {submission.status === "SUBMITTED" && (
+    <>
+       <button className={iscOutlineBtn}>Quick Quote</button>
 
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
-                Edit
-              </button>
+      <button
+        onClick={() =>
+          window.open(`/api/agency/applications/${submissionId}/pdf`, "_blank")
+        }
+        className={iscOutlineBtn}
+      >
+        App Packet
+      </button>
 
-              <button
-                onClick={async () => {
-                  if (!confirm("Are you sure you want to request bind approval?")) return;
+      <button className={iscOutlineBtn}>Edit</button>
 
-                  try {
-                    const res = await fetch(
-                      `/api/agency/submissions/${submissionId}/request-bind`,
-                      {
-                        method: "POST",
-                      }
-                    );
+      {/* 🔵 Request Approval API */}
+      <button
+        onClick={handleRequestApproval}
+        className="bg-[#9A8B7A] hover:bg-[#7A6F64] text-white h-[42px] px-6 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.98]"
+      >
+        Request Approval
+      </button>
 
-                    const result = await res.json();
+      <button className={iscOutlineBtn}>Cancel Quote</button>
+    </>
+  )}
 
-                    if (!res.ok) {
-                      throw new Error(result.error || "Failed to request approval");
-                    }
+  {/* ================= QUOTED (APPROVED QUOTE) ================= */}
+  {submission.status === "QUOTED" && (
+    <>
+      <button className={iscOutlineBtn}>Quick Quote</button>
 
-                    toast.success("Bind request sent to admin successfully!");
+      <button
+        onClick={() =>
+          window.open(`/api/agency/applications/${submissionId}/pdf`, "_blank")
+        }
+        className={iscOutlineBtn}
+      >
+        App Packet
+      </button>
 
-                    // Refresh page data
-                    fetchSubmission();
-                  } catch (err: any) {
-                    toast.error(err.message || "Something went wrong");
-                  }
-                }}
-                className="px-5 py-2 rounded-md bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-semibold transition-colors"
-              >
-                Request Bind
-              </button>
+      <button className={iscOutlineBtn}>View</button>
+      <button className={iscOutlineBtn}>E-Sign</button>
 
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700">
-                Cancel Quote
-              </button>
-            </div>
+      {/* 🟤 Request Bind API */}
+      <button
+        onClick={handleRequestBind}
+        className="bg-[#9A8B7A] hover:bg-[#7A6F64] text-white h-[42px] px-6 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.98]"
+      >
+        Request Bind
+      </button>
+
+      <button className={iscOutlineBtn}>Modify</button>
+      <button className={iscOutlineBtn}>Cancel Quote</button>
+    </>
+  )}
+
+  {/* ================= BOUND ================= */}
+  {submission.status === "BOUND" && (
+    <>
+      <button className={iscOutlineBtn}>View</button>
+    </>
+  )}
+
+</div>
+
+  {/* ================= BOUND (NEWLY BOUND) ================= */}
+  {submission.status === "BOUND" && (
+    <>
+      <button className="btn-secondary">View</button>
+    </>
+  )}
+</div>
           </div>
-        </div>
         {/* KEY INFO GRID – ISC STYLE */}
         {/* ISC STYLE – KEY INFO STRIP */}
         <div className="bg-white px-6 py-5 border-t border-gray-100">
@@ -1201,6 +1267,7 @@ const toggleDoc = (doc: string) => {
 
 export default function SubmissionDetailsPage() {
   return (
+    
     <Suspense fallback={
       <div className="fixed inset-0 bg-[#F3F0ED] flex items-center justify-center z-50">
         <div className="text-center">
