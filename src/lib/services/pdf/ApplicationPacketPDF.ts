@@ -494,7 +494,7 @@ function generatePage2(data: ApplicationPacketData): string {
                 </table>
             </div>
 
-            <div class="section-divider-page2"></div>
+            <div class="section-title-underline-page2 section-divider-page2 "></div>
 
             <div class="class-code-gross-section-page2">
 
@@ -628,128 +628,206 @@ function generatePage4(data: ApplicationPacketData): string {
 
   return `
     <div class="page page4-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page4">
-        <div class="logo-container logo-page4">
-          <div class="logo logo-capital-co-hands-page4">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page4-title">Insurance Application</div>
-        <div class="qr-container qr-page4">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page4">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page4">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page4">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page4">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page4">
-        <div class="section-title-uppercase-page4">WORK EXPERIENCE - CONT.</div>
-        
+
+        <div class="section-title-uppercase-page">
+          WORK EXPERIENCE - CONT.
+        </div>
+
         <div class="work-experience-questions-page4">
+          <!-- 1 -->
           <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.performRoofingOps)}</div>
-            ${data.performRoofingOps ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.roofingExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Does your company perform any waterproofing?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.performWaterproofing)}</div>
-            ${data.performWaterproofing ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.waterproofingExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Do you use motorized or heavy equipment in any of your operations?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.useHeavyEquipment)}</div>
-            ${data.useHeavyEquipment ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.heavyEquipmentExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Will you perform work (new/remodel) on single family residences, in which the dwelling exceeds 5,000 square feet?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.workOver5000SqFt)}</div>
-            ${data.workOver5000SqFt ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.workOver5000SqFtExplanation || ''}</div>` : ''}
-            <div class="percentage-field-page4"><strong>What percentage of your work will be on homes over 5,000 square feet:</strong> ${data.workOver5000SqFtPercent || 0}%</div>
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Will you perform work on commercial buildings over 20,000 square feet?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.workCommercialOver20000SqFt)}</div>
-            ${data.workCommercialOver20000SqFt ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.commercialOver20000SqFtExplanation || ''}</div>` : ''}
-            <div class="percentage-field-page4"><strong>What percentage of your work will be on commercial buildings over 20,000 square feet:</strong> ${data.commercialOver20000SqFtPercent || 0}%</div>
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Has any licensing authority taken any action against you, your company or any affiliates?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.licensingActionTaken)}</div>
-            ${data.licensingActionTaken ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.licensingActionExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Have you allowed or will you allow your license to be used by any other contractor?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.allowedLicenseUseByOthers)}</div>
-            ${data.allowedLicenseUseByOthers ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.licenseUseExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Has the applicant or business owner ever had any judgements or liens filed against them or filed for bankruptcy?</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.judgementsOrLiens)}</div>
-            ${data.judgementsOrLiens ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.judgementsExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Has any lawsuit ever been filed or any claim otherwise been made against your company (including any partnership or any joint venture of which you have been a member of, any of your company's predecessors, or any person, company or entities on whose behalf your company has assumed liability)? (For the purposes of this application, a claim means a receipt of a demand for money, services or arbitration.)</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.lawsuitsFiled)}</div>
-            ${data.lawsuitsFiled ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.lawsuitsExplanation || ''}</div>` : ''}
-          </div>
-          
-          <div class="question-item-page4">
-            <div class="question-text-page4"><strong>Is your company aware of any facts, circumstances, incidents, situations, damages or accidents (including but not limited to: faulty or defective workmanship, product failure, construction dispute, property damage or construction worker injury) that a reasonably prudent person might expect to give rise to a claim or lawsuit, whether valid or not, which might directly or indirectly involve the company? (For the purposes of this application, a claim means a receipt of a demand for money, services or arbitration.)</strong></div>
-            <div class="yes-no-options-page4">${formatYesNo(data.awareOfPotentialClaims)}</div>
-            ${data.awareOfPotentialClaims ? `<div class="explanation-field-page4"><strong>If "Yes", please explain:</strong> ${data.potentialClaimsExplanation || ''}</div>` : ''}
-          </div>
+            <div class="question-text-page4">
+              <span>Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?</span>
+                <div class="yes-no-options-page4">
+                  ${formatYesNo(data.performRoofingOps)}
+                  </div>
+                  </div>
+                  ${data.performRoofingOps ? `
+                  <div class="explanation-field-page4">
+                    If "Yes", please explain: ${data.roofingExplanation || ''}
+                  </div>` : ``}
+              </div>
 
+                <!-- 2 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Does your company perform any waterproofing?</span>
+                        <div class="yes-no-options-page4">
+                          ${formatYesNo(data.performWaterproofing)}
+                        </div>
+                    </div>
+                    ${data.performWaterproofing ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.waterproofingExplanation || ''}
+                    </div>` : ``}
+                </div>
 
-          ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
-          <div class="loss-history-section">
-            <h3>General Liability Loss Information</h3>
+                <!-- 3 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Do you use motorized or heavy equipment in any of your operations?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.useHeavyEquipment)}
+                        </div>
+                    </div>
+                    ${data.useHeavyEquipment ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.heavyEquipmentExplanation || ''}
+                    </div>` : ``}
+                </div>
 
-            <table class="loss-table">
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Date of Loss</th>
-                  <th>Amount of Loss</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${data.generalLiabilityLosses.map(loss => `
-                  <tr>
-                    <td>General Liability</td>
-                    <td>${loss.dateOfLoss || "-"}</td>
-                    <td>${loss.amountOfLoss || "-"}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-          ` : `
-          <div class="loss-history-section">
-            <strong>Loss History:</strong> No losses reported
-          </div>
-          `}
+                <!-- 4 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Will you perform work (new/remodel) on single family residences, in which the dwelling
+                            exceeds 5,000 square feet?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.workOver5000SqFt)}
+                        </div>
+                    </div>
+                    ${data.workOver5000SqFt ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.workOver5000SqFtExplanation || ''}
+                    </div>` : ``}
 
+                    <div class="percentage-field-page4">
+                        What percentage of your work will be on homes over 5,000 square feet:
+                        ${data.workOver5000SqFtPercent || 0}%
+                    </div>
+                </div>
 
+                <!-- 5 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Will you perform work on commercial buildings over 20,000 square feet?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.workCommercialOver20000SqFt)}
+                        </div>
+                    </div>
+                    ${data.workCommercialOver20000SqFt ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.commercialOver20000SqFtExplanation || ''}
+                    </div>` : ``}
+
+                    <div class="percentage-field-page4">
+                        What percentage of your work will be on commercial buildings over 20,000 square feet: ${data.commercialOver20000SqFtPercent || 0}%
+                    </div>
+                </div>
+
+                <!-- 6 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Has any licensing authority taken any action against you, your company or any
+                            affiliates?</span>
+                        <div class="yes-no-options-page4">
+                          ${formatYesNo(data.licensingActionTaken)}
+                        </div>
+                    </div>
+                    ${data.licensingActionTaken ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.licensingActionExplanation || ''}
+                    </div>` : ``}
+                </div>
+
+                <!-- 7 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Have you allowed or will you allow your license to be used by any other contractor?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.allowedLicenseUseByOthers)}
+                        </div>
+                    </div>
+                    ${data.allowedLicenseUseByOthers ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.licenseUseExplanation || ''}
+                    </div>` : ``}
+                </div>
+
+                <!-- 8 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Has the applicant or business owner ever had any judgements or liens filed against them or
+                            filed for bankruptcy?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.judgementsOrLiens)}
+                        </div>
+                    </div>
+                    ${data.judgementsOrLiens ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.judgementsExplanation || ''}
+                    </div>` : ``}
+                </div>
+
+                <!-- 9 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Has any lawsuit ever been filed or any claim otherwise been made against your
+                            company?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.lawsuitsFiled)}
+                        </div>
+                    </div>
+                    ${data.lawsuitsFiled ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.lawsuitsExplanation || ''}
+                    </div>` : ``}
+                </div>
+
+                <!-- 10 -->
+                <div class="question-item-page4">
+                    <div class="question-text-page4">
+                        <span>Is your company aware of any facts or incidents that might give rise to a claim or
+                            lawsuit?</span>
+                        <div class="yes-no-options-page4">
+                            ${formatYesNo(data.awareOfPotentialClaims)}
+                        </div>
+                    </div>
+                    ${data.awareOfPotentialClaims ? `
+                    <div class="explanation-field-page4">
+                        If "Yes", please explain: ${data.potentialClaimsExplanation || ''}
+                    </div>` : ``}
+                </div>
+
+                <div class="section-title-uppercase-page"></div>
+
+                <!-- LOSS HISTORY -->
+                ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
+                <div class="loss-history-section">
+                    <strong>General Liability Loss Information</strong>
+
+                    <table class="loss-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Date of Loss</th>
+                                <th>Amount of Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.generalLiabilityLosses.map(loss => `
+                            <tr>
+                                <td>General Liability</td>
+                                <td>${loss.dateOfLoss || "-"}</td>
+                                <td>${loss.amountOfLoss || "-"}</td>
+                            </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+                ` : `
+                <div class="loss-history-section">
+                    <strong>Loss History:</strong> No losses reported
+                </div>
+                `}
+
+            </div>
+
+            <div class="page-number page-number-page4">
+                Page 3 of 11
+            </div>
 
         </div>
-        
-        <div class="page-number page-number-page4">Page 3 of 11</div>
-      </div>
     </div>
   `;
 }
@@ -762,109 +840,110 @@ function generatePage5(data: ApplicationPacketData): string {
   const qrCodePageText = `00${data.applicationId}P5`;
 
   return `
-    <div class="page page5-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page5">
-        <div class="logo-container logo-page5">
-          <div class="logo logo-capital-co-hands-page5">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page5-title">Insurance Application</div>
-        <div class="qr-container qr-page5">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page5">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page5">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page5">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page5">Applicant</div>
-        </div>
-      </div>
-      <div class="main-content main-content-page5">
-        <div class="section-title-uppercase-page5">WRITTEN CONTRACT</div>
+    <div class="page page4-isc" style="page-break-after: always;">
+      <div class="main-content main-content-page4">
+        <div class="section-title-uppercase-page">WRITTEN CONTRACT</div>
         
-        <div class="written-contract-questions-page5">
-          <div class="question-item-page5">
-            <div class="question-text-page5"><strong>Do you have a written contract for all work you perform?</strong></div>
-            <div class="yes-no-options-page5">${formatYesNo(data.haveWrittenContract)}</div>
-            ${data.haveWrittenContract ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}
+        <div class="work-experience-questions-page4">
+
+          <div class="question-item-page4">
+            <div class="question-text-page4"><span>Do you have a written contract for all work you perform?</span>
+              <div class="yes-no-options-page4">${formatYesNo(data.haveWrittenContract)}</div>
+            </div>
+            ${data.haveWrittenContract ? `<div class="explanation-field-page4">If "Yes", answer the following questions:</div>` : ''}
             ${data.haveWrittenContract ? `
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Does the contract identify a start date for the work?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.contractHasStartDate, true)}</div>
-              ${!data.contractHasStartDate ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.contractStartDateExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Does the contract identify a start date for the work?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.contractHasStartDate, true)}</div>
+              </div>
+              
+              ${!data.contractHasStartDate ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractStartDateExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Does the contract identify a precise scope of work?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.contractHasScopeOfWork, true)}</div>
-              ${!data.contractHasScopeOfWork ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.contractScopeExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Does the contract identify a precise scope of work?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.contractHasScopeOfWork, true)}</div>
+              </div>
+              
+              ${!data.contractHasScopeOfWork ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractScopeExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Does the contract identify all subcontracted trades (if any)?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.contractIdentifiesSubcontractedTrades, true)}</div>
-              ${!data.contractIdentifiesSubcontractedTrades ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.contractSubcontractedTradesExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Does the contract identify all subcontracted trades (if any)?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.contractIdentifiesSubcontractedTrades, true)}</div>
+              </div>              
+              ${!data.contractIdentifiesSubcontractedTrades ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractSubcontractedTradesExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Does the contract provide a set price?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.contractHasSetPrice, true)}</div>
-              ${!data.contractHasSetPrice ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.contractSetPriceExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Does the contract provide a set price?</span></div>
+              <div class="yes-no-options-page4">${formatYesNo(data.contractHasSetPrice, true)}</div>
+              ${!data.contractHasSetPrice ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractSetPriceExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Is the contract signed by all parties to the contract?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.contractSignedByAllParties, true)}</div>
-              ${!data.contractSignedByAllParties ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.contractSignedExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Is the contract signed by all parties to the contract?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.contractSignedByAllParties, true)}
+              </div>
+              
+              ${!data.contractSignedByAllParties ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractSignedExplanation || ''}</div>` : ''}
             </div>
             ` : ''}
           </div>
           
-          <div class="question-item-page5">
-            <div class="question-text-page5"><strong>Do you subcontract work?</strong></div>
-            <div class="yes-no-options-page5">${formatYesNo(data.doSubcontractWork)}</div>
-            ${data.doSubcontractWork ? `<div class="sub-question-header-page5">If "Yes", answer the following questions:</div>` : ''}
+          <div class="question-item-page4">
+            <div class="question-text-page4"><span>Do you subcontract work?</span>
+              <div class="yes-no-options-page4">${formatYesNo(data.doSubcontractWork)}</div>
+            </div>
+            
+            ${data.doSubcontractWork ? `<div class="explanation-field-page4">If "Yes", answer the following questions:</div>` : ''}
             ${data.doSubcontractWork ? `
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Do you always collect certificates of insurance from subcontractors?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.alwaysCollectCertificatesFromSubs, true)}</div>
-              ${!data.alwaysCollectCertificatesFromSubs ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.collectCertificatesExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Do you always collect certificates of insurance from subcontractors?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.alwaysCollectCertificatesFromSubs, true)}</div>
+              </div>
+              
+              ${!data.alwaysCollectCertificatesFromSubs ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.collectCertificatesExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Do you require subcontractors to have insurance limits equal to your own?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsEqualInsuranceLimits, true)}</div>
-              ${!data.requireSubsEqualInsuranceLimits ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.subsEqualLimitsExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Do you require subcontractors to have insurance limits equal to your own?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.requireSubsEqualInsuranceLimits, true)}</div>
+              </div>
+              ${!data.requireSubsEqualInsuranceLimits ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.subsEqualLimitsExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Do you always require subcontractors to name you as additional insured?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsNameAsAdditionalInsured, true)}</div>
-              ${!data.requireSubsNameAsAdditionalInsured ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.subsAdditionalInsuredExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Do you always require subcontractors to name you as additional insured?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.requireSubsNameAsAdditionalInsured, true)}</div>
+              </div>
+              ${!data.requireSubsNameAsAdditionalInsured ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.subsAdditionalInsuredExplanation || ''}</div>` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Do you have a standard formal agreement with subcontractors?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.haveStandardFormalAgreementWithSubs, true)}</div>
-              ${!data.haveStandardFormalAgreementWithSubs ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.standardAgreementExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Do you have a standard formal agreement with subcontractors?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.haveStandardFormalAgreementWithSubs, true)}</div>
+              </div>
+              
+              ${!data.haveStandardFormalAgreementWithSubs ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.standardAgreementExplanation || ''}</div>` : ''}
               ${data.haveStandardFormalAgreementWithSubs ? `
-              <div class="sub-question-item-page5">
-                <div class="question-text-page5"><strong>If "Yes", does it have a hold harmless/indemnification agreement in your favor?</strong></div>
-                <div class="yes-no-options-page5">${formatYesNo(data.agreementHasHoldHarmless, true)}</div>
-                ${!data.agreementHasHoldHarmless ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.holdHarmlessExplanation || ''}</div>` : ''}
+              <div class="sub-question-item-page4">
+                <div class="question-text-page4"><span>If "Yes", does it have a hold harmless/indemnification agreement in your favor?</span>
+                  <div class="yes-no-options-page4">${formatYesNo(data.agreementHasHoldHarmless, true)}</div>
+                </div>
+                
+                ${!data.agreementHasHoldHarmless ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.holdHarmlessExplanation || ''}</div>` : ''}
               </div>
               ` : ''}
             </div>
-            <div class="sub-question-item-page5">
-              <div class="question-text-page5"><strong>Do you require subcontractors to carry Worker's Compensation?</strong></div>
-              <div class="yes-no-options-page5">${formatYesNo(data.requireSubsWorkersComp, true)}</div>
-              ${!data.requireSubsWorkersComp ? `<div class="explanation-field-page5"><strong>If "No", please explain:</strong> ${data.subsWorkersCompExplanation || ''}</div>` : ''}
+            <div class="question-item-page4">
+              <div class="question-text-page4"><span>Do you require subcontractors to carry Worker's Compensation?</span>
+                <div class="yes-no-options-page4">${formatYesNo(data.requireSubsWorkersComp, true)}</div>
+              </div>
+              
+              ${!data.requireSubsWorkersComp ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.subsWorkersCompExplanation || ''}</div>` : ''}
             </div>
             ` : ''}
           </div>
         </div>
         
-        <div class="section-title-uppercase-page5 policy-endorsements-title-page5">POLICY ENDORSEMENTS</div>
+        <div class="section-title-uppercase-page policy-endorsements-title-page5">POLICY ENDORSEMENTS</div>
         <div class="policy-endorsements-content-page5">${data.policyEndorsements}</div>
         
-        <div class="page-number page-number-page5">Page 5 of 12</div>
+        <div class="page-number page-number-page5">Page 4 of 11</div>
       </div>
     </div>
   `;
@@ -879,26 +958,6 @@ function generatePage6(data: ApplicationPacketData): string {
 
   return `
     <div class="page page6-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page6">
-        <div class="logo-container logo-page6">
-          <div class="logo logo-capital-co-hands-page6">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page6-title">Insurance Application</div>
-        <div class="qr-container qr-page6">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page6">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page6">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page6">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page6">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page6">
         <div class="section-title-uppercase-page6">NOTICE</div>
         
@@ -928,7 +987,7 @@ function generatePage6(data: ApplicationPacketData): string {
         
         <div class="initial-line-page6">* I have read and understand the policy exclusions identified above. Initial: _________________________</div>
         
-        <div class="page-number page-number-page6">Page 6 of 12</div>
+        <div class="page-number page-number-page6">Page 5 of 11</div>
       </div>
     </div>
   `;
@@ -943,29 +1002,8 @@ function generatePage7(data: ApplicationPacketData): string {
 
   return `
     <div class="page page7-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page7">
-        <div class="logo-container logo-page7">
-          <div class="logo logo-capital-co-hands-page7">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page7-title">Insurance Application</div>
-        <div class="qr-container qr-page7">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page7">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page7">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page7">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page7">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page7">
-        <div class="section-title-uppercase-page7">APPLICATION AGREEMENT</div>
-        
+        <div class="section-title-uppercase-page7">APPLICATION AGREEMENT</div>     
         <div class="agreement-content-page7">
           <p>The purpose of this application is to assist in the underwriting process information contained herein is specifically relied upon in determination of insurability. The no loss letter shall be the basis of any insurance that may be issued and will be a part of such policy. The undersigned, therefore, warrants that the information contained herein is true and accurate to the best of his/her knowledge, information and belief.</p>
           
@@ -1037,7 +1075,7 @@ function generatePage7(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page7">Page 7 of 12</div>
+        <div class="page-number page-number-page7">Page 6 of 11</div>
       </div>
     </div>
   `;
@@ -1052,26 +1090,6 @@ function generatePage8(data: ApplicationPacketData): string {
 
   return `
     <div class="page page8-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page8">
-        <div class="logo-container logo-page8">
-          <div class="logo logo-capital-co-hands-page8">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page8-title">Acknowledgment</div>
-        <div class="qr-container qr-page8">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page8">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page8">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page8">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page8">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page8">
         <div class="carrier-header-page8">
           <div class="carrier-name-large-page8">${data.carrierName}</div>
@@ -1133,7 +1151,7 @@ function generatePage8(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page8">Page 8 of 12</div>
+        <div class="page-number page-number-page8">Page 7 of 11</div>
       </div>
     </div>
   `;
@@ -1148,26 +1166,6 @@ function generatePage9(data: ApplicationPacketData): string {
 
   return `
     <div class="page page9-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page9">
-        <div class="logo-container logo-page9">
-          <div class="logo logo-capital-co-hands-page9">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page9-title">Acknowledgment</div>
-        <div class="qr-container qr-page9">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page9">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page9">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page9">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page9">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page9">
         <div class="carrier-header-page9">
           <div class="carrier-name-large-page9">${data.carrierName}</div>
@@ -1212,7 +1210,7 @@ function generatePage9(data: ApplicationPacketData): string {
         </div>
         
         <div class="footer-code-page9">SSI TCDN 00 02 0123</div>
-        <div class="page-number page-number-page9">Page 9 of 12</div>
+        <div class="page-number page-number-page9">Page 8 of 11</div>
       </div>
     </div>
   `;
@@ -1259,7 +1257,7 @@ function generatePage10(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page10">Page 10 of 12</div>
+        <div class="page-number page-number-page10">Page 9 of 11</div>
       </div>
     </div>
   `;
@@ -1274,26 +1272,6 @@ function generatePage11(data: ApplicationPacketData): string {
 
   return `
     <div class="page page11-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page11">
-        <div class="logo-container logo-page11">
-          <div class="logo logo-capital-co-hands-page11">
-            ${generateCapitalCoLogoHTML(data.capitalCoLogoSVG)}
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page11-title">Loss Warranty Letter</div>
-        <div class="qr-container qr-page11">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page11">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page11">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page11">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="18" r="9" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M10 52c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page11">Applicant</div>
-        </div>
-      </div>
       <div class="main-content main-content-page11">
         <div class="header-section-page11">
           <div class="header-left-page11">
@@ -1352,7 +1330,7 @@ function generatePage11(data: ApplicationPacketData): string {
           <p><strong>Warranty:</strong> The purpose of this no loss letter is to assist in the underwriting process information contained herein is specifically relied upon in determination of insurability. The undersigned, therefore, warrants that the information contained herein is true and accurate to the best of his/her knowledge, information and belief. This no loss letter shall be the basis of any insurance that may be issued and will be a part of such policy. It is understood that any misrepresentation or omission shall constitute grounds for immediate cancellation of coverage and denial of claims, if any. It is further understood that the applicant and or affiliated company is under a continuing obligation to immediately notify his/her underwriter through his/her broker of any material alteration of the information given.</p>
         </div>
         
-        <div class="page-number page-number-page11">Page 11 of 12</div>
+        <div class="page-number page-number-page11">Page 10 of 11</div>
       </div>
     </div>
   `;
@@ -1367,44 +1345,6 @@ function generatePage12(data: ApplicationPacketData): string {
 
   return `
     <div class="page page12-isc" style="page-break-after: always;">
-      <div class="sidebar sidebar-page12">
-        <div class="logo-container logo-page12">
-          <div class="logo logo-sterling-page12">
-            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-              <defs>
-                <linearGradient id="sterlingGradient1Page12" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#00BCD4" stop-opacity="0.9" />
-                  <stop offset="100%" stop-color="#0097A7" stop-opacity="0.95" />
-                </linearGradient>
-                <linearGradient id="sterlingGradient2Page12" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25" />
-                  <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1" />
-                </linearGradient>
-              </defs>
-              <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#sterlingGradient1Page12)" />
-              <path d="M50 25 L65 40 L50 70 L35 40 Z" fill="url(#sterlingGradient2Page12)" />
-              <path d="M50 30 L50 65" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
-              <path d="M40 47 L60 47" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
-            </svg>
-          </div>
-        </div>
-        <div class="sidebar-title-vertical page12-title">Invoice Statement</div>
-        <div class="qr-container qr-page12">
-          ${data.qrCodeDataUrl ? generateQRCodeHTML(data.qrCodeDataUrl) : `<div class="qr-code-text-only">${qrCodeText}</div>`}
-          <div class="qr-text qr-text-page12">${qrCodeText}</div>
-          <div class="qr-page qr-page-text-page12">${qrCodePageText}</div>
-          <div class="applicant-icon applicant-icon-page12">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 0.48in; height: 0.48in;">
-              <circle cx="28" cy="16" r="8" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path d="M12 50c0-6.627 5.373-12 12-12h8c6.627 0 12 5.373 12 12" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="20" y="30" width="16" height="12" rx="2" stroke="#1f2937" stroke-width="2.5" fill="none"/>
-              <path d="M24 30V26c0-1.105.895-2 2-2h4c1.105 0 2 .895 2 2v4" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <line x1="26" y1="36" x2="30" y2="36" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="applicant-label applicant-label-page12">Producer</div>
-        </div>
-      </div>
       <div class="main-content main-content-page12">
         <div class="invoice-header-page12">
           <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
@@ -1419,21 +1359,27 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.premium || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">State Tax</div>
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
             <div class="invoice-value-page12">${data.stateTax || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Association Dues</div>
+            <div class="invoice-label-page12">Carrier Policy Fee</div>
             <div class="invoice-value-page12">${data.associationDues || '$0.00'}</div>
           </div>
+          <!-- just for frontend yet -->
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Policy Fee</div>
+            <div class="invoice-label-page12">Stamping Fee</div>
+            <div class="invoice-value-page12">$0.00</div>
+          </div>
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.policyFee || '$0.00'}</div>
           </div>
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Inspection Fee</div>
-            <div class="invoice-value-page12">${data.inspectionFee || '$0.00'}</div>
-          </div>
+
+          <!-- <div class="invoice-row-page12">
+             <div class="invoice-label-page12">Inspection Fee</div>
+             <div class="invoice-value-page12">${data.inspectionFee || '$0.00'}</div>
+           </div> -->
           <div class="invoice-row-total-page12">
             <div class="invoice-label-page12"><strong>TOTAL COST OF POLICY*</strong></div>
             <div class="invoice-value-page12"><strong>${data.totalCostOfPolicy || '$0.00'}</strong></div>
@@ -1443,29 +1389,30 @@ function generatePage12(data: ApplicationPacketData): string {
         <div class="invoice-section-page12">
           <div class="invoice-section-title-page12">TOTAL DEPOSIT*</div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% Premium</div>
+            <div class="invoice-label-page12">Premium</div>
             <div class="invoice-value-page12">${data.depositPremium || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% Association Dues</div>
+            <div class="invoice-label-page12">Carrier Policy Fee</div>
             <div class="invoice-value-page12">${data.depositAssociationDues || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% State Tax</div>
+            <div class="invoice-label-page12">Surplus Lines Tax</div>
             <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% Policy Fee</div>
+            <div class="invoice-label-page12">Stamping Fee</div>
             <div class="invoice-value-page12">${data.depositPolicyFee || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% Inspection Fee</div>
+            <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
           </div>
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% AI Processing Fee</div>
-            <div class="invoice-value-page12">${data.aiProcessingFee || '$0.00'}</div>
-          </div>
+          <!--<div class="invoice-row-page12">
+                <div class="invoice-label-page12">15% AI Processing Fee</div>
+                <div class="invoice-value-page12">${data.aiProcessingFee || '$0.00'}</div>
+              </div>-->
+
           <div class="invoice-row-total-page12">
             <div class="invoice-label-page12"><strong>TOTAL DEPOSIT*</strong></div>
             <div class="invoice-value-page12"><strong>${data.totalDeposit || '$0.00'}</strong></div>
@@ -1487,8 +1434,15 @@ function generatePage12(data: ApplicationPacketData): string {
         <div class="invoice-section-page12">
           <div class="invoice-section-title-page12">TOTAL TO BE SENT</div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12"><strong>MAKE CHECK PAYABLE FOR</strong></div>
+            <div class="invoice-label-page12"><strong>MAKE CHECK PAYABLE FOR </strong>from agency</div>
             <div class="invoice-value-page12"><strong>${data.totalToBeSent || '$0.00'}</strong></div>
+          </div>
+
+
+          <!-- just for frontend yet -->
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12"><strong>MAKE CHECK PAYABLE FOR</strong>finance company</div>
+            <div class="invoice-value-page12"><strong>$0.00</strong></div>
           </div>
         </div>
         
@@ -1506,7 +1460,7 @@ function generatePage12(data: ApplicationPacketData): string {
           <p>*Please note that any added agency broker fee or other charge, fee or cost assessed to the insured is your sole responsibility. All such amounts added in connection with this policy shall be in compliance with all applicable state and federal law.</p>
         </div>
         
-        <div class="page-number page-number-page12">Page 12 of 12</div>
+        <div class="page-number page-number-page12">Page 11 of 11</div>
       </div>
     </div>
   `;
@@ -2835,7 +2789,7 @@ function generateStateFormsPage(data: ApplicationPacketData): string {
   return `
     <div class="page state-forms-isc pa-form-no-sidebar" style="page-break-after: always;">
       <div class="pa-form-content-full state-forms-content">
-        <div class="section-title-uppercase-page4">State-Specific Forms – ${stateName}</div>
+        <div class="section-title-uppercase-page">State-Specific Forms – ${stateName}</div>
         <p class="state-forms-intro">This section contains the state-required forms for <strong>${stateName}</strong> (${stateCode || 'N/A'}) as applicable to this application.</p>
         <div class="state-forms-placeholder">
           <p><strong>Application ID:</strong> ${data.applicationId}</p>
@@ -2971,20 +2925,20 @@ export function mapFormDataToPacketData(
 
 
   // Get applicant state safely
-  const applicantState = formData.state?.toString().trim() || "";
+  // const applicantState = formData.state?.toString().trim() || "";
 
   // Normalize quote status safely
   const quoteStatus = quote?.status?.toString().trim().toUpperCase() || "";
 
   // Check if approved
-  const isApproved = quoteStatus === "POSTED";
+  // const isApproved = quoteStatus === "APPROVED";
 
   // Final condition for including state forms
-  const includeStateForms = applicantState !== "" && isApproved;
+  // const includeStateForms = applicantState !== "" && isApproved;
 
-  console.log("Applicant State:", applicantState);
+  // console.log("Applicant State:", applicantState);
   console.log("Quote Status:", quoteStatus);
-  console.log("Include State Forms:", includeStateForms);
+  // console.log("Include State Forms:", includeStateForms);
 
 
   return {
@@ -3011,8 +2965,8 @@ export function mapFormDataToPacketData(
     applicantCity: formData.city || '',
 
 
-    // applicantState: (formData.state || formData.addressState || '').trim(),
-    applicantState: applicantState,
+    applicantState: (formData.state || formData.addressState || '').trim(),
+    // applicantState: applicantState,
 
 
     applicantZip: (formData.zipCode || formData.zip || '').trim(),
@@ -3039,10 +2993,10 @@ export function mapFormDataToPacketData(
     desiredCoverageDates: coverageDates,
 
     // Include state forms when we have an applicant state (show in packet for new submissions and when quote approved)
-    // includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
-          // !!(quote?.status && ['APPROVED'].includes(quote.status)),
+    includeStateForms: !!((formData.state || formData.addressState || '').trim()) &&
+      !!(quote?.status && ['APPROVED'].includes(quote.status)),
 
-    includeStateForms: includeStateForms,
+    // includeStateForms: includeStateForms,
 
 
     // General Liability Coverages
@@ -4275,7 +4229,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
         bottom: -2px;
         width: 0.3in;
         height: 2px;
-        background: #4F391E;
+        background: #a36c27;
     }
 
     .page2-isc .applicant-field-page2 {
@@ -4421,12 +4375,13 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 10pt;
       font-weight: 700;
       text-transform: uppercase;
-      margin-top: 0.2in;
       margin-bottom: 6px;
-      padding-bottom: 3px;
+      padding-bottom: 2px;
       border-bottom: 2px solid #000;
-      letter-spacing: 0.4px;
-      color: #000;
+      color: #0f172a;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      position: relative;
     }
 
     .page3-isc .section-title-uppercase-page3::before {
@@ -4436,7 +4391,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       bottom: -2px;
       width: 0.3in;
       height: 2px;
-      background: #4F391E;
+      background: #a36c27;
     }
 
     /* CURRENT EXPOSURES */
@@ -4609,40 +4564,39 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page4-isc .main-content-page4 {
-      padding: 0.25in 0.35in;
+      padding: 0.3in 0.4in;
       font-size: 10pt;
-      line-height: 1.25;
+      line-height: 1.3;
       max-height: 10.5in;
       overflow: visible;
       display: flex;
       flex-direction: column;
-      width: 87.5%; /* Use 85-90% of page width */
-      max-width: 87.5%;
+      // width: 87.5%; /* Use 85-90% of page width */
+      // max-width: 87.5%;
     }
     
-    .page4-isc .section-title-uppercase-page4 {
-      font-size: 11pt;
-      font-weight: 800;
+    .page4-isc .section-title-uppercase-page {
+      font-size: 10pt;
+      font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 0.08in;
-      margin-top: 0.08in;
+      margin-bottom: 6px;
+      padding-bottom: 2px;
+      border-bottom: 2px solid #000;
       color: #0f172a;
-      letter-spacing: 0.8px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 0.03in;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      width: 100%;
       position: relative;
     }
     
-    .page4-isc .section-title-uppercase-page4::before {
+    .page4-isc .section-title-uppercase-page::before {
       content: '';
       position: absolute;
       left: 0;
       bottom: -2px;
       width: 0.3in;
       height: 2px;
-      background: #4A9EFF;
-    }
-      padding-bottom: 0.03in;
+      background: #a36c27;
     }
     
     .page4-isc .work-experience-questions-page4 {
@@ -4650,46 +4604,47 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page4-isc .question-item-page4 {
-      margin-bottom: 0.1in; /* Spacing between questions */
+      margin-bottom: 0.18in;
+      display: flex;
+      flex-direction: column;
     }
     
     .page4-isc .question-text-page4 {
-      font-size: 9.5pt;
-      line-height: 1.2;
-      margin-bottom: 0.06in; /* Spacing before Yes/No */
-      color: #1f2937;
+      font-size: 10pt;
+      line-height: 1.3;
+      color: #000000 !important;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .page4-isc .question-text-page4 span {
+      color: #000000 !important;
+      /* FORCE BLACK ON TEXT */
     }
     
     .page4-isc .yes-no-options-page4 {
-      font-size: 11pt;
-      font-weight: 500; /* Inter Medium */
-      margin-bottom: 0.06in; /* Spacing after Yes/No */
-      color: #1f2937;
-      display: flex !important;
-      visibility: visible !important;
-      gap: 0.3in; /* Space between Yes and No */
-      align-items: center;
+      display: flex;
+      gap: 0.35in;
+      font-size: 10pt;
+      font-weight: 400;
+      color: #000000;
     }
     
     .page4-isc .yes-no-options-page4 .yes-option,
     .page4-isc .yes-no-options-page4 .no-option {
-      padding: 0.06in 0.15in;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      min-width: 0.6in;
-      text-align: center;
-      font-weight: 500;
-      color: #1f2937;
-      display: inline-block !important;
-      visibility: visible !important;
+      font-weight: 400;
+      color: #000000;
     }
+    // .page4-isc .yes-no-options-page4 .selected {
+    //   font-weight: 800;   /* MUCH BOLDER */
+    //   color: #000000;
+    // }
     
     .page4-isc .yes-no-options-page4 .yes-option.selected {
       background: transparent;
       border: none;
       color: #1f2937;
-      font-weight: 500;
+      font-weight: 800;
       text-decoration: underline;
       text-decoration-thickness: 2px;
     }
@@ -4698,24 +4653,25 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       background: transparent;
       border: none;
       color: #1f2937;
-      font-weight: 500;
+      font-weight: 800;
       text-decoration: underline;
       text-decoration-thickness: 2px;
     }
     
     .page4-isc .explanation-field-page4 {
-      font-size: 9pt;
+      font-size: 9.5pt;
       line-height: 1.25;
-      margin-top: 0.02in;
-      margin-left: 0.15in;
-      color: #4b5563;
+      margin-top: 0.05in;
+      margin-left: 0.2in;
+      color: #000000;
     }
     
     .page4-isc .percentage-field-page4 {
       font-size: 10pt;
+      font-weight: 400;
       line-height: 1.25;
-      margin-top: 0.02in;
-      color: #1f2937;
+      margin-top: 0.08in;
+      color: #000000;
     }
     
     .page4-isc .page-number-page4 {
@@ -4736,213 +4692,22 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     .loss-table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 0.1in;
+      font-size: 9.5pt;
     }
 
     .loss-table th,
     .loss-table td {
-      border: 1px solid #ccc;
-      padding: 6px 8px;
-      text-align: left;
+      border: 1px solid #000000;
+      padding: 4px 6px;
     }
 
     .loss-table th {
-      background: #f5f5f5;
-      font-weight: 600;
+      font-weight: 700;
+      background: #ffffff;
     }
     
-    /* ============================================
-       PAGE 5 - ISC FORMAT: WRITTEN CONTRACT & POLICY ENDORSEMENTS
-       ============================================ */
-    .page5-isc .sidebar-page5 {
-      background: #e5e7eb;
-      width: 1.8in;
-      padding: 0.35in 0.2in;
-      border-right: 1px solid #d1d5db;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    
-    .page5-isc .logo-capital-co-hands-page5 {
-      width: 1.8in;
-      height: 1.8in;
-      background: transparent;
-      border-radius: 0;
-      margin-bottom: 0.25in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      flex-shrink: 0;
-      padding: 0;
-    }
-    
-    .page5-isc .logo-capital-co-hands-page5 svg,
-    .page5-isc .logo-capital-co-hands-page5 img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
-    }
-    
-    .page5-isc .logo-isc-blue {
-      width: 0.55in;
-      height: 0.55in;
-      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-      border-radius: 8px;
-      font-size: 16pt;
-      margin-bottom: 0.25in;
-    }
-    
-    .page5-isc .page5-title {
-      font-size: 24pt;
-      font-weight: 600;
-      color: #374151;
-      letter-spacing: 2px;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      white-space: nowrap;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(180deg);
-      margin: 0;
-    }
-    
-    .page5-isc .main-content-page5 {
-      padding: 0.25in 0.35in;
-      font-size: 10pt;
-      line-height: 1.25;
-      max-height: 10.5in;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      width: 87.5%; /* Use 85-90% of page width */
-      max-width: 87.5%;
-    }
-    
-    .page5-isc .section-title-uppercase-page5 {
-      font-size: 11pt;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 0.08in;
-      margin-top: 0.08in;
-      color: #0f172a;
-      letter-spacing: 0.8px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 0.03in;
-      position: relative;
-    }
-    
-    .page5-isc .section-title-uppercase-page5::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -2px;
-      width: 0.3in;
-      height: 2px;
-      background: #4A9EFF;
-    }
-      padding-bottom: 0.03in;
-    }
-    
-    .page5-isc .written-contract-questions-page5 {
-      margin-top: 0.06in;
-    }
-    
-    .page5-isc .question-item-page5 {
-      margin-bottom: 0.12in; /* Increased spacing between questions */
-    }
-    
-    .page5-isc .question-text-page5 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-bottom: 0.08in; /* Increased spacing before Yes/No */
-      color: #1f2937;
-    }
-    
-    .page5-isc .yes-no-options-page5 {
-      font-size: 11pt;
-      font-weight: 500; /* Inter Medium */
-      margin-bottom: 0.08in; /* Increased spacing after Yes/No */
-      color: #1f2937;
-      display: flex;
-      gap: 0.3in; /* Space between Yes and No */
-      align-items: center;
-    }
-    
-    .page5-isc .yes-no-options-page5 .yes-option,
-    .page5-isc .yes-no-options-page5 .no-option {
-      padding: 0.08in 0.2in;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      min-width: 0.8in;
-      text-align: center;
-      font-weight: 500;
-      color: #1f2937;
-    }
-    
-    .page5-isc .yes-no-options-page5 .yes-option.selected {
-      background: transparent;
-      border: none;
-      color: #1f2937;
-      font-weight: 500;
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    
-    .page5-isc .yes-no-options-page5 .no-option.selected {
-      background: transparent;
-      border: none;
-      color: #1f2937;
-      font-weight: 500;
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    
-    .page5-isc .sub-question-header-page5 {
-      font-size: 10pt;
-      font-weight: 600;
-      margin-top: 0.03in;
-      margin-bottom: 0.04in;
-      color: #374151;
-    }
-    
-    .page5-isc .sub-question-item-page5 {
-      margin-left: 0.15in;
-      margin-bottom: 0.04in;
-      margin-top: 0.03in;
-    }
-    
-    .page5-isc .explanation-field-page5 {
-      font-size: 9pt;
-      line-height: 1.25;
-      margin-top: 0.02in;
-      margin-left: 0.15in;
-      color: #4b5563;
-    }
-    
-    .page5-isc .policy-endorsements-title-page5 {
-      margin-top: 0.15in;
-    }
-    
-    .page5-isc .policy-endorsements-content-page5 {
-      font-size: 10pt;
-      line-height: 1.25;
-      margin-top: 0.06in;
-      color: #1f2937;
-      font-weight: 500;
-    }
-    
-    .page5-isc .page-number-page5 {
-      position: absolute;
-      bottom: 0.35in;
-      right: 0.35in;
-      font-size: 10pt;
-      color: #6b7280;
-      font-weight: 400;
-    }
+     
     
     /* ============================================
        PAGE 6 - ISC FORMAT: NOTICE & POLICY EXCLUSIONS
@@ -5014,16 +4779,18 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page6-isc .section-title-uppercase-page6 {
-      font-size: 11pt;
-      font-weight: 800;
+      font-size: 10pt;
+      font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 0.06in;
-      margin-top: 0.08in;
+      margin-bottom: 6px;
+      padding-bottom: 2px;
+      border-bottom: 2px solid #000;
       color: #0f172a;
-      letter-spacing: 0.8px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 0.03in;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      width: 100%;
       position: relative;
+    }
     }
     
     .page6-isc .section-title-uppercase-page6::before {
@@ -5033,9 +4800,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       bottom: -2px;
       width: 0.3in;
       height: 2px;
-      background: #4A9EFF;
-    }
-      padding-bottom: 0.02in;
+      background: #a36c27 !important;
     }
     
     .page6-isc .notice-content-page6 {
@@ -5146,15 +4911,16 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page7-isc .section-title-uppercase-page7 {
-      font-size: 11pt;
-      font-weight: 800;
+      font-size: 10pt;
+      font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 0.06in;
-      margin-top: 0.08in;
+      margin-bottom: 6px;
+      padding-bottom: 2px;
+      border-bottom: 2px solid #000;
       color: #0f172a;
-      letter-spacing: 0.8px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 0.03in;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      width: 100%;
       position: relative;
     }
     
@@ -5165,9 +4931,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       bottom: -2px;
       width: 0.3in;
       height: 2px;
-      background: #4A9EFF;
-    }
-      padding-bottom: 0.02in;
+      background: #a36c27;
     }
     
     .page7-isc .agreement-content-page7 {

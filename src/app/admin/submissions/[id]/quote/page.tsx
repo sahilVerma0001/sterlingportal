@@ -920,7 +920,7 @@ export default function AdminQuotePage() {
                   </select>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Aggregate Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
                   </label>
@@ -931,7 +931,7 @@ export default function AdminQuotePage() {
                     className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                     placeholder="e.g., 2M"
                   />
-                </div>
+                </div> */}
 
                 {/* Change 4: Fire Legal Limit - Dropdown */}
                 <div>

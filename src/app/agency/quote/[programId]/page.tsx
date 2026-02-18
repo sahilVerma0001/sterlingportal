@@ -483,6 +483,8 @@ export default function QuoteFormPage() {
   const [calculatedPremium, setCalculatedPremium] = useState<number | null>(null);
   const [quoteId, setQuoteId] = useState<string | null>(null);
 
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
@@ -608,9 +610,20 @@ export default function QuoteFormPage() {
       ...prev,
       classCodeWork: {
         ...prev.classCodeWork,
-        [code]: remaining, // ✅ auto-fill remaining %
+        [code]: remaining, // ✅ keep your auto-fill logic
       },
     }));
+
+    // ✅ ADD THIS PART (does not affect logic)
+    if (code === "Others") {
+      setTimeout(() => {
+        descriptionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+        descriptionRef.current?.focus();
+      }, 200);
+    }
   };
 
 
@@ -1024,102 +1037,19 @@ export default function QuoteFormPage() {
             {/* Centered Logo with Premium Internal Spinner - Positioned at absolute bottom */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
               <div className="relative">
-                {/* Logo Container - Round with smooth arc spinner */}
-                <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-full flex items-center justify-center shadow-xl border-2 border-[#00BCD4]/30 overflow-visible">
 
-                  {/* Premium Arc Spinner - INSIDE the logo border with slower speed */}
-                  {isProcessing && (
-                    <svg className="absolute inset-0 w-full h-full -rotate-90">
-                      <circle
-                        cx="28"
-                        cy="28"
-                        r="25"
-                        fill="none"
-                        stroke="url(#innerSpinnerGradient)"
-                        strokeWidth="2"
-                        strokeDasharray="45 135"
-                        strokeLinecap="round"
-                        className="animate-spin origin-center"
-                        style={{
-                          animationDuration: '3s',
-                          transformOrigin: '28px 28px'
-                        }}
-                      />
-                      <defs>
-                        <linearGradient id="innerSpinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#00BCD4" stopOpacity="0.8" />
-                          <stop offset="100%" stopColor="#0097A7" stopOpacity="0.9" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  )}
-
-                  {/* Subtle Background Glow */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent rounded-full"></div>
-                  </div>
-
-                  {/* Premium Logo Design */}
-                  <svg className="relative w-8 h-8 z-10" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Outer Shield Shape */}
-                    <path
-                      d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z"
-                      fill="url(#logoGradient1)"
-                      className="drop-shadow-lg"
-                    />
-
-                    {/* Inner Diamond */}
-                    <path
-                      d="M50 25 L65 40 L50 70 L35 40 Z"
-                      fill="url(#logoGradient2)"
-                      className="drop-shadow-md"
-                    />
-
-                    {/* Center Accent Line */}
-                    <path
-                      d="M50 30 L50 65"
-                      stroke="#FFFFFF"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      className="drop-shadow-sm"
-                    />
-
-                    {/* Horizontal Accent */}
-                    <path
-                      d="M40 47 L60 47"
-                      stroke="#FFFFFF"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      opacity="0.8"
-                    />
-
-                    {/* Gradients */}
-                    <defs>
-                      <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#00BCD4" stopOpacity="0.9" />
-                        <stop offset="100%" stopColor="#0097A7" stopOpacity="0.95" />
-                      </linearGradient>
-                      <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.1" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-
-                  {/* Corner Accents */}
-                  <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-                  <div className="absolute bottom-1.5 left-1.5 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
+                {/* Rectangle Logo Container */}
+                <div className="relative w-[260px] h-[70px] bg-white rounded-md shadow-md border border-gray-200 overflow-hidden">
+                  <img
+                    src="/sterling-logo.JPG"
+                    alt="Sterling Insurance Services LLC"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
-                {/* Company Name Below Logo */}
-                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                  <p className="text-[10px] font-semibold text-gray-700 tracking-wide">
-                    Sterling
-                  </p>
-                </div>
+
               </div>
             </div>
-
             {/* Program Name - Absolute positioned at bottom right like ISC */}
             {/* <div className="absolute bottom-0 right-0">
               <h1 className="text-xl font-bold text-gray-800">Advantage</h1>
@@ -1136,7 +1066,7 @@ export default function QuoteFormPage() {
           {/* Indication Information */}
           <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
             <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Application Information</h2>
+              <h2 className="text-lg font-semibold\">Application Information</h2>
             </div>
             <div className="px-8 pt-6 pb-7">
 
@@ -1454,7 +1384,7 @@ export default function QuoteFormPage() {
                       onClick={() => setShowAdditionalLimits((prev) => !prev)}
                       className="text-[#00BCD4] font-bold text-lg leading-none"
                     >
-                      {showAdditionalLimits ? "−" : "+"}
+                      {/* {showAdditionalLimits ? "−" : "+"} */}
                     </button>
                   </label>
 
@@ -1483,47 +1413,48 @@ export default function QuoteFormPage() {
                 </div>
 
                 {/* Expanded section */}
-                {showAdditionalLimits && (
-                  <div className="mt-6 space-y-5">
+                {/* {showAdditionalLimits && ( */}
+                <div className="mt-6 space-y-5">
 
-                    {/* Fire Legal Limit */}
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">
-                        Fire Legal Limit
-                      </label>
-                      <div></div>
-                      <select
-                        value={formData.fireLegalLimit}
-                        onChange={(e) =>
-                          handleInputChange("fireLegalLimit", e.target.value)
-                        }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
-                      >
-                        <option value="$50,000">$50,000</option>
-                        <option value="$100,000">$100,000</option>
-                      </select>
-                    </div>
-
-                    {/* Med Pay Limit */}
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">
-                        Med Pay Limit
-                      </label>
-                      <div></div>
-                      <select
-                        value={formData.medicalExpenseLimit}
-                        onChange={(e) =>
-                          handleInputChange("medicalExpenseLimit", e.target.value)
-                        }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
-                      >
-                        <option value="$5,000">$5,000</option>
-                        <option value="$10,000">$10,000</option>
-                      </select>
-                    </div>
-
+                  {/* Fire Legal Limit */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Fire Legal Limit
+                    </label>
+                    <div></div>
+                    <select
+                      value={formData.fireLegalLimit}
+                      onChange={(e) =>
+                        handleInputChange("fireLegalLimit", e.target.value)
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                    >
+                      <option value="$50,000">$50,000</option>
+                      <option value="$100,000">$100,000</option>
+                    </select>
                   </div>
-                )}
+
+                  {/* Med Pay Limit */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Med Pay Limit
+                    </label>
+                    <div></div>
+                    <select
+                      value={formData.medicalExpenseLimit}
+                      onChange={(e) =>
+                        handleInputChange("medicalExpenseLimit", e.target.value)
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                    >
+                      <option value="$5,000">$5,000</option>
+                      <option value="$10,000">$10,000</option>
+                      <option value="Not Applicable">Not Applicable</option>
+                    </select>
+                  </div>
+
+                </div>
+                {/* )} */}
 
 
                 <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
@@ -1688,6 +1619,7 @@ export default function QuoteFormPage() {
             </div>
 
             <textarea
+              ref={descriptionRef}
               value={formData.carrierApprovedDescription}
               placeholder="Enter Description here...."
               onChange={(e) =>
@@ -1835,7 +1767,7 @@ export default function QuoteFormPage() {
                     >
                       <option value="" selected disabled hidden>Select payment option</option>
                       <option value="Full Pay">Full Pay</option>
-                      <option value="3rd Party">3rd Party Finance</option>
+                      <option value="3rd Party">Premium Financial Partners Co.</option>
                     </select>
                     {/* <p className="text-xs text-gray-500 mt-1">
                       Note: Financing options will not be available until the zip is filled out and a product is selected.
@@ -2492,7 +2424,18 @@ export default function QuoteFormPage() {
                 <YesNoRadio
                   label="Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?"
                   value={formData.performRoofingOps}
-                  onChange={(val) => handleInputChange('performRoofingOps', val)}
+                  onChange={(val) => {
+                    handleInputChange("performRoofingOps", val);
+
+                    if (val === true) {
+                      handleInputChange(
+                        "roofingOpsExplanation",
+                        "Performs roofing operations as indicated by class code selection,"
+                      );
+                    } else {
+                      handleInputChange("roofingOpsExplanation", "");
+                    }
+                  }}
                 />
 
                 {formData.performRoofingOps && (
@@ -3260,7 +3203,7 @@ export default function QuoteFormPage() {
 
               {/* Product info */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                <h3 className="text-[18px] font-semibold tracking-tight">
                   Add Excess Liability
                 </h3>
                 <p className="text-sm font-semibold text-gray-700 mb-1">
@@ -3450,11 +3393,16 @@ export default function QuoteFormPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-8 py-3 bg-gradient-to-r from-[#00BCD4] to-[#0097A7] text-white rounded font-bold hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold 
+                          hover:bg-[#8F8371] 
+                          active:bg-[#7A6F60] 
+                          transition-all duration-200 
+                          disabled:opacity-50 
+                          flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                     Submitting...
                   </>
                 ) : (
@@ -3536,8 +3484,8 @@ export default function QuoteFormPage() {
             />
             <defs>
               <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00BCD4" />
-                <stop offset="100%" stopColor="#0097A7" />
+                <stop offset="0%" stopColor="#8f5b16" />
+                <stop offset="100%" stopColor="#a75c00" />
               </linearGradient>
             </defs>
           </svg>

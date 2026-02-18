@@ -191,7 +191,7 @@ export default function Sidebar() {
         <div className="p-3">
           <Link
             href="/agency/marketplace"
-            className="block text-center bg-[#9A8B7A] text-black hover:bg-[#7A6F64] py-2 rounded font-semibold hover:bg-cyan-300 transition"
+            className="block text-center bg-[#9A8B7A] text-black hover:bg-[#7A6F64] py-2 rounded font-semibold hover:bg-[#7A6F64] transition"
           >
             Sterling Marketplace
           </Link>

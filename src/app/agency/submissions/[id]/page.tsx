@@ -21,6 +21,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 
+
 interface SubmissionDetails {
   submission: {
     _id: string;
@@ -153,7 +154,7 @@ const iscOutlineBtn =
   "h-[42px] px-6 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-800 transition-all duration-200 hover:border-black hover:shadow-[0_0_0_1px_black]";
 
 const iscPrimaryBtn =
-  "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#4EC4C4] text-white transition-all duration-200 hover:bg-[#38b2b2]";
+  "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64]";
 
 const handleRequestBind = async () => {
   if (!confirm("Request bind approval?")) return;
@@ -187,6 +188,8 @@ const toggleDoc = (doc: string) => {
     [doc]: !prev[doc],
   }));
 };
+
+
 
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const { data: session, status } = useSession();
@@ -337,6 +340,7 @@ useEffect(() => {
         return "bg-gray-100 text-gray-800 border border-gray-200";
     }
   };
+  
 
   if (status === "loading" || loading) {
 
@@ -406,6 +410,13 @@ useEffect(() => {
   }
 
   const { submission, routingLogs, quotes } = data;
+
+
+// ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
+const isSubmitted = submission.status === "SUBMITTED";
+const isQuoted = submission.status === "QUOTED";
+const isBindRequested = submission.status === "BIND_REQUESTED";
+const isBound = submission.status === "BOUND";
 
   const statusHistory = [
   {
@@ -570,25 +581,14 @@ useEffect(() => {
 <div className="flex items-center gap-3">
 
   {/* ================= SUBMITTED (IN PROGRESS) ================= */}
-  {submission.status === "SUBMITTED" && (
+  {isSubmitted && (
     <>
-       <button className={iscOutlineBtn}>Quick Quote</button>
-
-      <button
-        onClick={() =>
-          window.open(`/api/agency/applications/${submissionId}/pdf`, "_blank")
-        }
-        className={iscOutlineBtn}
-      >
-        App Packet
-      </button>
-
+      <button className={iscOutlineBtn}>Quick Quote</button>
       <button className={iscOutlineBtn}>Edit</button>
 
-      {/* 🔵 Request Approval API */}
       <button
         onClick={handleRequestApproval}
-        className="bg-[#9A8B7A] hover:bg-[#7A6F64] text-white h-[42px] px-6 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.98]"
+        className={iscPrimaryBtn}
       >
         Request Approval
       </button>
@@ -598,13 +598,14 @@ useEffect(() => {
   )}
 
   {/* ================= QUOTED (APPROVED QUOTE) ================= */}
-  {submission.status === "QUOTED" && (
+  {isQuoted && (
     <>
-      <button className={iscOutlineBtn}>Quick Quote</button>
-
       <button
         onClick={() =>
-          window.open(`/api/agency/applications/${submissionId}/pdf`, "_blank")
+          window.open(
+            `/api/agency/applications/${submissionId}/pdf`,
+            "_blank"
+          )
         }
         className={iscOutlineBtn}
       >
@@ -612,12 +613,10 @@ useEffect(() => {
       </button>
 
       <button className={iscOutlineBtn}>View</button>
-      <button className={iscOutlineBtn}>E-Sign</button>
 
-      {/* 🟤 Request Bind API */}
       <button
         onClick={handleRequestBind}
-        className="bg-[#9A8B7A] hover:bg-[#7A6F64] text-white h-[42px] px-6 rounded-lg text-sm font-semibold shadow-sm transition-all duration-200 active:scale-[0.98]"
+        className={iscPrimaryBtn}
       >
         Request Bind
       </button>
@@ -627,10 +626,17 @@ useEffect(() => {
     </>
   )}
 
-  {/* ================= BOUND ================= */}
-  {submission.status === "BOUND" && (
+  {/* ================= BIND REQUESTED ================= */}
+  {isBindRequested && (
     <>
       <button className={iscOutlineBtn}>View</button>
+    </>
+  )}
+
+  {/* ================= BOUND ================= */}
+  {isBound && (
+    <>
+      <button className={iscOutlineBtn}>View Policy</button>
     </>
   )}
 

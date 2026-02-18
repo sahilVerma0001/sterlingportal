@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface Program {
   id: string;
@@ -25,7 +26,7 @@ export default function MarketplacePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [expandedIndustry, setExpandedIndustry] = useState<string | null>("construction");
-  const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const industries: Industry[] = [
@@ -114,16 +115,7 @@ export default function MarketplacePage() {
     }
   };
 
-  const handleProgramSelect = (programId: string) => {
-    setSelectedProgram(programId);
-  };
 
-  const handleContinue = () => {
-    if (selectedProgram) {
-      // Navigate to quote/application page
-      router.push(`/agency/quote/${selectedProgram}`);
-    }
-  };
 
   if (status === "loading") {
     return (
@@ -191,10 +183,10 @@ export default function MarketplacePage() {
                       {/* Industry Card Header */}
                       <div
                         onClick={() => handleIndustryClick(industry.id)}
-                        className={`cursor-pointer bg-white border-2 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
-                          ? 'border-[#9A8B7A] shadow-lg'
-                          : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                        className={`cursor-pointer bg-white border-2 overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
+                          ? 'border-[#9A8B7A] rounded-t-2xl border-b-0'
+                          : 'border-gray-200 rounded-2xl hover:border-gray-300'
+                        }`}
                       >
                         {/* Featured Banner */}
                         {industry.featured && !isExpanded && (
@@ -246,37 +238,23 @@ export default function MarketplacePage() {
 
                       {/* Expanded Programs List */}
                       {isExpanded && (
-                        <div className="mt-4 space-y-2">
+                        <div className="flex gap-6 flex-wrap pt-4 px-4 pb-4 bg-white border-2 border-t-0 border-[#9A8B7A] rounded-b-2xl">
                           {industry.programs.map((program) => (
-                            <label
-                              key={program.id}
-                              className="flex items-start gap-3 p-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-[#9A8B7A] hover:bg-gray-50 transition-all group"
-                            >
-                              {/* Checkbox (acts as radio) */}
-                              <input
-                                type="checkbox"
-                                checked={selectedProgram === program.id}
-                                onChange={() => handleProgramSelect(program.id)}
-                                className="w-5 h-5 mt-0.5 text-[#9A8B7A] border-gray-300 rounded focus:ring-[#9A8B7A] focus:ring-2 cursor-pointer  accent-[#9A8B7A]"
-                              />
-
-                              {/* Program Info */}
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-sm font-medium text-gray-900 group-hover:text-[#9A8B7A] transition-colors">
-                                    {program.name}
-                                  </span>
-                                  {program.badge && (
-                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${program.badgeColor === 'teal'
-                                      ? 'bg-[#9A8B7A] text-white'
-                                      : 'bg-blue-100 text-blue-700'
-                                      }`}>
-                                      {program.badge}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </label>
+                          <label
+                            key={program.id}
+                            onClick={() => router.push(`/agency/quote/${program.id}`)}
+                            className="w-56 cursor-pointer group"
+                          >
+                          <div className="w-full h-56 rounded-3xl overflow-hidden bg-white shadow-sm">
+                            <Image
+                              src="/construction-box.jpeg"
+                              alt="Construction Program"
+                              width={400}
+                              height={400}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          </label>
                           ))}
                         </div>
                       )}
@@ -288,20 +266,7 @@ export default function MarketplacePage() {
           </div>
 
           {/* Continue Button  this is button edting */}
-          <div className="fixed bottom-6 right-6 z-50">
-            <button
-              onClick={handleContinue} 
-              disabled={!selectedProgram}
-              className={`px-8 py-3 rounded-lg text-base font-semibold shadow-lg transition-all
-                ${
-                  selectedProgram
-                    ? "bg-[#9A8B7A] text-[#111827] hover:bg-[#7A6F64]"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-            >
-              Continue
-            </button>
-          </div>
+
         </div>
       </main>
     </div>
