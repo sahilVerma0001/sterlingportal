@@ -1,10 +1,9 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import ISCPipelineBar from "@/components/layout/ISCPipelineBar";
 
-export const dynamic = "force-dynamic";
-
+import BrokerSidebar from "@/components/layout/BrokerSidebar";
+export const dynamic = 'force-dynamic';
+import { ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -15,52 +14,86 @@ interface Submission {
   _id: string;
   submissionNumber: number;
   industry: string;
+  subtype: string;
+  templateTitle: string;
   clientName: string;
+  clientEmail: string;
+  clientPhone: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
+  fileCount: number;
+  state: string;
+  estimatedPremium?: number;
+}
+
+interface DashboardStats {
+  totalSubmissions: number;
+  activeQuotes: number;
+  postedQuotes: number;
+  boundPolicies: number;
 }
 
 interface PipelineStage {
   id: string;
   label: string;
   count: number;
+  color?: string;
 }
 
-// ISC STATUS MAP
-const stageToStatusMap: Record<string, string> = {
-  IN_PROGRESS: "SUBMITTED",
-  REQUIRES_REVIEW: "ROUTED",
-  APPROVAL_REQUESTED: "ROUTED",
-  CONDITIONALLY_APPROVED: "ROUTED",
-  APPROVED_QUOTE: "QUOTED",
-  PENDING_BIND: "BIND_REQUESTED",
-  READY_TO_BIND: "BIND_REQUESTED", // Maps to same status as PENDING_BIND
-  NEWLY_BOUND: "BOUND"
-
-};
-
 function AgencyDashboardContent() {
-  const { status } = useSession();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalSubmissions: 0,
+    activeQuotes: 0,
+    postedQuotes: 0,
+    boundPolicies: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStage, setSelectedStage] = useState("IN_PROGRESS");
-  const [filterType, setFilterType] = useState("ALL");
-  const [filterProgram, setFilterProgram] = useState("ALL");
+  const [selectedStage, setSelectedStage] = useState("QUOTED");
+  const [viewMode, setViewMode] = useState<'my' | 'agency'>('my');
+  const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
+  const [filterType, setFilterType] = useState<string>("ALL");
+  const [filterProgram, setFilterProgram] = useState<string>("ALL");
+  const [showFilters, setShowFilters] = useState(false);
+  const [newQuotes, setNewQuotes] = useState<any[]>([]);
 
+  // Map ISC pipeline stages to real database statuses
+  const stageToStatusMap: Record<string, string | string[]> = {
+    "IN_PROGRESS": "SUBMITTED",
+    "REQUIRES_REVIEW": "ROUTED",
+    "APPROVAL_REQUESTED": "ROUTED",
+    "CONDITIONALLY_APPROVED": "ROUTED",
+    "APPROVED_QUOTE": "QUOTED",
+    "PENDING_BIND": "BIND_REQUESTED",
+    "INCOMPLETE_BIND": "BIND_REQUESTED",
+    "READY_TO_BIND": "BIND_REQUESTED",
+    "NEWLY_BOUND": "BOUND",
+    "UNDERWRITING_DECLINED": "DECLINED",
+  };
+
+  // Pipeline stages matching ISC (counts will be updated from real data)
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
     { id: "IN_PROGRESS", label: "In Progress", count: 0 },
     { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
     { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
     { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
-    { id: "APPROVED_QUOTE", label: "Approved Quote", count: 0 },
+    { id: "APPROVED_QUOTE", label: "Approved Quote", count: 0, color: "teal" },
     { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
+    { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
     { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
-    { id: "NEWLY_BOUND", label: "Newly Bound", count: 0 }
+    { id: "NEWLY_BOUND", label: "Newly Bound", count: 0 },
+    { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
 
   useEffect(() => {
@@ -70,57 +103,107 @@ function AgencyDashboardContent() {
   }, [status, router]);
 
   useEffect(() => {
-    fetchSubmissions();
-  }, []);
+    if (status === "authenticated") {
+      fetchAllSubmissions();
+      fetchStats();
+    }
+  }, [status, filterStartDate, filterEndDate]);
 
+  // Update filtered submissions when stage or search changes
   useEffect(() => {
-    filterSubmissions();
-  }, [selectedStage, searchQuery, filterType, filterProgram, allSubmissions]);
+    if (allSubmissions.length > 0) {
+      filterSubmissionsByStage();
+    }
+  }, [selectedStage, searchQuery, allSubmissions, filterType, filterProgram]);
 
   useEffect(() => {
     if (searchParams.get("submitted") === "true") {
-      fetchSubmissions();
+      fetchAllSubmissions();
+      fetchStats();
       router.replace("/agency/dashboard");
     }
   }, [searchParams, router]);
 
-  const fetchSubmissions = async () => {
+  const fetchStats = async () => {
+    try {
+      const [submissionsRes, quotesRes, boundRes] = await Promise.all([
+        fetch("/api/agency/submissions"),
+        fetch("/api/agency/quotes?status=POSTED"),
+        fetch("/api/agency/bound-policies"),
+      ]);
+
+      const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };
+      const quotesData = quotesRes.ok ? await quotesRes.json() : { quotes: [] };
+      const boundData = boundRes.ok ? await boundRes.json() : { policies: [] };
+
+      // Filter new quotes (POSTED status, created in last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const newQuotesList = quotesData.quotes?.filter((q: any) => {
+        const quoteDate = new Date(q.createdAt);
+        return q.status === "POSTED" && quoteDate >= sevenDaysAgo;
+      }) || [];
+      setNewQuotes(newQuotesList);
+
+      setStats({
+        totalSubmissions: submissionsData.submissions?.length || 0,
+        activeQuotes: quotesData.quotes?.length || 0,
+        postedQuotes: quotesData.quotes?.length || 0,
+        boundPolicies: boundData.policies?.length || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchAllSubmissions = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/agency/submissions");
-      const data = await res.json();
-      const list = data.submissions || [];
+      const params = new URLSearchParams();
+      if (filterStartDate) params.append("startDate", filterStartDate);
+      if (filterEndDate) params.append("endDate", filterEndDate);
 
-      setAllSubmissions(list);
+      const response = await fetch(`/api/agency/submissions?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch submissions");
 
+      const data = await response.json();
+      const fetchedSubmissions = data.submissions || [];
+      setAllSubmissions(fetchedSubmissions);
+
+      // Calculate counts for each stage
       const counts: Record<string, number> = {
-        SUBMITTED: 0,
-        ROUTED: 0,
-        QUOTED: 0,
-        BIND_REQUESTED: 0,
-        BOUND: 0
+        "SUBMITTED": 0,
+        "ROUTED": 0,
+        "QUOTED": 0,
+        "BIND_REQUESTED": 0,
+        "BOUND": 0,
       };
 
-      list.forEach((s: Submission) => {
-        if (counts[s.status] !== undefined) {
-          counts[s.status]++;
+      fetchedSubmissions.forEach((sub: Submission) => {
+        if (counts[sub.status] !== undefined) {
+          counts[sub.status]++;
         }
       });
 
+      // Update pipeline stages with real counts
       setPipelineStages([
-        { id: "IN_PROGRESS", label: "In Progress", count: counts.SUBMITTED },
-        { id: "REQUIRES_REVIEW", label: "Requires Review", count: Math.floor(counts.ROUTED / 3) },
-        { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
+        { id: "IN_PROGRESS", label: "In Progress", count: counts.SUBMITTED || 0 },
+        { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
+        { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: Math.floor((counts.ROUTED || 0) / 3) },
         { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
-        { id: "APPROVED_QUOTE", label: "Approved Quote", count: counts.QUOTED },
+        { id: "APPROVED_QUOTE", label: "Approved Quote", count: counts.QUOTED || 0, color: "teal" },
         { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
-        { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED },
-        { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND }
+        { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
+        { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
+        { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND || 0 },
+        { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 
-      filterSubmissionsWithData(list);
-    } catch (err) {
-      console.error(err);
+      // Filter by selected stage initially
+      filterSubmissionsByStageWithData(fetchedSubmissions);
+
+    } catch (error: any) {
+      console.error("Error fetching submissions:", error.message);
       setAllSubmissions([]);
       setSubmissions([]);
     } finally {
@@ -128,156 +211,321 @@ function AgencyDashboardContent() {
     }
   };
 
-  const filterSubmissionsWithData = (data: Submission[]) => {
+  const filterSubmissionsByStageWithData = (data: Submission[]) => {
     let filtered = data;
 
-    const statusFilter = stageToStatusMap[selectedStage];
-    if (statusFilter) {
-      filtered = filtered.filter(s => s.status === statusFilter);
+    // Filter by selected stage
+    const stageStatus = stageToStatusMap[selectedStage];
+    if (stageStatus) {
+      if (Array.isArray(stageStatus)) {
+        filtered = filtered.filter(sub => stageStatus.includes(sub.status));
+      } else {
+        filtered = filtered.filter(sub => sub.status === stageStatus);
+      }
     }
 
+    // Filter by type
+    if (filterType !== "ALL") {
+      filtered = filtered.filter(sub => sub.status === filterType);
+    }
+
+    // Filter by program (industry)
+    if (filterProgram !== "ALL") {
+      filtered = filtered.filter(sub => sub.industry === filterProgram);
+    }
+
+    // Filter by search query
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        s =>
-          s.clientName.toLowerCase().includes(q) ||
-          String(s.submissionNumber).includes(q) ||
-          s.industry.toLowerCase().includes(q)
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(sub =>
+        sub.clientName.toLowerCase().includes(query) ||
+        String(sub.submissionNumber).includes(query) ||
+        sub.clientEmail.toLowerCase().includes(query) ||
+        sub.industry.toLowerCase().includes(query) ||
+        sub.subtype.toLowerCase().includes(query)
       );
     }
 
     setSubmissions(filtered);
   };
 
-  const filterSubmissions = () => {
-    filterSubmissionsWithData(allSubmissions);
+  const filterSubmissionsByStage = () => {
+    filterSubmissionsByStageWithData(allSubmissions);
+  };
+
+  const exportToCSV = () => {
+    if (submissions.length === 0) return;
+    const headers = ["Submission ID", "Industry", "Subtype", "Client Name", "Client Email", "Client Phone", "Status", "State", "Files", "Created Date", "Updated Date"];
+    const rows = submissions.map((sub) => [
+      sub.submissionNumber, sub.industry, sub.subtype, sub.clientName, sub.clientEmail, sub.clientPhone,
+      sub.status, sub.state, sub.fileCount.toString(),
+      new Date(sub.createdAt).toLocaleDateString(),
+      new Date(sub.updatedAt).toLocaleDateString(),
+    ]);
+    const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `submissions_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="relative w-16 h-16 mx-auto mb-4">
+            <div className="absolute inset-0 border-4 border-[#F3F0ED] rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-[#9A8B7A] rounded-full animate-spin"></div>
+          </div>
+          <p className="text-sm text-gray-600 font-medium">Loading your workspace...</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <DashboardLayout>
-      <div className="flex flex-col h-full">
+  if (status === "unauthenticated") return null;
 
-        {/* STICKY PIPELINE */}
-        <div className="sticky top-0 z-20">
-          <ISCPipelineBar
-            stages={pipelineStages}
-            activeStage={selectedStage}
-            onChange={setSelectedStage}
-          />
+  return (
+    <div className="min-h-screen bg-[#F3F0ED] flex">
+
+
+
+      {/* RIGHT MAIN WRAPPER */}
+      <div className="flex-1 flex flex-col">
+
+        {/* PAGE HEADER */}
+        <div className="px-10 pt-8 pb-4">
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-4 mb-6">
+
+              <h1 className="text-[34px] font-semibold text-[#2D2D2D] text-2xl font-semibold">
+                Sales Pipeline
+              </h1>
+            </div>
+
+
+
+            {/* ===== RIGHT HEADER ACTIONS (CLEAN) ===== */}
+            <div className="flex items-center gap-5 relative">
+
+              {/* ⭐ MARKETPLACE BUTTON */}
+              <button
+                onClick={() => router.push("/agency/marketplace")}
+                className="px-6 py-2.5 rounded-2xl text-sm font-semibold bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200"
+              >
+                Marketplace
+              </button>
+
+              {/* ⭐ HOME ICON */}
+              <button
+                onClick={() => router.push("/agency/broker-center")}
+                className="p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200"
+              >
+                <svg
+                  className="w-[22px] h-[22px] text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </button>
+
+              {/* ⭐ PROFILE */}
+              <div className="relative">
+
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold text-sm shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                >
+                  {session?.user?.name?.[0] || "U"}
+                </button>
+
+                {/* ⭐ DROPDOWN */}
+                {profileOpen && (
+                  <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-[fadeIn_.2s_ease]">
+
+                    <div className="px-4 py-3 border-b bg-gray-50">
+                      <p className="text-sm font-semibold text-gray-800">
+                        {session?.user?.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => signOut()}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition"
+                    >
+                      Logout
+                    </button>
+
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
         </div>
 
-        {/* CONTENT */}
-        <section className="flex-1 p-6 bg-[#F3F0ED]">
-
-
-          <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 flex items-center gap-4 mb-4">
-
-
-            <input
-              placeholder="Search"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A]"
-
-            />
-
-            <select
-              value={filterType}
-              onChange={e => setFilterType(e.target.value)}
-              className="border border-[#E5E7EB] px-2 py-1 text-[12px] text-[#020617] focus:outline-none focus:ring-1 focus:ring-[#9A8B7A] rounded-lg text-sm"
-
-            >
-              <option value="ALL">All Types</option>
-              <option value="SUBMITTED">New Business</option>
-              <option value="ROUTED">Renewal</option>
-            </select>
-
-            <select
-              value={filterProgram}
-              onChange={e => setFilterProgram(e.target.value)}
-              className="border border-[#9CA3AF] px-2 py-1 text-[12px] text-[#020617] focus:outline-none focus:ring-1 focus:ring-[#374151]">
-              <option value="ALL">All Programs</option>
-            </select>
-
-            <div className="ml-auto text-xs text-gray-500">
-              {submissions.length} of {allSubmissions.length}
+        {/* NOTIFICATION BAR */}
+        {newQuotes.length > 0 && (
+          <div className="mx-10 mb-6 bg-[#9A8B7A] text-white rounded-xl shadow-sm px-6 py-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-lg">
+                🔔 {newQuotes.length} New Quotes Ready!
+              </p>
+              <p className="text-sm text-[#F3F0ED]">
+                You have {newQuotes.length} new quotes waiting for your review.
+              </p>
             </div>
+
+            <Link
+              href="/agency/quotes?status=POSTED"
+              className="bg-white text-[#9A8B7A] px-5 py-2 rounded-lg text-sm font-semibold"
+            >
+              View Quotes →
+            </Link>
+          </div>
+        )}
+
+        {/* MAIN CARD CONTAINER */}
+        <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden">
+
+          {/* LEFT PIPELINE */}
+          <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
+
+            {pipelineStages.map((stage) => (
+              <button
+                key={stage.id}
+                onClick={() => setSelectedStage(stage.id)}
+                className={`w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm transition ${selectedStage === stage.id
+                    ? "bg-white shadow-sm font-semibold"
+                    : "hover:bg-white"
+                  }`}
+              >
+                <span>{stage.label}</span>
+                <span className="bg-[#E7E3DF] text-[#5A5A5A] text-xs px-2 py-1 rounded-md">
+                  {stage.count}
+                </span>
+              </button>
+            ))}
+
           </div>
 
-          <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+          {/* RIGHT TABLE SECTION */}
+          <div className="flex-1 flex flex-col">
 
-            {loading ? (
-              <div className="text-center py-20 text-gray-600">
-                Loading submissions...
+            {/* FILTER BAR */}
+            <div className="p-6 border-b border-[#ECEAE7] flex items-center gap-4">
+
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-4 py-2 w-[300px] border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+              />
+
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+              >
+                <option value="ALL">All Types</option>
+                <option value="SUBMITTED">New Business</option>
+                <option value="ROUTED">Renewal</option>
+              </select>
+
+              <select
+                value={filterProgram}
+                onChange={(e) => setFilterProgram(e.target.value)}
+                className="px-4 py-2 border border-[#E0DDD9] rounded-xl text-sm bg-[#F9F8F7]"
+              >
+                <option value="ALL">All Programs</option>
+                {Array.from(new Set(allSubmissions.map(s => s.industry))).map(ind => (
+                  <option key={ind} value={ind}>{ind}</option>
+                ))}
+              </select>
+
+              <div className="ml-auto text-sm text-gray-600">
+                {submissions.length} of {allSubmissions.length}
               </div>
-            ) : submissions.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-700">No submissions found</p>
-                <Link
-                  href="/agency/submit"
-                  className="inline-block mt-4 bg-[#9A8B7A] hover:bg-[#7A6F64] transition text-white px-6 py-2.5 text-sm font-medium rounded-lg"
-                >
-                  + New Submission
-                </Link>
-              </div>
-            ) : (
-              <table className="w-full text-[13px] text-gray-800 border-collapse">
-                <thead className="bg-[#F3F0ED] text-[#6B7280] uppercase text-[11px] tracking-wide sticky top-[44px] z-10">
+            </div>
+
+            {/* TABLE */}
+            <div className="overflow-y-auto">
+
+              <table className="w-full text-sm">
+                <thead className="bg-[#F9F8F7] text-[#6B6B6B] uppercase text-xs">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium">App ID</th>
-                    <th className="px-4 py-3 text-left font-medium">Applicant Company</th>
-                    <th className="px-4 py-3 text-left font-medium">Program</th>
-                    <th className="px-4 py-3 text-left font-medium">Effective Date</th>
+                    <th className="px-6 py-4 text-left">Type</th>
+                    <th className="px-6 py-4 text-left">App ID</th>
+                    <th className="px-6 py-4 text-left">Applicant Company</th>
+                    <th className="px-6 py-4 text-left">Program</th>
+                    <th className="px-6 py-4 text-left">Effective Date</th>
+                    <th className="px-6 py-4 text-left">Line of Business</th>
+                    <th className="px-6 py-4 text-center">Info</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {submissions.map(sub => (
-                    <tr
-                      key={sub._id}
-                      className="border-t hover:bg-[#F9FAFB] transition"
-                    >
-                      <td className="px-4 py-2 font-medium">
-                        <Link href={`/agency/submissions/${sub._id}`} className="text-sm text-gray-900 hover:text-[#00BCD4]">
+
+                <tbody className="divide-y divide-[#ECEAE7]">
+                  {submissions.map((sub) => (
+                    <tr key={sub._id} className="hover:bg-[#F9F8F7] transition">
+                      <td className="px-6 py-4">
+                        {sub.status === "SUBMITTED" ? "New business" : "Renewal"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/agency/submissions/${sub._id}`}
+                          className="text-[#9A8B7A] font-medium"
+                        >
                           {sub.submissionNumber}
                         </Link>
                       </td>
-                      <td className="px-4 py-2">{sub.clientName}</td>
-                      <td className="px-4 py-2">{sub.industry}</td>
-                      <td className="px-4 py-2">
-                        {new Date(sub.createdAt).toLocaleDateString()}
+                      <td className="px-6 py-4">{sub.clientName}</td>
+                      <td className="px-6 py-4">{sub.industry}</td>
+                      <td className="px-6 py-4">
+                        {new Date(sub.createdAt).toISOString().split("T")[0]}
                       </td>
+                      <td className="px-6 py-4">{sub.subtype}</td>
+                      <td className="px-6 py-4 text-center">ⓘ</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
+
+            </div>
           </div>
-        </section>
+        </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 
 export default function AgencyDashboard() {
+
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
-        </div>
-      }
-    >
+      </div>
+    }>
       <AgencyDashboardContent />
     </Suspense>
   );

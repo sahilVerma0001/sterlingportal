@@ -130,64 +130,64 @@ function SubmissionDetailsContent() {
   };
 
   const handleRequestApproval = async () => {
-  if (!confirm("Send request for approval?")) return;
+    if (!confirm("Send request for approval?")) return;
 
-  try {
-    const res = await fetch(
-      `/api/agency/submissions/${submissionId}/request-approval`,
-      { method: "POST" }
-    );
+    try {
+      const res = await fetch(
+        `/api/agency/submissions/${submissionId}/request-approval`,
+        { method: "POST" }
+      );
 
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
 
-    toast.success("Approval request sent!");
-    fetchSubmission();
-  } catch (err: any) {
-    toast.error(err.message);
-  }
-};
+      toast.success("Approval request sent!");
+      fetchSubmission();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
 
-// ================= ISC BUTTON STYLES =================
+  // ================= ISC BUTTON STYLES =================
 
-const iscOutlineBtn =
-  "h-[42px] px-6 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-800 transition-all duration-200 hover:border-black hover:shadow-[0_0_0_1px_black]";
+  const iscOutlineBtn =
+    "h-[42px] px-6 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-800 transition-all duration-200 hover:border-black hover:shadow-[0_0_0_1px_black]";
 
-const iscPrimaryBtn =
-  "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64]";
+  const iscPrimaryBtn =
+    "h-[42px] px-6 rounded-md text-sm font-semibold bg-[#7A6F64] text-white transition-all duration-200 hover:bg-[#7A6F64]";
 
-const handleRequestBind = async () => {
-  if (!confirm("Request bind approval?")) return;
+  const handleRequestBind = async () => {
+    if (!confirm("Request bind approval?")) return;
 
-  try {
-    const res = await fetch(
-      `/api/agency/submissions/${submissionId}/request-bind`,
-      { method: "POST" }
-    );
+    try {
+      const res = await fetch(
+        `/api/agency/submissions/${submissionId}/request-bind`,
+        { method: "POST" }
+      );
 
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
 
-    toast.success("Bind request sent!");
-    fetchSubmission();
-  } catch (err: any) {
-    toast.error(err.message);
-  }
-};
+      toast.success("Bind request sent!");
+      fetchSubmission();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
   const toggleNoteFilter = (filter: string) => {
-  setNoteFilters((prev) =>
-    prev.includes(filter)
-      ? prev.filter((f) => f !== filter)
-      : [...prev, filter]
-  );
-};
+    setNoteFilters((prev) =>
+      prev.includes(filter)
+        ? prev.filter((f) => f !== filter)
+        : [...prev, filter]
+    );
+  };
   // ✅ REQUIRED DOCUMENT CHECKLIST TOGGLE (ISC STYLE)
-const toggleDoc = (doc: string) => {
-  setCheckedDocs((prev) => ({
-    ...prev,
-    [doc]: !prev[doc],
-  }));
-};
+  const toggleDoc = (doc: string) => {
+    setCheckedDocs((prev) => ({
+      ...prev,
+      [doc]: !prev[doc],
+    }));
+  };
 
 
 
@@ -228,33 +228,33 @@ const toggleDoc = (doc: string) => {
     }
   }, [status, router]);
 
-const fetchSubmission = async () => {
-  
-  if (!submissionId) return;
+  const fetchSubmission = async () => {
 
-  try {
-    setLoading(true);
+    if (!submissionId) return;
 
-    const res = await fetch(
-      `/api/agency/submissions/${submissionId}`
-    );
+    try {
+      setLoading(true);
 
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error);
+      const res = await fetch(
+        `/api/agency/submissions/${submissionId}`
+      );
 
-    setData(result);
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-useEffect(() => {
-  if (status === "authenticated" && submissionId) {
-    fetchSubmission();
-    fetchActivityLogs();
-  }
-}, [status, submissionId]); 
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+
+      setData(result);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (status === "authenticated" && submissionId) {
+      fetchSubmission();
+      fetchActivityLogs();
+    }
+  }, [status, submissionId]);
 
   const fetchActivityLogs = async () => {
     if (!submissionId) return;
@@ -263,35 +263,35 @@ useEffect(() => {
       const response = await fetch(`/api/agency/submissions/${submissionId}/activity`);
 
       if (response.ok) {
-              const statusHistory = [
-      {
-        _id: submission._id + "-created",
-        program: submission.programName || "General Liability",
-        changedAt: submission.createdAt,
-        user: session?.user?.name || "System",
-        status: "Submission Created",
-      },
+        const statusHistory = [
+          {
+            _id: submission._id + "-created",
+            program: submission.programName || "General Liability",
+            changedAt: submission.createdAt,
+            user: session?.user?.name || "System",
+            status: "Submission Created",
+          },
 
-      ...routingLogs.map((log) => ({
-        _id: log._id,
-        program: log.carrierId?.name || "Carrier",
-        changedAt: log.createdAt,
-        user: log.carrierId?.name || "Underwriter",
-        status: log.status,
-      })),
+          ...routingLogs.map((log) => ({
+            _id: log._id,
+            program: log.carrierId?.name || "Carrier",
+            changedAt: log.createdAt,
+            user: log.carrierId?.name || "Underwriter",
+            status: log.status,
+          })),
 
-      ...activityLogs.map((log) => ({
-        _id: log._id,
-        program: "Activity",
-        changedAt: log.createdAt,
-        user: log.performedBy?.userName || "System",
-        status: log.description,
-      })),
-    ].sort(
-      (a, b) =>
-        new Date(b.changedAt).getTime() -
-        new Date(a.changedAt).getTime()
-    );
+          ...activityLogs.map((log) => ({
+            _id: log._id,
+            program: "Activity",
+            changedAt: log.createdAt,
+            user: log.performedBy?.userName || "System",
+            status: log.description,
+          })),
+        ].sort(
+          (a, b) =>
+            new Date(b.changedAt).getTime() -
+            new Date(a.changedAt).getTime()
+        );
         const data = await response.json();
         setActivityLogs(data.logs || []);
       }
@@ -340,7 +340,7 @@ useEffect(() => {
         return "bg-gray-100 text-gray-800 border border-gray-200";
     }
   };
-  
+
 
   if (status === "loading" || loading) {
 
@@ -412,41 +412,41 @@ useEffect(() => {
   const { submission, routingLogs, quotes } = data;
 
 
-// ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
-const isSubmitted = submission.status === "SUBMITTED";
-const isQuoted = submission.status === "QUOTED";
-const isBindRequested = submission.status === "BIND_REQUESTED";
-const isBound = submission.status === "BOUND";
+  // ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
+  const isSubmitted = submission.status === "SUBMITTED";
+  const isQuoted = submission.status === "QUOTED";
+  const isBindRequested = submission.status === "BIND_REQUESTED";
+  const isBound = submission.status === "BOUND";
 
   const statusHistory = [
-  {
-    _id: submission._id + "-created",
-    program: submission.programName || "General Liability",
-    changedAt: submission.createdAt,
-    user: session?.user?.name || "System",
-    status: "Submission Created",
-  },
+    {
+      _id: submission._id + "-created",
+      program: submission.programName || "General Liability",
+      changedAt: submission.createdAt,
+      user: session?.user?.name || "System",
+      status: "Submission Created",
+    },
 
-  ...routingLogs.map((log) => ({
-    _id: log._id,
-    program: log.carrierId?.name || "Carrier",
-    changedAt: log.createdAt,
-    user: log.carrierId?.name || "Underwriter",
-    status: log.status,
-  })),
+    ...routingLogs.map((log) => ({
+      _id: log._id,
+      program: log.carrierId?.name || "Carrier",
+      changedAt: log.createdAt,
+      user: log.carrierId?.name || "Underwriter",
+      status: log.status,
+    })),
 
-  ...activityLogs.map((log) => ({
-    _id: log._id,
-    program: "Activity",
-    changedAt: log.createdAt,
-    user: log.performedBy?.userName || "System",
-    status: log.description,
-  })),
-].sort(
-  (a, b) =>
-    new Date(b.changedAt).getTime() -
-    new Date(a.changedAt).getTime()
-);
+    ...activityLogs.map((log) => ({
+      _id: log._id,
+      program: "Activity",
+      changedAt: log.createdAt,
+      user: log.performedBy?.userName || "System",
+      status: log.description,
+    })),
+  ].sort(
+    (a, b) =>
+      new Date(b.changedAt).getTime() -
+      new Date(a.changedAt).getTime()
+  );
 
   // Build timeline from submission history
   const timeline = [
@@ -475,7 +475,7 @@ const isBound = submission.status === "BOUND";
 
   return (
     <DashboardLayout>
-    
+
       {/* Sidebar - Matching Dashboard */}
 
       {/* Main Content */}
@@ -486,7 +486,7 @@ const isBound = submission.status === "BOUND";
           <div className="flex items-start justify-between">
 
             {/* LEFT SIDE */}
-           <div className="bg-white px-8 py-3">
+            <div className="bg-white px-8 py-3">
               <Link href="/agency/dashboard" className="mt-1">
                 <ArrowLeft className="w-5 h-5 text-gray-500 hover:text-black" />
               </Link>
@@ -495,9 +495,9 @@ const isBound = submission.status === "BOUND";
                 {/* Title */}
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px] leading-tight">
                   {submission.clientContact.name}
-                   <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
-              {submission.status.replace("_", " ")}
-            </span>
+                  <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
+                    {submission.status.replace("_", " ")}
+                  </span>
                 </h1>
 
                 {/* Meta Row */}
@@ -533,7 +533,7 @@ const isBound = submission.status === "BOUND";
 
               {/* ICON ACTIONS */}
               <div className="flex items-center gap-5">
-                <button   aria-label="Favorite"
+                <button aria-label="Favorite"
                   className="p-2 rounded-md hover:bg-gray-100">
                   <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
@@ -578,78 +578,108 @@ const isBound = submission.status === "BOUND";
             </div>
 
             {/* RIGHT BUTTONS */}
-<div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
 
-  {/* ================= SUBMITTED (IN PROGRESS) ================= */}
-  {isSubmitted && (
-    <>
-      <button className={iscOutlineBtn}>Quick Quote</button>
-      <button className={iscOutlineBtn}>Edit</button>
+              {/* ================= SUBMITTED (IN PROGRESS) ================= */}
+              {isSubmitted && (
+                <>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className="btn-secondary"
+                  >
+                    View
+                  </button>
+                  <button className={iscOutlineBtn}>Edit</button>
 
-      <button
-        onClick={handleRequestApproval}
-        className={iscPrimaryBtn}
-      >
-        Request Approval
-      </button>
+                  <button
+                    onClick={handleRequestApproval}
+                    className={iscPrimaryBtn}
+                  >
+                    Request Approval
+                  </button>
 
-      <button className={iscOutlineBtn}>Cancel Quote</button>
-    </>
-  )}
+                  <button className={iscOutlineBtn}>Cancel Quote</button>
+                </>
+              )}
 
-  {/* ================= QUOTED (APPROVED QUOTE) ================= */}
-  {isQuoted && (
-    <>
-      <button
-        onClick={() =>
-          window.open(
-            `/api/agency/applications/${submissionId}/pdf`,
-            "_blank"
-          )
-        }
-        className={iscOutlineBtn}
-      >
-        App Packet
-      </button>
+              {/* ================= QUOTED (APPROVED QUOTE) ================= */}
+              {isQuoted && (
+                <>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/api/agency/applications/${submissionId}/pdf`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    App Packet
+                  </button>
 
-      <button className={iscOutlineBtn}>View</button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className="btn-secondary"
+                  >
+                    View
+                  </button>
 
-      <button
-        onClick={handleRequestBind}
-        className={iscPrimaryBtn}
-      >
-        Request Bind
-      </button>
+                  <button
+                    onClick={handleRequestBind}
+                    className={iscPrimaryBtn}
+                  >
+                    Request Bind
+                  </button>
 
-      <button className={iscOutlineBtn}>Modify</button>
-      <button className={iscOutlineBtn}>Cancel Quote</button>
-    </>
-  )}
+                  <button className={iscOutlineBtn}>Modify</button>
 
-  {/* ================= BIND REQUESTED ================= */}
-  {isBindRequested && (
-    <>
-      <button className={iscOutlineBtn}>View</button>
-    </>
-  )}
+                </>
+              )}
 
-  {/* ================= BOUND ================= */}
-  {isBound && (
-    <>
-      <button className={iscOutlineBtn}>View Policy</button>
-    </>
-  )}
+              {/* ================= BIND REQUESTED ================= */}
+              {isBindRequested && (
+                <>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }
+                    className="btn-secondary"
+                  >
+                    View
+                  </button>
+                </>
+              )}
 
-</div>
+              {/* ================= BOUND ================= */}
+              {isBound && (
+                <>
+                  <button className={iscOutlineBtn}>View Policy</button>
+                </>
+              )}
 
-  {/* ================= BOUND (NEWLY BOUND) ================= */}
-  {submission.status === "BOUND" && (
-    <>
-      <button className="btn-secondary">View</button>
-    </>
-  )}
-</div>
+            </div>
+
+            {/* ================= BOUND (NEWLY BOUND) ================= */}
+            {submission.status === "BOUND" && (
+              <>
+                <button className="btn-secondary">View</button>
+              </>
+            )}
           </div>
+        </div>
         {/* KEY INFO GRID – ISC STYLE */}
         {/* ISC STYLE – KEY INFO STRIP */}
         <div className="bg-white px-6 py-5 border-t border-gray-100">
@@ -705,565 +735,562 @@ const isBound = submission.status === "BOUND";
 
           </div>
         </div>
-    {/* ISC STYLE – STANDARD GL A-RATED SECTION */}
-    <div className="bg-white px-8 py-6 border-t border-gray-200">
+        {/* ISC STYLE – STANDARD GL A-RATED SECTION */}
+        <div className="bg-white px-8 py-6 border-t border-gray-200">
 
-      {/* SECTION TITLE */}
-      <div className="mb-6">
-        <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-          Standard GL A-Rated - Claims Made
-        </h3>
-        <div className="mt-2 h-[1px] w-64 bg-gray-300" />
-      </div>
-
-      {/* CONTENT GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-6 text-[14px]">
-
-        {/* LEFT */}
-        <div className="space-y-4">
-          <div className="flex">
-            <span className="w-28 text-gray-500">Carrier:</span>
-            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-              {quotes[0]?.carrierId?.name || "—"}
-            </span>
+          {/* SECTION TITLE */}
+          <div className="mb-6">
+            <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+              Standard GL A-Rated - Claims Made
+            </h3>
+            <div className="mt-2 h-[1px] w-64 bg-gray-300" />
           </div>
 
-          <div className="flex">
-            <span className="w-28 text-gray-500">Cost:</span>
-            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-              {quotes.length > 0
-                ? `$${quotes[0].finalAmountUSD.toLocaleString()}`
-                : "Not Quoted"}
-            </span>
-          </div>
-        </div>
+          {/* CONTENT GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-6 text-[14px]">
 
-        {/* RIGHT */}
-        <div className="space-y-4">
-          <div className="flex">
-            <span className="w-36 text-gray-500">Policy Number:</span>
-            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-              Not Bound
-            </span>
-          </div>
+            {/* LEFT */}
+            <div className="space-y-4">
+              <div className="flex">
+                <span className="w-28 text-gray-500">Carrier:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {quotes[0]?.carrierId?.name || "—"}
+                </span>
+              </div>
 
-          <div className="flex">
-            <span className="w-36 text-gray-500">Effective Date:</span>
-            <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-              {new Date(submission.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    {/* ISC STYLE – UPLOAD DOCUMENTS */}
-    <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
-
-      {/* LEFT – UPLOADED DOCUMENTS */}
-      <div className="lg:col-span-2">
-
-        <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-          Uploaded Documents
-        </h3>
-
-        {/* Upload Box */}
-        <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
-          <p className="text-[14px] text-gray-500">
-            Drag and drop your files here to start uploading or
-          </p>
-
-          <input
-            type="file"
-            hidden
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                handleFileUpload(e.target.files[0]);
-              }
-            }}
-          />
-
-          <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
-            {uploading ? "Uploading..." : "Browse"}
-          </span>
-        </label>
-
-        {/* TABLE HEADER */}
-        <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
-          <span>Filename</span>
-          <span>Uploaded On</span>
-          <span>Action</span>
-        </div>
-
-        {/* FILE ROWS */}
-        {submission.files.length === 0 ? (
-          <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">
-            No documents uploaded yet
-          </div>
-        ) : (
-          submission.files.map((file, index) => (
-            <div
-              key={index}
-              className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200"
-            >
-              <span className="font-medium text-gray-900">
-                {file.fileName}
-              </span>
-
-              <span className="text-gray-500">
-                {new Date(submission.updatedAt).toLocaleDateString()}
-              </span>
-
-              <a
-                href={file.fileUrl}
-                download
-                target="_blank"
-                className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
-              >
-                Download
-              </a>
+              <div className="flex">
+                <span className="w-28 text-gray-500">Cost:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {quotes.length > 0
+                    ? `$${quotes[0].finalAmountUSD.toLocaleString()}`
+                    : "Not Quoted"}
+                </span>
+              </div>
             </div>
-          ))
-        )}
-      </div>
 
-      {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
-      <div>
-          <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
-            Required Documents Checklist
-          </h3>
-          <div className="space-y-6 text-[14px]">
-            {[
-              "Signed GL Application",
-              "Signed Loss Warranty Letter",
-              "Invoice Statement",
-              "Surplus Line Acknowledgment",
-              "Terrorism Acknowledgment",
-            ].map((doc) => {
-              const checked = checkedDocs[doc];
+            {/* RIGHT */}
+            <div className="space-y-4">
+              <div className="flex">
+                <span className="w-36 text-gray-500">Policy Number:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  Not Bound
+                </span>
+              </div>
 
-              return (
+              <div className="flex">
+                <span className="w-36 text-gray-500">Effective Date:</span>
+                <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
+                  {new Date(submission.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ISC STYLE – UPLOAD DOCUMENTS */}
+        <div className="bg-white px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-10 border-b border-gray-200">
+
+          {/* LEFT – UPLOADED DOCUMENTS */}
+          <div className="lg:col-span-2">
+
+            <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+              Uploaded Documents
+            </h3>
+
+            {/* Upload Box */}
+            <label className="border border-dashed border-gray-300 rounded-md p-6 flex items-center justify-between mb-6 cursor-pointer">
+              <p className="text-[14px] text-gray-500">
+                Drag and drop your files here to start uploading or
+              </p>
+
+              <input
+                type="file"
+                hidden
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handleFileUpload(e.target.files[0]);
+                  }
+                }}
+              />
+
+              <span className="ml-4 px-5 py-2 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white text-[14px] font-medium rounded-md transition-colors">
+                {uploading ? "Uploading..." : "Browse"}
+              </span>
+            </label>
+
+            {/* TABLE HEADER */}
+            <div className="bg-gray-100 px-4 py-2 grid grid-cols-3 text-[13px] font-medium text-gray-600">
+              <span>Filename</span>
+              <span>Uploaded On</span>
+              <span>Action</span>
+            </div>
+
+            {/* FILE ROWS */}
+            {submission.files.length === 0 ? (
+              <div className="px-4 py-6 text-[14px] text-gray-400 border border-t-0 border-gray-200">
+                No documents uploaded yet
+              </div>
+            ) : (
+              submission.files.map((file, index) => (
                 <div
-                  key={doc}
-                  onClick={() => toggleDoc(doc)}
-                  className="flex items-center gap-4 cursor-pointer"
+                  key={index}
+                  className="px-4 py-3 grid grid-cols-3 items-center text-[14px] border border-t-0 border-gray-200"
                 >
-                  {/* CLEAN ISC CIRCLE */}
+                  <span className="font-medium text-gray-900">
+                    {file.fileName}
+                  </span>
+
+                  <span className="text-gray-500">
+                    {new Date(submission.updatedAt).toLocaleDateString()}
+                  </span>
+
+                  <a
+                    href={file.fileUrl}
+                    download
+                    target="_blank"
+                    className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
+                  >
+                    Download
+                  </a>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* RIGHT – REQUIRED DOCUMENTS CHECKLIST */}
+          <div>
+            <h3 className="text-[14px] font-semibold text-gray-900 mb-5 tracking-tight">
+              Required Documents Checklist
+            </h3>
+            <div className="space-y-6 text-[14px]">
+              {[
+                "Signed GL Application",
+                "Signed Loss Warranty Letter",
+                "Invoice Statement",
+                "Surplus Line Acknowledgment",
+                "Terrorism Acknowledgment",
+              ].map((doc) => {
+                const checked = checkedDocs[doc];
+
+                return (
                   <div
-                    className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
-                      ${
-                        checked
+                    key={doc}
+                    onClick={() => toggleDoc(doc)}
+                    className="flex items-center gap-4 cursor-pointer"
+                  >
+                    {/* CLEAN ISC CIRCLE */}
+                    <div
+                      className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all
+                      ${checked
                           ? "bg-[#9A8B7A] border-[#9A8B7A]"
                           : "border-gray-300"
-                      }`}
-                  >
-                    {checked && (
-                      <svg
-                        className="w-3 h-3 text-white"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                      >
-                        <path d="M5 10l3 3 7-7" />
-                      </svg>
-                    )}
+                        }`}
+                    >
+                      {checked && (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path d="M5 10l3 3 7-7" />
+                        </svg>
+                      )}
+                    </div>
+
+                    {/* TEXT */}
+                    <span className="text-gray-800 leading-tight">
+                      {doc}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+        {/* ================= NOTES – ISC STYLE ================= */}
+        <div className="bg-white px-8 py-6 border-t border-gray-200">
+          {/* Tabs */}
+          <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
+            {["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-3 cursor-pointer transition ${activeTab === tab
+                      ? "border-b-2 border-black text-black font-medium"
+                      : "text-gray-400 hover:text-gray-600"
+                    }`}
+                >
+                  {tab}
+                </button>
+              )
+            )}
+          </div>
+          {activeTab === "Notes" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+              {/* LEFT – ADD NOTE */}
+              <div className="lg:col-span-2">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                  Add Note
+                </h3>
+
+                {/* Notify Filters */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <span className="text-[13px] text-gray-500 mr-2">Notify:</span>
+
+                  {[
+                    "Underwriter",
+                    "Accounting",
+                    "Endorsements",
+                    "Additional Insured Endorsements",
+                    "Cancellations",
+                    "Audits",
+                    "Inspections",
+                  ].map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => toggleNoteFilter(item)}
+                      className={`px-3 py-1.5 rounded-md text-[13px] border transition ${noteFilters.includes(item)
+                          ? "bg-black text-white border-black"
+                          : "bg-gray-100 text-gray-700 border-gray-200"
+                        }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Chat Box */}
+                <div className="flex gap-4 items-start">
+                  {/* Avatar */}<div className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold">
+
+                    {session?.user?.name?.[0] || "U"}
                   </div>
 
-                  {/* TEXT */}
-                  <span className="text-gray-800 leading-tight">
-                    {doc}
-                  </span>
+                  {/* Textarea */}
+                  <div className="flex-1">
+                    <textarea
+                      rows={4} className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      placeholder="Leave a note..."
+
+                    />
+
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <span className="text-base">+</span>
+                        Add Note
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-          
-      </div>
-    </div>
-    {/* ================= NOTES – ISC STYLE ================= */}
-<div className="bg-white px-8 py-6 border-t border-gray-200">
-  {/* Tabs */}
-  <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
-{["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
-  (tab) => (
-    <button
-      key={tab}
-      onClick={() => setActiveTab(tab)}
-      className={`pb-3 cursor-pointer transition ${
-        activeTab === tab
-          ? "border-b-2 border-black text-black font-medium"
-          : "text-gray-400 hover:text-gray-600"
-      }`}
-    >
-      {tab}
-    </button>
-  )
-)}
-  </div>
-  {activeTab === "Notes" && (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-    {/* LEFT – ADD NOTE */}
-    <div className="lg:col-span-2">
-      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-        Add Note
-      </h3>
+              </div>
 
-      {/* Notify Filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-[13px] text-gray-500 mr-2">Notify:</span>
+              {/* RIGHT – NOTES THREAD */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[15px] font-semibold text-gray-900">
+                    Notes Thread
+                  </h3>
 
-        {[
-          "Underwriter",
-          "Accounting",
-          "Endorsements",
-          "Additional Insured Endorsements",
-          "Cancellations",
-          "Audits",
-          "Inspections",
-        ].map((item) => (
-          <button
-            key={item}
-            onClick={() => toggleNoteFilter(item)}
-            className={`px-3 py-1.5 rounded-md text-[13px] border transition ${
-              noteFilters.includes(item)
-                ? "bg-black text-white border-black"
-                : "bg-gray-100 text-gray-700 border-gray-200"
-            }`}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 text-[13px] rounded-md bg-black text-white">
+                      Default
+                    </button>
+                    <button className="px-3 py-1.5 text-[13px] rounded-md bg-gray-100 text-gray-700">
+                      System Only
+                    </button>
+                  </div>
+                </div>
 
-      {/* Chat Box */}
-      <div className="flex gap-4 items-start">
-        {/* Avatar */}<div className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold">
-        
-          {session?.user?.name?.[0] || "U"}
-        </div>
-
-        {/* Textarea */}
-        <div className="flex-1">
-          <textarea
-            rows={4}className="w-full border border-gray-300 rounded-md p-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#9A8B7A]"
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Leave a note..."
-            
-          />
-
-          <div className="mt-3 flex justify-end">
-          <button
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <span className="text-base">+</span>
-            Add Note
-          </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* RIGHT – NOTES THREAD */}
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-semibold text-gray-900">
-          Notes Thread
-        </h3>
-
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-[13px] rounded-md bg-black text-white">
-            Default
-          </button>
-          <button className="px-3 py-1.5 text-[13px] rounded-md bg-gray-100 text-gray-700">
-            System Only
-          </button>
-        </div>
-      </div>
-
-      {/* Empty State */}
-      <div className="border rounded-md p-8 flex flex-col items-center justify-center text-center bg-gray-50">
-        <div className="w-20 h-16 bg-gray-300 rounded mb-4" />
-        <p className="font-medium text-gray-700 mb-1">
-          No notes added yet
-        </p>
-        <p className="text-[13px] text-gray-500">
-          Drop in questions or comments to help us assist you.
-        </p>
-      </div>
-    </div>
-  </div>
-  )}
-  {activeTab === "Status History" && (
-  <div className="border rounded-md overflow-hidden">
-    <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 text-sm font-medium text-gray-600">
-      <span>Program</span>
-      <span>Changed</span>
-      <span>User</span>
-      <span>Status</span>
-    </div>
-
-    {statusHistory.map((item) => (
-      <div
-        key={item._id}
-        className="px-4 py-3 grid grid-cols-4 text-sm border-t"
-      >
-        <span>{item.program}</span>
-        <span>{new Date(item.changedAt).toLocaleString()}</span>
-        <span>{item.user}</span>
-        <span>{item.status}</span>
-      </div>
-    ))}
-  </div>
-)}
-{activeTab === "Rating Information" && (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-    {/* LEFT SIDE – PREMIUM INFO */}
-    <div className="border rounded-md p-6">
-      <h3 className="text-[15px] font-semibold mb-4">
-        Premium Breakdown
-      </h3>
-
-      {quotes.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No rating information available.
-        </p>
-      ) : (
-        <>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span>Carrier Premium</span>
-              <span>
-                ${quotes[0].carrierQuoteUSD.toLocaleString()}
-              </span>
+                {/* Empty State */}
+                <div className="border rounded-md p-8 flex flex-col items-center justify-center text-center bg-gray-50">
+                  <div className="w-20 h-16 bg-gray-300 rounded mb-4" />
+                  <p className="font-medium text-gray-700 mb-1">
+                    No notes added yet
+                  </p>
+                  <p className="text-[13px] text-gray-500">
+                    Drop in questions or comments to help us assist you.
+                  </p>
+                </div>
+              </div>
             </div>
+          )}
+          {activeTab === "Status History" && (
+            <div className="border rounded-md overflow-hidden">
+              <div className="bg-gray-100 px-4 py-2 grid grid-cols-4 text-sm font-medium text-gray-600">
+                <span>Program</span>
+                <span>Changed</span>
+                <span>User</span>
+                <span>Status</span>
+              </div>
 
-            <div className="flex justify-between">
-              <span>Broker Fee</span>
-              <span>
-                ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
-              </span>
+              {statusHistory.map((item) => (
+                <div
+                  key={item._id}
+                  className="px-4 py-3 grid grid-cols-4 text-sm border-t"
+                >
+                  <span>{item.program}</span>
+                  <span>{new Date(item.changedAt).toLocaleString()}</span>
+                  <span>{item.user}</span>
+                  <span>{item.status}</span>
+                </div>
+              ))}
             </div>
+          )}
+          {activeTab === "Rating Information" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            <div className="flex justify-between font-semibold border-t pt-3">
-              <span>Total Premium</span>
-              <span>
-                ${quotes[0].finalAmountUSD.toLocaleString()}
-              </span>
+              {/* LEFT SIDE – PREMIUM INFO */}
+              <div className="border rounded-md p-6">
+                <h3 className="text-[15px] font-semibold mb-4">
+                  Premium Breakdown
+                </h3>
+
+                {quotes.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    No rating information available.
+                  </p>
+                ) : (
+                  <>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Carrier Premium</span>
+                        <span>
+                          ${quotes[0].carrierQuoteUSD.toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Broker Fee</span>
+                        <span>
+                          ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between font-semibold border-t pt-3">
+                        <span>Total Premium</span>
+                        <span>
+                          ${quotes[0].finalAmountUSD.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {activeTab === "Rating Information" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+                    {/* ================= PRODUCER ================= */}
+                    <div className="border rounded-md p-6 bg-gray-50">
+                      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                        Producer
+                      </h3>
+
+                      <div className="space-y-3 text-[14px]">
+
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {submission.clientContact.name}
+                          </p>
+                          <p className="text-gray-500">
+                            {(session?.user as any)?.agencyName || "Agency Name"}
+                          </p>
+                        </div>
+
+                        <div className="pt-4 space-y-2 text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span>
+                              {submission.clientContact.businessAddress.street},{" "}
+                              {submission.clientContact.businessAddress.city},{" "}
+                              {submission.clientContact.businessAddress.state}{" "}
+                              {submission.clientContact.businessAddress.zip}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <span>{submission.clientContact.phone}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <span>{submission.clientContact.email}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ================= WHOLESALER ================= */}
+                    <div className="border rounded-md p-6 bg-gray-50">
+                      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
+                        Wholesaler
+                      </h3>
+
+                      <div className="space-y-3 text-[14px]">
+
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {quotes[0]?.carrierId?.name || "Integrated Specialty Coverage"}
+                          </p>
+                        </div>
+
+                        <div className="pt-4 space-y-2 text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span>
+                              1811 Aston Ave. Ste. 200 Carlsbad, CA 92008
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <span>(760) 599-7242</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <span>
+                              {quotes[0]?.carrierId?.email || "info@iscovers.com"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT SIDE – POLICY INFO */}
+              <div className="border rounded-md p-6">
+                <h3 className="text-[15px] font-semibold mb-4">
+                  Policy Information
+                </h3>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span>Program</span>
+                    <span>{submission.programName || "GL Program"}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>Effective Date</span>
+                    <span>
+                      {new Date(submission.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>Status</span>
+                    <span>{submission.status}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>State</span>
+                    <span>{submission.state}</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
-          </div>
-        </>
-      )}
-{activeTab === "Rating Information" && (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          )}
+          {activeTab === "Rating Information" && (
+            <div className="border rounded-md bg-white">
 
-    {/* ================= PRODUCER ================= */}
-    <div className="border rounded-md p-6 bg-gray-50">
-      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-        Producer
-      </h3>
+              {quotes.length === 0 ? (
+                <div className="py-20 flex flex-col items-center justify-center text-center">
+                  <div className="w-20 h-16 bg-gray-200 rounded mb-4" />
+                  <p className="text-[15px] font-medium text-gray-700 mb-1">
+                    No rating information available
+                  </p>
+                  <p className="text-[13px] text-gray-500">
+                    Rating details will appear here once a quote is generated.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
 
-      <div className="space-y-3 text-[14px]">
+                  {/* LEFT – PREMIUM */}
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
+                      Premium Breakdown
+                    </h3>
 
-        <div>
-          <p className="font-semibold text-gray-900">
-            {submission.clientContact.name}
-          </p>
-          <p className="text-gray-500">
-            {(session?.user as any)?.agencyName || "Agency Name"}
-          </p>
-        </div>
+                    <div className="space-y-4 text-[14px]">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Carrier Premium</span>
+                        <span className="font-medium text-gray-900">
+                          ${quotes[0].carrierQuoteUSD.toLocaleString()}
+                        </span>
+                      </div>
 
-        <div className="pt-4 space-y-2 text-gray-600">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span>
-              {submission.clientContact.businessAddress.street},{" "}
-              {submission.clientContact.businessAddress.city},{" "}
-              {submission.clientContact.businessAddress.state}{" "}
-              {submission.clientContact.businessAddress.zip}
-            </span>
-          </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Broker Fee</span>
+                        <span className="font-medium text-gray-900">
+                          ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
+                        </span>
+                      </div>
 
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-gray-400" />
-            <span>{submission.clientContact.phone}</span>
-          </div>
+                      <div className="flex justify-between border-t pt-4 font-semibold">
+                        <span>Total Premium</span>
+                        <span>
+                          ${quotes[0].finalAmountUSD.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 text-gray-400" />
-            <span>{submission.clientContact.email}</span>
-          </div>
-        </div>
-      </div>
-    </div>
+                  {/* RIGHT – POLICY INFO */}
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
+                      Policy Information
+                    </h3>
 
-    {/* ================= WHOLESALER ================= */}
-    <div className="border rounded-md p-6 bg-gray-50">
-      <h3 className="text-[15px] font-semibold text-gray-900 mb-4">
-        Wholesaler
-      </h3>
+                    <div className="space-y-4 text-[14px]">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Program</span>
+                        <span className="font-medium text-gray-900">
+                          {submission.programName || "General Liability"}
+                        </span>
+                      </div>
 
-      <div className="space-y-3 text-[14px]">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Effective Date</span>
+                        <span className="font-medium text-gray-900">
+                          {new Date(submission.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
 
-        <div>
-          <p className="font-semibold text-gray-900">
-            {quotes[0]?.carrierId?.name || "Integrated Specialty Coverage"}
-          </p>
-        </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Status</span>
+                        <span className="font-medium text-gray-900">
+                          {submission.status.replace("_", " ")}
+                        </span>
+                      </div>
 
-        <div className="pt-4 space-y-2 text-gray-600">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span>
-              1811 Aston Ave. Ste. 200 Carlsbad, CA 92008
-            </span>
-          </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">State</span>
+                        <span className="font-medium text-gray-900">
+                          {submission.state}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-gray-400" />
-            <span>(760) 599-7242</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 text-gray-400" />
-            <span>
-              {quotes[0]?.carrierId?.email || "info@iscovers.com"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-)}
-    </div>
-
-    {/* RIGHT SIDE – POLICY INFO */}
-    <div className="border rounded-md p-6">
-      <h3 className="text-[15px] font-semibold mb-4">
-        Policy Information
-      </h3>
-
-      <div className="space-y-3 text-sm">
-        <div className="flex justify-between">
-          <span>Program</span>
-          <span>{submission.programName || "GL Program"}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>Effective Date</span>
-          <span>
-            {new Date(submission.createdAt).toLocaleDateString()}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>Status</span>
-          <span>{submission.status}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>State</span>
-          <span>{submission.state}</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-)}
-{activeTab === "Rating Information" && (
-  <div className="border rounded-md bg-white">
-
-    {quotes.length === 0 ? (
-      <div className="py-20 flex flex-col items-center justify-center text-center">
-        <div className="w-20 h-16 bg-gray-200 rounded mb-4" />
-        <p className="text-[15px] font-medium text-gray-700 mb-1">
-          No rating information available
-        </p>
-        <p className="text-[13px] text-gray-500">
-          Rating details will appear here once a quote is generated.
-        </p>
-      </div>
-    ) : (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
-
-        {/* LEFT – PREMIUM */}
-        <div>
-          <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
-            Premium Breakdown
-          </h3>
-
-          <div className="space-y-4 text-[14px]">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Carrier Premium</span>
-              <span className="font-medium text-gray-900">
-                ${quotes[0].carrierQuoteUSD.toLocaleString()}
-              </span>
+                </div>
+              )}
             </div>
-
-            <div className="flex justify-between">
-              <span className="text-gray-500">Broker Fee</span>
-              <span className="font-medium text-gray-900">
-                ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between border-t pt-4 font-semibold">
-              <span>Total Premium</span>
-              <span>
-                ${quotes[0].finalAmountUSD.toLocaleString()}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
-
-        {/* RIGHT – POLICY INFO */}
-        <div>
-          <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
-            Policy Information
-          </h3>
-
-          <div className="space-y-4 text-[14px]">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Program</span>
-              <span className="font-medium text-gray-900">
-                {submission.programName || "General Liability"}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-gray-500">Effective Date</span>
-              <span className="font-medium text-gray-900">
-                {new Date(submission.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-gray-500">Status</span>
-              <span className="font-medium text-gray-900">
-                {submission.status.replace("_", " ")}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-gray-500">State</span>
-              <span className="font-medium text-gray-900">
-                {submission.state}
-              </span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    )}
-  </div>
-)}
-</div>
-{/* ================= END NOTES ================= */}   
+        {/* ================= END NOTES ================= */}
         {/* Content */}
 
       </main>
@@ -1273,20 +1300,20 @@ const isBound = submission.status === "BOUND";
 
 export default function SubmissionDetailsPage() {
   return (
-    
+
     <Suspense fallback={
       <div className="fixed inset-0 bg-[#F3F0ED] flex items-center justify-center z-50">
         <div className="text-center">
           <div className="flex flex-col items-center gap-6">
-  <div className="relative w-14 h-14">
-    <div className="absolute inset-0 rounded-full border-4 border-[#F3F0ED]"></div>
-    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#9A8B7A] animate-spin"></div>
-  </div>
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-4 border-[#F3F0ED]"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#9A8B7A] animate-spin"></div>
+            </div>
 
-  <p className="text-[14px] text-[#7A6F64] font-medium tracking-wide">
-    Loading submission details...
-  </p>
-</div>
+            <p className="text-[14px] text-[#7A6F64] font-medium tracking-wide">
+              Loading submission details...
+            </p>
+          </div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>

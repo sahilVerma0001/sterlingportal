@@ -1,7 +1,9 @@
 "use client";
 
+
+
 import { useSession } from "next-auth/react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
@@ -14,7 +16,8 @@ const YesNoRadio = ({
   value,
   onChange,
   required = false,
-  onInteraction
+  onInteraction,
+  disableNo = false
 }: {
   label: string;
   value: boolean | null | undefined;
@@ -22,6 +25,7 @@ const YesNoRadio = ({
   disabled?: boolean;
   required?: boolean;
   onInteraction?: () => void;
+  disableNo?: boolean;
 }) => (
   <div className="space-y-2">
     <label className="block text-sm font-semibold text-gray-700">
@@ -40,11 +44,16 @@ const YesNoRadio = ({
         />
         <span className="text-sm text-gray-700">Yes</span>
       </label>
-      <label className="flex items-center gap-2 cursor-pointer">
+      <label
+        className={`flex items-center gap-2 ${disableNo ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+          }`}
+      >
         <input
           type="radio"
           checked={value === false}
+          disabled={disableNo}
           onChange={() => {
+            if (disableNo) return;
             onChange(false);
             onInteraction?.();
           }}
@@ -52,6 +61,7 @@ const YesNoRadio = ({
         />
         <span className="text-sm text-gray-700">No</span>
       </label>
+
     </div>
   </div>
 );
@@ -61,6 +71,10 @@ export default function QuoteFormPage() {
   const router = useRouter();
   const params = useParams();
   const programId = params.programId as string;
+  const searchParams = useSearchParams();
+  const isViewMode = searchParams.get("mode") === "view";
+  const submissionId = searchParams.get("id");
+
 
 
 
@@ -104,8 +118,8 @@ export default function QuoteFormPage() {
 
     /* ================= COVERAGE ================= */
     coverageLimits: "1M / 1M / 1M",
-    fireLegalLimit: "$100,000",
-    medicalExpenseLimit: "$5,000",
+    fireLegalLimit: "$50,000",
+    medicalExpenseLimit: "Not Applicable",
     selfInsuredRetention: "$2,500",
 
     lossesLast5Years: "0",
@@ -477,19 +491,76 @@ export default function QuoteFormPage() {
     }));
   }, []);
 
-  const [showAdditionalLimits, setShowAdditionalLimits] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [calculatedPremium, setCalculatedPremium] = useState<number | null>(null);
   const [quoteId, setQuoteId] = useState<string | null>(null);
-
-  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    const fetchSubmissionData = async () => {
+      if (!submissionId) return;
+
+      try {
+        const res = await fetch(
+          `/api/agency/submissions/${submissionId}`
+        );
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error);
+
+        const payload = result.submission.payload;
+
+        // 👇 AUTO FILL FORM
+        setFormData((prev: any) => ({
+          ...prev,
+          ...payload,
+          classCodeWork: payload.classCodeWork || {},
+        }));
+
+      } catch (err) {
+        console.error("Failed to fetch submission data:", err);
+      }
+    };
+
+    fetchSubmissionData();
+  }, [submissionId]);
+
+
+  const roofingClassCodes = [
+    "Roofing (New Commercial)",
+    "Roofing (New Residential)",
+    "Roofing (Repair Commercial)",
+    "Roofing (Repair Residential)",
+  ];
+
+  const hasRoofingSelected = Object.keys(formData.classCodeWork || {}).some(
+    (code) => roofingClassCodes.includes(code)
+  );
+
+  useEffect(() => {
+    if (hasRoofingSelected) {
+      // If roofing class exists → force YES
+      setFormData((prev: any) => ({
+        ...prev,
+        performRoofingOps: true,
+        roofingOpsExplanation:
+          "Performs roofing operations as indicated by class code selection.",
+      }));
+    } else {
+      // If roofing class removed → auto set NO
+      setFormData((prev: any) => ({
+        ...prev,
+        performRoofingOps: false,
+        roofingOpsExplanation: "",
+      }));
+    }
+  }, [hasRoofingSelected]);
 
   const triggerAnimation = () => {
     setIsProcessing(true);
@@ -610,20 +681,9 @@ export default function QuoteFormPage() {
       ...prev,
       classCodeWork: {
         ...prev.classCodeWork,
-        [code]: remaining, // ✅ keep your auto-fill logic
+        [code]: remaining, // ✅ auto-fill remaining %
       },
     }));
-
-    // ✅ ADD THIS PART (does not affect logic)
-    if (code === "Others") {
-      setTimeout(() => {
-        descriptionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-        descriptionRef.current?.focus();
-      }, 200);
-    }
   };
 
 
@@ -1012,8 +1072,8 @@ export default function QuoteFormPage() {
       </div>
     );
   }
-
   if (status === "unauthenticated") return null;
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1039,13 +1099,7 @@ export default function QuoteFormPage() {
               <div className="relative">
 
                 {/* Rectangle Logo Container */}
-                <div className="relative w-[260px] h-[70px] bg-white rounded-md shadow-md border border-gray-200 overflow-hidden">
-                  <img
-                    src="/sterling-logo.JPG"
-                    alt="Sterling Insurance Services LLC"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+
 
 
               </div>
@@ -1062,221 +1116,222 @@ export default function QuoteFormPage() {
       <div className="max-w-[950px] mx-auto px-8 py-8 mt-12">
 
         <form onSubmit={handleSubmit} className="space-y-10">
+          <fieldset disabled={isViewMode} className={isViewMode ? "opacity-90 pointer-events-none" : ""}>
 
-          {/* Indication Information */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold\">Application Information</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
+            {/* Indication Information */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold\">Application Information</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-6 mt-1">
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Company Name <span className="text-red-500">*</span>
-                  </label>
-                  <div></div>
-                  <input
-                    type="text"
-                    value={formData.companyName}
-                    onChange={(e) => handleInputChange('companyName', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    required
-                  />
-                </div>
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Estimated Total Gross Receipts</label>
-                  <div></div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                    <input
-                      type="text"
-                      value={formData.estimatedGrossReceipts ? formatCurrencyInput(formData.estimatedGrossReceipts) : ''}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        handleInputChange('estimatedGrossReceipts', formatted);
-                      }}
-                      onBlur={(e) => {
-                        const parsed = parseCurrency(e.target.value);
-                        handleInputChange('estimatedGrossReceipts', parsed > 0 ? parsed.toString() : '');
-                      }}
-                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900">
-                    Estimated Subcontracting Costs
-                  </label>
-                  <div></div>
-                  <div>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                      <input
-                        type="text"
-                        value={
-                          formData.estimatedSubcontractingCosts
-                            ? formatCurrencyInput(formData.estimatedSubcontractingCosts)
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formatted = formatCurrencyInput(e.target.value);
-                          handleInputChange("estimatedSubcontractingCosts", formatted);
-
-                          // 🔥 AUTO-SET SUBCONTRACTORS = YES
-                          const parsed = parseCurrency(formatted);
-                          if (parsed > 0 && !formData.useSubcontractors) {
-                            handleUseSubcontractorsChange(true);
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const parsed = parseCurrency(e.target.value);
-                          handleInputChange(
-                            "estimatedSubcontractingCosts",
-                            parsed > 0 ? parsed.toString() : ""
-                          );
-                        }}
-                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
-                          combinedCostError ||
-                          subcontractingZeroError
-                          ? "border-red-500 focus:ring-red-400"
-                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
-                          }`}
-                      />
-                    </div>
-
-                    {(subcontractingError ||
-                      combinedCostError ||
-                      subcontractingZeroError) && (
-                        <p className="mt-1 text-xs text-red-600">
-                          {subcontractingError
-                            ? "Subcontracting costs cannot exceed total gross receipts."
-                            : subcontractingZeroError
-                              ? "Subcontracting costs must be greater than $0 when subcontractors are used."
-                              : "Subcontracting + material costs must be less than total gross receipts."}
-                        </p>
-                      )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900">
-                    Estimated Material Costs
-                  </label>
-                  <div></div>
-                  <div>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                      <input
-                        type="text"
-                        value={
-                          formData.estimatedMaterialCosts
-                            ? formatCurrencyInput(formData.estimatedMaterialCosts)
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formatted = formatCurrencyInput(e.target.value);
-                          handleInputChange("estimatedMaterialCosts", formatted);
-                        }}
-                        onBlur={(e) => {
-                          const parsed = parseCurrency(e.target.value);
-                          handleInputChange(
-                            "estimatedMaterialCosts",
-                            parsed > 0 ? parsed.toString() : ""
-                          );
-                        }}
-                        className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
-                          ? "border-red-500 focus:ring-red-400"
-                          : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
-                          }`}
-                      />
-                    </div>
-
-                    {(materialCostError || combinedCostError) && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {materialCostError
-                          ? "Material costs cannot exceed total gross receipts."
-                          : "Subcontracting + material costs must be less than total gross receipts."}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">
-                    # of Field Employees
-                  </label>
-                  <div></div>
-                  <div>
-                    <select
-                      value={formData.fieldEmployees}
-                      onChange={(e) =>
-                        handleInputChange("fieldEmployees", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                    >
-                      {Array.from({ length: 21 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i >= 19 ? "19+" : i}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-
-                {Number(formData.fieldEmployees) > 0 && (
+                <div className="space-y-6 mt-1">
                   <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">
-                      Estimated Total Payroll
+                      Company Name <span className="text-red-500">*</span>
                     </label>
+                    <div></div>
+                    <input
+                      type="text"
+                      value={formData.companyName}
+                      onChange={(e) => handleInputChange('companyName', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      required
+                    />
+                  </div>
+
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Estimated Total Gross Receipts</label>
                     <div></div>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-gray-500">$</span>
                       <input
                         type="text"
-                        value={
-                          formData.totalPayroll
-                            ? formatCurrencyInput(formData.totalPayroll)
-                            : ""
-                        }
+                        value={formData.estimatedGrossReceipts ? formatCurrencyInput(formData.estimatedGrossReceipts) : ''}
                         onChange={(e) => {
                           const formatted = formatCurrencyInput(e.target.value);
-                          handleInputChange("totalPayroll", formatted);
+                          handleInputChange('estimatedGrossReceipts', formatted);
                         }}
                         onBlur={(e) => {
                           const parsed = parseCurrency(e.target.value);
-                          handleInputChange(
-                            "totalPayroll",
-                            parsed > 0 ? parsed.toString() : ""
-                          );
+                          handleInputChange('estimatedGrossReceipts', parsed > 0 ? parsed.toString() : '');
                         }}
                         className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                        placeholder="Enter payroll amount"
                       />
                     </div>
                   </div>
 
-                )}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900">
+                      Estimated Subcontracting Costs
+                    </label>
+                    <div></div>
+                    <div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                        <input
+                          type="text"
+                          value={
+                            formData.estimatedSubcontractingCosts
+                              ? formatCurrencyInput(formData.estimatedSubcontractingCosts)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            handleInputChange("estimatedSubcontractingCosts", formatted);
+
+                            // 🔥 AUTO-SET SUBCONTRACTORS = YES
+                            const parsed = parseCurrency(formatted);
+                            if (parsed > 0 && !formData.useSubcontractors) {
+                              handleUseSubcontractorsChange(true);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            handleInputChange(
+                              "estimatedSubcontractingCosts",
+                              parsed > 0 ? parsed.toString() : ""
+                            );
+                          }}
+                          className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${subcontractingError ||
+                            combinedCostError ||
+                            subcontractingZeroError
+                            ? "border-red-500 focus:ring-red-400"
+                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                            }`}
+                        />
+                      </div>
+
+                      {(subcontractingError ||
+                        combinedCostError ||
+                        subcontractingZeroError) && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {subcontractingError
+                              ? "Subcontracting costs cannot exceed total gross receipts."
+                              : subcontractingZeroError
+                                ? "Subcontracting costs must be greater than $0 when subcontractors are used."
+                                : "Subcontracting + material costs must be less than total gross receipts."}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900">
+                      Estimated Material Costs
+                    </label>
+                    <div></div>
+                    <div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                        <input
+                          type="text"
+                          value={
+                            formData.estimatedMaterialCosts
+                              ? formatCurrencyInput(formData.estimatedMaterialCosts)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            handleInputChange("estimatedMaterialCosts", formatted);
+                          }}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            handleInputChange(
+                              "estimatedMaterialCosts",
+                              parsed > 0 ? parsed.toString() : ""
+                            );
+                          }}
+                          className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
+                            ? "border-red-500 focus:ring-red-400"
+                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                            }`}
+                        />
+                      </div>
+
+                      {(materialCostError || combinedCostError) && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {materialCostError
+                            ? "Material costs cannot exceed total gross receipts."
+                            : "Subcontracting + material costs must be less than total gross receipts."}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Years in Business</label>
-                  <div></div>
-                  <input
-                    type="number"
-                    value={formData.yearsInBusiness}
-                    placeholder="4"
-                    onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                  />
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">
+                      # of Field Employees
+                    </label>
+                    <div></div>
+                    <div>
+                      <select
+                        value={formData.fieldEmployees}
+                        onChange={(e) =>
+                          handleInputChange("fieldEmployees", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      >
+                        {Array.from({ length: 21 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {i >= 19 ? "19+" : i}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+
+                  {Number(formData.fieldEmployees) > 0 && (
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Estimated Total Payroll
+                      </label>
+                      <div></div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                        <input
+                          type="text"
+                          value={
+                            formData.totalPayroll
+                              ? formatCurrencyInput(formData.totalPayroll)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            handleInputChange("totalPayroll", formatted);
+                          }}
+                          onBlur={(e) => {
+                            const parsed = parseCurrency(e.target.value);
+                            handleInputChange(
+                              "totalPayroll",
+                              parsed > 0 ? parsed.toString() : ""
+                            );
+                          }}
+                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                          placeholder="Enter payroll amount"
+                        />
+                      </div>
+                    </div>
+
+                  )}
+
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Years in Business</label>
+                    <div></div>
+                    <input
+                      type="number"
+                      value={formData.yearsInBusiness}
+                      placeholder="4"
+                      onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    />
+                  </div>
+
+                  {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                   <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
                   <div></div>
                   <input
@@ -1287,619 +1342,645 @@ export default function QuoteFormPage() {
                   />
                 </div> */}
 
-                {/* <YesNoRadio
+                  {/* <YesNoRadio
                   label="Is this a premise only policy?"
                   value={formData.isPremiseOnlyPolicy}
                   onChange={(val) => handleInputChange('isPremiseOnlyPolicy', val)}
                   onInteraction={triggerAnimation}
                 /> */}
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Class Code
-                  </label>
-
-                  <select
-                    value=""
-                    onChange={(e) => handleAddClassCode(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
-                  >
-                    <option value="">Select Class Code</option>
-                    {classCodeOptions
-                      .filter((code) => !formData.classCodeWork[code]) // 🚫 hide selected
-                      .map((code) => (
-                        <option key={code} value={code}>
-                          {code}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-
-                <div className="text-right mb-4">
-                  <span
-                    className={`text-sm font-semibold ${calculateTotalClassCodePercent() === 100
-                      ? "text-green-600"
-                      : "text-red-600"
-                      }`}
-                  >
-                    Total: {calculateTotalClassCodePercent()}%
-                  </span>
-                </div>
-
-
-                {Object.keys(formData.classCodeWork).length > 0 && (
-                  <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
-                    {Object.entries(formData.classCodeWork).map(([code, percent]: any) => (
-                      <div
-                        key={code}
-                        className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-                      >
-                        <span className="text-sm text-gray-700">{code}</span>
-
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={percent}
-                            min={0}
-                            max={100}
-                            onChange={(e) =>
-                              handleClassCodePercentChange(code, e.target.value)
-                            }
-                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
-                          />
-
-                          <span className="text-sm text-gray-500">%</span>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = { ...formData.classCodeWork };
-                              delete updated[code];
-
-                              setFormData((prev: any) => ({
-                                ...prev,
-                                classCodeWork: updated,
-                              }));
-                            }}
-                            className="text-red-500 hover:text-red-700 text-sm font-semibold"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-
-
-
-                {/* Limits header row */}
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                    Limits
-                    <button
-                      type="button"
-                      onClick={() => setShowAdditionalLimits((prev) => !prev)}
-                      className="text-[#00BCD4] font-bold text-lg leading-none"
-                    >
-                      {/* {showAdditionalLimits ? "−" : "+"} */}
-                    </button>
-                  </label>
-
-                  <div></div>
-
-                  <div>
-                    <select
-                      value={formData.coverageLimits}
-                      onChange={(e) =>
-                        handleInputChange("coverageLimits", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    >
-                      <option value="1M / 1M / 1M">1M / 1M / 1M</option>
-                      <option value="1M / 2M / 1M">1M / 2M / 1M</option>
-                      <option value="1M / 2M / 2M">1M / 2M / 2M</option>
-                      <option value="100k / 100k / 100k">100k / 100k / 100k</option>
-                      <option value="250k / 250k / 250k">250k / 250k / 250k</option>
-                      <option value="500k / 500k / 500k">500k / 500k / 500k</option>
-                    </select>
-
-                    <p className="text-xs text-gray-500 mt-1">
-                      * Higher limits can be obtained by adding an Excess policy
-                    </p>
-                  </div>
-                </div>
-
-                {/* Expanded section */}
-                {/* {showAdditionalLimits && ( */}
-                <div className="mt-6 space-y-5">
-
-                  {/* Fire Legal Limit */}
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">
-                      Fire Legal Limit
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Class Code
                     </label>
-                    <div></div>
-                    <select
-                      value={formData.fireLegalLimit}
-                      onChange={(e) =>
-                        handleInputChange("fireLegalLimit", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+
+                    {/* <select
+                      value=""
+                      onChange={(e) => handleAddClassCode(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
                     >
-                      <option value="$50,000">$50,000</option>
-                      <option value="$100,000">$100,000</option>
+                      <option value="">Select Class Code</option>
+                      {classCodeOptions
+                        //.filter((code) => !formData.classCodeWork[code]) // 🚫 hide selected
+                        .filter((code) => !formData.classCodeWork?.[code])
+                        .map((code) => (
+                          <option key={code} value={code}>
+                            {code}
+                          </option>
+                        ))}
                     </select>
-                  </div>
+                  </div> */}
 
-                  {/* Med Pay Limit */}
-                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                    <label className="text-sm font-medium text-gray-900">
-                      Med Pay Limit
-                    </label>
-                    <div></div>
-                    <select
-                      value={formData.medicalExpenseLimit}
-                      onChange={(e) =>
-                        handleInputChange("medicalExpenseLimit", e.target.value)
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
-                    >
-                      <option value="$5,000">$5,000</option>
-                      <option value="$10,000">$10,000</option>
-                      <option value="Not Applicable">Not Applicable</option>
-                    </select>
-                  </div>
-
-                </div>
-                {/* )} */}
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Deductible</label>
-                  <div></div>
-                  <select
-                    value={formData.selfInsuredRetention}
-                    onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>$10,000</option>
-                    <option>$5,000</option>
-                    <option>$2,500</option>
-                    <option>$1,000</option>
-                  </select>
-                </div>
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    # Losses in last 5 years
-                  </label>
-                  <div></div>
-                  <select
-                    value={formData.lossesLast5Years}
-                    onChange={(e) => {
-                      const value = e.target.value;
-
-                      // If user selects 0 → clear losses
-                      if (value === "0") {
-                        handleInputChange("lossesLast5Years", "0");
-                        handleInputChange("generalLiabilityLosses", []);
-                        return;
-                      }
-
-                      // If user selects non-zero and no loss exists → add one by default
-                      if (
-                        value !== "0" &&
-                        formData.generalLiabilityLosses.length === 0
-                      ) {
-                        handleInputChange("lossesLast5Years", value);
-                        handleInputChange("generalLiabilityLosses", [
-                          { dateOfLoss: "", amountOfLoss: "" },
-                        ]);
-                        return;
-                      }
-
-                      handleInputChange("lossesLast5Years", value);
-                    }}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4+">4+</option>
-                  </select>
-
-                </div>
-
-
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
-                  <div></div>
-                  <input
-                    type="date"
-                    value={formData.effectiveDate}
-                    onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  />
-                </div>
-
-
-                {/* state */}
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">
-                    States in which you do business for which you are currently applying for insurance:
-                  </label>
-
-                  <div></div>
-
-                  <div className="w-full border border-gray-300 rounded px-2 py-2 focus-within:ring-1 focus-within:ring-[#00BCD4]">
-
-                    {/* Selected state chips */}
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formData.selectedStates.map((state: string) => (
-                        <span
-                          key={state}
-                          className="flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded"
-                        >
-                          {state}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              // prevent removing last state
-                              if (formData.selectedStates.length === 1) return;
-
-                              handleInputChange(
-                                "selectedStates",
-                                formData.selectedStates.filter((s: string) => s !== state)
-                              );
-                            }}
-                            className="text-gray-600 hover:text-red-500 font-bold"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* State dropdown */}
                     <select
                       value=""
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
                       onChange={(e) => {
-                        const value = e.target.value;
-                        if (!value) return;
-
-                        if (!formData.selectedStates.includes(value)) {
-                          handleInputChange("selectedStates", [
-                            ...formData.selectedStates,
-                            value,
-                          ]);
+                        const selectedCode = e.target.value;
+                        if (selectedCode) {
+                          handleAddClassCode(e.target.value);
+                        } else {
+                          console.log("[Select Change] Clearing class code and description");
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            classCodeWork: {},
+                            carrierApprovedDescription: ""
+                          }));
                         }
+                        handleAddClassCode(e.target.value);
                       }}
-                      className="w-full border-none outline-none text-sm bg-white"
                     >
-                      <option value="">Select state</option>
-
-                      {statesList
-                        .filter(
-                          (state) => !formData.selectedStates.includes(state)
-                        )
-                        .map((state) => (
-                          <option key={state} value={state}>
-                            {state}
+                      <option value="">Select Class Code</option>
+                      {classCodeOptions
+                        .filter((code) => !formData.classCodeWork[code]) // 🚫 hide selected
+                        .map((code) => (
+                          <option key={code} value={code}>
+                            {code}
                           </option>
                         ))}
                     </select>
                   </div>
-                </div>
+
+
+                  <div className="text-right mb-4">
+                    <span
+                      className={`text-sm font-semibold ${calculateTotalClassCodePercent() === 100
+                        ? "text-green-600"
+                        : "text-red-600"
+                        }`}
+                    >
+                      Total: {calculateTotalClassCodePercent()}%
+                    </span>
+                  </div>
+
+
+                  {Object.keys(formData.classCodeWork).length > 0 && (
+                    <div className="border border-gray-200 rounded p-3 max-h-48 overflow-y-auto">
+                      {Object.entries(formData.classCodeWork).map(([code, percent]: any) => (
+                        <div
+                          key={code}
+                          className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                        >
+                          <span className="text-sm text-gray-700">{code}</span>
+
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={percent}
+                              min={0}
+                              max={100}
+                              onChange={(e) =>
+                                handleClassCodePercentChange(code, e.target.value)
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                            />
+
+                            <span className="text-sm text-gray-500">%</span>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = { ...formData.classCodeWork };
+                                delete updated[code];
+
+                                setFormData((prev: any) => ({
+                                  ...prev,
+                                  classCodeWork: updated,
+                                }));
+                              }}
+                              className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
 
 
-                {/* <YesNoRadio
+
+                  {/* Limits header row */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      Limits
+                    </label>
+
+                    <div></div>
+
+                    <div>
+                      <select
+                        value={formData.coverageLimits}
+                        onChange={(e) =>
+                          handleInputChange("coverageLimits", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      >
+                        <option value="1M / 1M / 1M">1M / 1M / 1M</option>
+                        <option value="1M / 2M / 1M">1M / 2M / 1M</option>
+                        <option value="1M / 2M / 2M">1M / 2M / 2M</option>
+                        {/* <option value="100k / 100k / 100k">100k / 100k / 100k</option>
+                        <option value="250k / 250k / 250k">250k / 250k / 250k</option>
+                        <option value="500k / 500k / 500k">500k / 500k / 500k</option> */}
+                      </select>
+
+                      <p className="text-xs text-gray-500 mt-1">
+                        * Higher limits can be obtained by adding an Excess policy
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Expanded section */}
+                  <div className="mt-6 space-y-5">
+
+                    {/* Fire Legal Limit */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Fire Legal Limit
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.fireLegalLimit}
+                        onChange={(e) =>
+                          handleInputChange("fireLegalLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      >
+                        <option value="$50,000">$50,000</option>
+                        <option value="$100,000">$100,000</option>
+                      </select>
+                    </div>
+
+                    {/* Med Pay Limit */}
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Med Pay Limit
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.medicalExpenseLimit}
+                        onChange={(e) =>
+                          handleInputChange("medicalExpenseLimit", e.target.value)
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      >
+                        <option value="Not Applicable">Not Applicable</option>
+                        <option value="$5,000">$5,000</option>
+                        <option value="$10,000">$10,000</option>
+                      </select>
+                    </div>
+
+                  </div>
+
+
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Deductible</label>
+                    <div></div>
+                    <select
+                      value={formData.selfInsuredRetention}
+                      onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    >
+                      <option>$10,000</option>
+                      <option>$5,000</option>
+                      <option>$2,500</option>
+                      <option>$1,000</option>
+                    </select>
+                  </div>
+
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      # Losses in last 5 years
+                    </label>
+                    <div></div>
+                    <select
+                      value={formData.lossesLast5Years}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        // If user selects 0 → clear losses
+                        if (value === "0") {
+                          handleInputChange("lossesLast5Years", "0");
+                          handleInputChange("generalLiabilityLosses", []);
+                          return;
+                        }
+
+                        // If user selects non-zero and no loss exists → add one by default
+                        if (
+                          value !== "0" &&
+                          formData.generalLiabilityLosses.length === 0
+                        ) {
+                          handleInputChange("lossesLast5Years", value);
+                          handleInputChange("generalLiabilityLosses", [
+                            { dateOfLoss: "", amountOfLoss: "" },
+                          ]);
+                          return;
+                        }
+
+                        handleInputChange("lossesLast5Years", value);
+                      }}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    >
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4+">4+</option>
+                    </select>
+
+                  </div>
+
+
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Desired Effective Date</label>
+                    <div></div>
+                    <input
+                      type="date"
+                      value={formData.effectiveDate}
+                      onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
+
+
+                  {/* state */}
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">
+                      States in which you do business for which you are currently applying for insurance:
+                    </label>
+
+                    <div></div>
+
+                    <div className="w-full border border-gray-300 rounded px-2 py-2 focus-within:ring-1 focus-within:ring-[#00BCD4]">
+
+                      {/* Selected state chips */}
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {formData.selectedStates.map((state: string) => (
+                          <span
+                            key={state}
+                            className="flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded"
+                          >
+                            {state}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // prevent removing last state
+                                if (formData.selectedStates.length === 1) return;
+
+                                handleInputChange(
+                                  "selectedStates",
+                                  formData.selectedStates.filter((s: string) => s !== state)
+                                );
+                              }}
+                              className="text-gray-600 hover:text-red-500 font-bold"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* State dropdown */}
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (!value) return;
+
+                          if (!formData.selectedStates.includes(value)) {
+                            handleInputChange("selectedStates", [
+                              ...formData.selectedStates,
+                              value,
+                            ]);
+                          }
+                        }}
+                        className="w-full border-none outline-none text-sm bg-white"
+                      >
+                        <option value="">Select state</option>
+
+                        {statesList
+                          .filter(
+                            (state) => !formData.selectedStates.includes(state)
+                          )
+                          .map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+
+
+
+                  {/* <YesNoRadio
                   label="Will you perform structural work?"
                   value={formData.willPerformStructuralWork}
                   onChange={(val) => handleInputChange('willPerformStructuralWork', val)}
                   onInteraction={triggerAnimation}
                 /> */}
 
+                </div>
               </div>
             </div>
-          </div>
 
-          {/*Description of operations*/}
+            {/*Description of operations*/}
 
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Description of operations</h2>
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Description of operations</h2>
+              </div>
+
+              <textarea
+                value={effectiveDescription}
+                placeholder="Enter Description here...."
+                onChange={(e) => {
+                  const hasClassCode = Object.keys(formData.classCodeWork || {}).length > 0;
+                  if (!hasClassCode) {
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      carrierApprovedDescription: e.target.value,
+                    }));
+                    return;
+                  }
+                  handleInputChange("carrierApprovedDescription", e.target.value);
+                }}
+                rows={6}
+                className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
+              />
             </div>
 
-            <textarea
-              ref={descriptionRef}
-              value={formData.carrierApprovedDescription}
-              placeholder="Enter Description here...."
-              onChange={(e) =>
-                setFormData((prev: any) => ({
-                  ...prev,
-                  carrierApprovedDescription: e.target.value,
-                }))
-              }
-              rows={6}
-              className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
-            />
-          </div>
+            {/* Endorsements */}
 
-          {/* Endorsements */}
-
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Endorsements</h2>
-            </div>
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Endorsements</h2>
+              </div>
 
 
-            <div className="space-y-3 px-8 pt-6 pb-7">
+              <div className="space-y-3 px-8 pt-6 pb-7">
 
-              <EndorsementCheckbox
-                label="Blanket Additional Insured"
-                value={formData.blanketAdditionalInsured}
-                onChange={(val) =>
-                  handleInputChange("blanketAdditionalInsured", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Blanket Additional Insured"
+                  value={formData.blanketAdditionalInsured}
+                  onChange={(val) =>
+                    handleInputChange("blanketAdditionalInsured", val)
+                  }
+                />
 
-              <EndorsementCheckbox
-                label="Blanket Waiver of Subrogation"
-                value={formData.blanketWaiverOfSubrogation}
-                onChange={(val) =>
-                  handleInputChange("blanketWaiverOfSubrogation", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Blanket Waiver of Subrogation"
+                  value={formData.blanketWaiverOfSubrogation}
+                  onChange={(val) =>
+                    handleInputChange("blanketWaiverOfSubrogation", val)
+                  }
+                />
 
-              <EndorsementCheckbox
-                label="Blanket Primary Wording"
-                value={formData.blanketPrimaryWording}
-                onChange={(val) =>
-                  handleInputChange("blanketPrimaryWording", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Blanket Primary Wording"
+                  value={formData.blanketPrimaryWording}
+                  onChange={(val) =>
+                    handleInputChange("blanketPrimaryWording", val)
+                  }
+                />
 
-              <EndorsementCheckbox
-                label="Blanket Per Project Aggregate"
-                value={formData.blanketPerProjectAggregate}
-                onChange={(val) =>
-                  handleInputChange("blanketPerProjectAggregate", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Blanket Per Project Aggregate"
+                  value={formData.blanketPerProjectAggregate}
+                  onChange={(val) =>
+                    handleInputChange("blanketPerProjectAggregate", val)
+                  }
+                />
 
-              <EndorsementCheckbox
-                label="Blanket Completed Operations"
-                value={formData.blanketCompletedOperations}
-                onChange={(val) =>
-                  handleInputChange("blanketCompletedOperations", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Blanket Completed Operations"
+                  value={formData.blanketCompletedOperations}
+                  onChange={(val) =>
+                    handleInputChange("blanketCompletedOperations", val)
+                  }
+                />
 
-              <EndorsementCheckbox
-                label="Notice of Cancellation to Third Parties"
-                value={formData.noticeOfCancellationThirdParties}
-                onChange={(val) =>
-                  handleInputChange("noticeOfCancellationThirdParties", val)
-                }
-              />
+                <EndorsementCheckbox
+                  label="Notice of Cancellation to Third Parties"
+                  value={formData.noticeOfCancellationThirdParties}
+                  onChange={(val) =>
+                    handleInputChange("noticeOfCancellationThirdParties", val)
+                  }
+                />
+
+              </div>
 
             </div>
 
-          </div>
+            {/* Payment Options */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Payment Options</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
 
-          {/* Payment Options */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Payment Options</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
-
-              <div className="space-y-6 mt-1">
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Broker Fee</label>
-                  <div></div>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                    <input
-                      type="text"
-                      value={formData.brokerFee ? formatCurrencyInput(formData.brokerFee) : ''}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        handleInputChange('brokerFee', formatted);
-                      }}
-                      onBlur={(e) => {
-                        const parsed = parseCurrency(e.target.value);
-                        handleInputChange('brokerFee', parsed > 0 ? parsed.toString() : '0');
-                      }}
-                      className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Display Broker Fee Line on Retail Proposal?</label>
-                  <div></div>
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                <div className="space-y-6 mt-1">
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Broker Fee</label>
+                    <div></div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500">$</span>
                       <input
-                        type="radio"
-                        checked={formData.displayBrokerFee === true}
-                        onChange={() => {
-                          handleInputChange('displayBrokerFee', true);
-                          triggerAnimation();
+                        type="text"
+                        value={formData.brokerFee ? formatCurrencyInput(formData.brokerFee) : ''}
+                        onChange={(e) => {
+                          const formatted = formatCurrencyInput(e.target.value);
+                          handleInputChange('brokerFee', formatted);
                         }}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
-                      />
-                      <span className="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.displayBrokerFee === false}
-                        onChange={() => {
-                          handleInputChange('displayBrokerFee', false);
-                          triggerAnimation();
+                        onBlur={(e) => {
+                          const parsed = parseCurrency(e.target.value);
+                          handleInputChange('brokerFee', parsed > 0 ? parsed.toString() : '0');
                         }}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        placeholder="0"
                       />
-                      <span className="text-sm text-gray-700">No</span>
-                    </label>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">Payment Options</label>
-                  <div></div>
-                  <div>
-                    <select
-                      value={formData.paymentOption}
-                      onChange={(e) => handleInputChange('paymentOption', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    >
-                      <option value="" selected disabled hidden>Select payment option</option>
-                      <option value="Full Pay">Full Pay</option>
-                      <option value="3rd Party">Premium Financial Partners Co.</option>
-                    </select>
-                    {/* <p className="text-xs text-gray-500 mt-1">
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Display Broker Fee Line on Retail Proposal?</label>
+                    <div></div>
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.displayBrokerFee === true}
+                          onChange={() => {
+                            handleInputChange('displayBrokerFee', true);
+                            triggerAnimation();
+                          }}
+                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                        />
+                        <span className="text-sm text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.displayBrokerFee === false}
+                          onChange={() => {
+                            handleInputChange('displayBrokerFee', false);
+                            triggerAnimation();
+                          }}
+                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                        />
+                        <span className="text-sm text-gray-700">No</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">Payment Options</label>
+                    <div></div>
+                    <div>
+                      <select
+                        value={formData.paymentOption}
+                        onChange={(e) => handleInputChange('paymentOption', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      >
+                        <option value="" selected disabled hidden>Select payment option</option>
+                        <option value="Full Pay">Full Pay</option>
+                        <option value="3rd Party">Premium Financial Partners Co.</option>
+                      </select>
+                      {/* <p className="text-xs text-gray-500 mt-1">
                       Note: Financing options will not be available until the zip is filled out and a product is selected.
                     </p> */}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Company Information */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Company Information</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
+            {/* Company Information */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Company Information</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-6 mt-1">
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Do you hold a contractors license?</label>
-                  <div></div>
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.contractorsLicense === true}
-                        onChange={() => handleInputChange('contractorsLicense', true)}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
-                      />
-                      <span className="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.contractorsLicense === false}
-                        onChange={() => handleInputChange('contractorsLicense', false)}
-                        className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
-                      />
-                      <span className="text-sm text-gray-700">No</span>
-                    </label>
+                <div className="space-y-6 mt-1">
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Do you hold a contractors license?</label>
+                    <div></div>
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.contractorsLicense === true}
+                          onChange={() => handleInputChange('contractorsLicense', true)}
+                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                        />
+                        <span className="text-sm text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.contractorsLicense === false}
+                          onChange={() => handleInputChange('contractorsLicense', false)}
+                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                        />
+                        <span className="text-sm text-gray-700">No</span>
+                      </label>
+                    </div>
                   </div>
-                </div>
 
-                {formData.contractorsLicense && (
-                  <>
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">License #</label>
-                      <div></div>
-                      <input
-                        type="text"
-                        value={formData.licenseNumber}
-                        onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      />
-                    </div>
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">License Classification</label>
-                      <div></div>
-                      <input
-                        type="text"
-                        value={formData.licenseClassification}
-                        onChange={(e) => handleInputChange('licenseClassification', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      />
-                    </div>
-                  </>
-                )}
+                  {formData.contractorsLicense && (
+                    <>
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">License #</label>
+                        <div></div>
+                        <input
+                          type="text"
+                          value={formData.licenseNumber}
+                          onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        />
+                      </div>
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">License Classification</label>
+                        <div></div>
+                        <input
+                          type="text"
+                          value={formData.licenseClassification}
+                          onChange={(e) => handleInputChange('licenseClassification', e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        />
+                      </div>
+                    </>
+                  )}
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">DBA</label>
-                  <div></div>
-                  <input
-                    type="text"
-                    value={formData.dba}
-                    onChange={(e) => handleInputChange('dba', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="Doing Business As"
-                  />
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">DBA</label>
+                    <div></div>
+                    <input
+                      type="text"
+                      value={formData.dba}
+                      onChange={(e) => handleInputChange('dba', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      placeholder="Doing Business As"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">First Name</label>
-                  <div></div>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  />
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">First Name</label>
+                    <div></div>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Last Name</label>
-                  <div></div>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  />
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Last Name</label>
+                    <div></div>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
-                  <div></div>
-                  <input
-                    type="number"
-                    value={formData.yearsOfExperienceTrade}
-                    placeholder="4"
-                    onChange={(e) => handleInputChange('yearsOfExperienceTrade', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                  />
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Years of experience in the Trades for which you are applying for insurance</label>
+                    <div></div>
+                    <input
+                      type="number"
+                      value={formData.yearsOfExperienceTrade}
+                      placeholder="4"
+                      onChange={(e) => handleInputChange('yearsOfExperienceTrade', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Entity of Company</label>
-                  <div></div>
-                  <select
-                    value={formData.entityType}
-                    onChange={(e) => handleInputChange('entityType', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                  >
-                    <option>Individual</option>
-                    <option>Corporation</option>
-                    <option>Partnership</option>
-                    <option>LLC</option>
-                    <option>Other</option>
-                  </select>
-                </div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Entity of Company</label>
+                    <div></div>
+                    <select
+                      value={formData.entityType}
+                      onChange={(e) => handleInputChange('entityType', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                    >
+                      <option>Individual</option>
+                      <option>Corporation</option>
+                      <option>Partnership</option>
+                      <option>LLC</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
 
 
-                {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                  {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
                   <label className="text-sm font-medium text-gray-900 pt-2">
                     Applicant SSN
                     <span
@@ -1911,7 +1992,7 @@ export default function QuoteFormPage() {
                   </label>
                   <div></div> */}
 
-                {/* <div>
+                  {/* <div>
                     <input
                       type="text"
                       value={formData.applicantSSN}
@@ -1941,273 +2022,304 @@ export default function QuoteFormPage() {
                 </div> */}
 
 
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
-                  <label className="text-sm font-medium text-gray-900 pt-2">Applicant Phone</label>
-                  <div></div>
-                  <div>
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">Applicant Phone</label>
+                    <div></div>
+                    <div>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const formatted = formatPhone(value);
+                          handleInputChange('phone', formatted);
+                          validatePhone(formatted, 'phone');
+                        }}
+                        className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
+                        placeholder="(123) 456-7890"
+                        maxLength={14}
+                      />
+                      {validationErrors.phone && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-red-600">⚠</span>
+                          <span className="text-sm text-red-600">{validationErrors.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">Applicant Email</label>
+                    <div></div>
                     <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const formatted = formatPhone(value);
-                        handleInputChange('phone', formatted);
-                        validatePhone(formatted, 'phone');
-                      }}
-                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                      placeholder="(123) 456-7890"
-                      maxLength={14}
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      placeholder="insured@example.com"
                     />
-                    {validationErrors.phone && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-red-600">⚠</span>
-                        <span className="text-sm text-red-600">{validationErrors.phone}</span>
+                  </div>
+
+
+                </div>
+              </div>
+            </div>
+
+            {/* Applicant Physical Location */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Applicant Physical Location</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
+
+                <div className="space-y-7 mt-1">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      Address
+                      {/* <span className="ml-1 text-xs text-gray-500">(? icon would show help)</span> */}
+                    </label>
+                    <input
+                      ref={addressInputRef}
+                      type="text"
+                      value={formData.streetAddress}
+                      onChange={(e) => handleInputChange('streetAddress', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      placeholder="Start typing address..."
+                      autoComplete="off"
+                    />
+                    {isGoogleLoaded && (
+                      <div className="mt-1 text-xs text-gray-400 flex items-center justify-end gap-1">
+                        <span>powered by</span>
+                        <span className="font-semibold">Google</span>
                       </div>
                     )}
                   </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
+                      <input
+                        type="text"
+                        value={formData.aptSuite}
+                        onChange={(e) => handleInputChange('aptSuite', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        placeholder="Apt. #24"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+
+
+                    <div className="grid grid-cols-[10px_1fr_320px] gap-x-6 items-center">
+                      {/* Left label */}
+                      <label className="text-sm font-medium text-gray-900">
+                        Zip
+                      </label>
+
+                      {/* Right inputs */}
+                      <div className="flex items-center gap-3">
+                        {/* Zip input */}
+                        <input
+                          type="text"
+                          value={formData.zip}
+                          onChange={(e) => handleInputChange("zip", e.target.value)}
+                          maxLength={5}
+                          className="w-32 px-4 py-2.5 border border-gray-300 rounded 
+                 focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        />
+
+                        {/* State label + dropdown */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">
+                            State
+                          </span>
+
+                          <select
+                            value={formData.state}
+                            onChange={(e) => handleInputChange("state", e.target.value)}
+                            className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm w-40">
+                            {statesList.map((state) => (
+                              <option key={state} value={state}>
+                                {state}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">Applicant Email</label>
-                  <div></div>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="insured@example.com"
-                  />
-                </div>
-
-
               </div>
             </div>
-          </div>
 
-          {/* Applicant Physical Location */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Applicant Physical Location</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
 
-              <div className="space-y-7 mt-1">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-3">
-                    Address
-                    {/* <span className="ml-1 text-xs text-gray-500">(? icon would show help)</span> */}
-                  </label>
-                  <input
-                    ref={addressInputRef}
-                    type="text"
-                    value={formData.streetAddress}
-                    onChange={(e) => handleInputChange('streetAddress', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    placeholder="Start typing address..."
-                    autoComplete="off"
-                  />
-                  {isGoogleLoaded && (
-                    <div className="mt-1 text-xs text-gray-400 flex items-center justify-end gap-1">
-                      <span>powered by</span>
-                      <span className="font-semibold">Google</span>
+            {/* General Liability Loss Information */}
+            <div>
+              {formData.generalLiabilityLosses.length > 0 && (
+                <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+                  <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                    <h2 className="text-lg font-semibold">
+                      General Liability Loss Information
+                    </h2>
+                  </div>
+
+                  <div className="px-8 pt-6 pb-7 space-y-6">
+
+                    {/* Header */}
+                    <div className="grid grid-cols-[200px_1fr_200px_200px] gap-x-6 text-sm font-semibold text-gray-900">
+                      <div></div>
+                      <div></div>
+                      <div>Date of Loss</div>
+                      <div>Amount of Loss</div>
                     </div>
-                  )}
+
+                    {/* Rows */}
+                    {formData.generalLiabilityLosses.map((loss, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-[100px_1fr_200px_200px] gap-x-6 items-center"
+                      >
+                        {/* Delete */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...formData.generalLiabilityLosses];
+                            updated.splice(index, 1);
+
+                            handleInputChange("generalLiabilityLosses", updated);
+
+                            // If no losses left, reset dropdown to 0
+                            if (updated.length === 0) {
+                              handleInputChange("lossesLast5Years", "0");
+                            }
+                          }}
+                          className="text-red-500 text-lg"
+                        >
+                          🗑
+                        </button>
+
+                        <div className="text-sm text-gray-900">
+                          General Liability Loss
+                        </div>
+
+                        <input
+                          type="date"
+                          value={loss.dateOfLoss}
+                          onChange={(e) => {
+                            const updated = [...formData.generalLiabilityLosses];
+                            updated[index].dateOfLoss = e.target.value;
+                            handleInputChange("generalLiabilityLosses", updated);
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+
+                        <input
+                          type="text"
+                          placeholder="$0"
+                          value={loss.amountOfLoss}
+                          onChange={(e) => {
+                            const updated = [...formData.generalLiabilityLosses];
+                            updated[index].amountOfLoss = e.target.value;
+                            handleInputChange("generalLiabilityLosses", updated);
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                    ))}
+
+                    {/* Add Loss */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleInputChange("generalLiabilityLosses", [
+                          ...formData.generalLiabilityLosses,
+                          { dateOfLoss: "", amountOfLoss: "" },
+                        ])
+                      }
+                      className="text-[#00BCD4] text-sm font-semibold"
+                    >
+                      + Add Loss Information
+                    </button>
+
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
-                    <input
-                      type="text"
-                      value={formData.aptSuite}
-                      onChange={(e) => handleInputChange('aptSuite', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      placeholder="Apt. #24"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
+              )}
 
 
-                  <div className="grid grid-cols-[10px_1fr_320px] gap-x-6 items-center">
-                    {/* Left label */}
+            </div>
+
+
+            {/* Type of Work Performed */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Type of Work Performed</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
+
+                <div className="space-y-7 mt-1">
+
+                  {/* % New Construction */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
                     <label className="text-sm font-medium text-gray-900">
-                      Zip
+                      Percentage of work performed on New Construction Projects
                     </label>
 
-                    {/* Right inputs */}
-                    <div className="flex items-center gap-3">
-                      {/* Zip input */}
-                      <input
-                        type="text"
-                        value={formData.zip}
-                        onChange={(e) => handleInputChange("zip", e.target.value)}
-                        maxLength={5}
-                        className="w-32 px-4 py-2.5 border border-gray-300 rounded 
-                 focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                      />
-
-                      {/* State label + dropdown */}
+                    <div className="flex justify-end">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">
-                          State
-                        </span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={formData.newConstructionPercent}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            const num = Math.min(Number(value), 100);
 
-                        <select
-                          value={formData.state}
-                          onChange={(e) => handleInputChange("state", e.target.value)}
-                          className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm w-40">
-                          {statesList.map((state) => (
-                            <option key={state} value={state}>
-                              {state}
-                            </option>
-                          ))}
-                        </select>
+                            handleInputChange("newConstructionPercent", num.toString());
+                            handleInputChange(
+                              "remodelServiceRepairPercent",
+                              (100 - num).toString()
+                            );
+                          }}
+                          className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                        />
+                        <span className="text-sm text-gray-600">%</span>
                       </div>
                     </div>
                   </div>
 
-                </div>
-              </div>
-            </div>
-          </div>
 
 
-          {/* General Liability Loss Information */}
-          <div>
-            {formData.generalLiabilityLosses.length > 0 && (
-              <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+                  {/* % Remodel / Service / Repair */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Percentage of Remodel/Service/Repair work performed
+                    </label>
 
-                <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-                  <h2 className="text-lg font-semibold">
-                    General Liability Loss Information
-                  </h2>
-                </div>
-
-                <div className="px-8 pt-6 pb-7 space-y-6">
-
-                  {/* Header */}
-                  <div className="grid grid-cols-[200px_1fr_200px_200px] gap-x-6 text-sm font-semibold text-gray-900">
-                    <div></div>
-                    <div></div>
-                    <div>Date of Loss</div>
-                    <div>Amount of Loss</div>
-                  </div>
-
-                  {/* Rows */}
-                  {formData.generalLiabilityLosses.map((loss, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-[100px_1fr_200px_200px] gap-x-6 items-center"
-                    >
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = [...formData.generalLiabilityLosses];
-                          updated.splice(index, 1);
-
-                          handleInputChange("generalLiabilityLosses", updated);
-
-                          // If no losses left, reset dropdown to 0
-                          if (updated.length === 0) {
-                            handleInputChange("lossesLast5Years", "0");
-                          }
-                        }}
-                        className="text-red-500 text-lg"
-                      >
-                        🗑
-                      </button>
-
-                      <div className="text-sm text-gray-900">
-                        General Liability Loss
-                      </div>
-
-                      <input
-                        type="date"
-                        value={loss.dateOfLoss}
-                        onChange={(e) => {
-                          const updated = [...formData.generalLiabilityLosses];
-                          updated[index].dateOfLoss = e.target.value;
-                          handleInputChange("generalLiabilityLosses", updated);
-                        }}
-                        className="px-3 py-2 border border-gray-300 rounded text-sm"
-                      />
-
-                      <input
-                        type="text"
-                        placeholder="$0"
-                        value={loss.amountOfLoss}
-                        onChange={(e) => {
-                          const updated = [...formData.generalLiabilityLosses];
-                          updated[index].amountOfLoss = e.target.value;
-                          handleInputChange("generalLiabilityLosses", updated);
-                        }}
-                        className="px-3 py-2 border border-gray-300 rounded text-sm"
-                      />
-                    </div>
-                  ))}
-
-                  {/* Add Loss */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleInputChange("generalLiabilityLosses", [
-                        ...formData.generalLiabilityLosses,
-                        { dateOfLoss: "", amountOfLoss: "" },
-                      ])
-                    }
-                    className="text-[#00BCD4] text-sm font-semibold"
-                  >
-                    + Add Loss Information
-                  </button>
-
-                </div>
-              </div>
-            )}
-
-
-          </div>
-
-
-          {/* Type of Work Performed */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Type of Work Performed</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
-
-              <div className="space-y-7 mt-1">
-
-                {/* % New Construction */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of work performed on New Construction Projects
-                  </label>
-
-                  <div className="flex justify-end">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 justify-end">
                       <input
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        value={formData.newConstructionPercent}
+                        value={formData.remodelServiceRepairPercent}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, "");
                           const num = Math.min(Number(value), 100);
 
-                          handleInputChange("newConstructionPercent", num.toString());
+                          handleInputChange("remodelServiceRepairPercent", num.toString());
                           handleInputChange(
-                            "remodelServiceRepairPercent",
+                            "newConstructionPercent",
                             (100 - num).toString()
                           );
                         }}
@@ -2216,161 +2328,130 @@ export default function QuoteFormPage() {
                       <span className="text-sm text-gray-600">%</span>
                     </div>
                   </div>
-                </div>
 
 
+                  {/* % Residential */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Percentage of Residential work performed:
+                    </label>
 
-                {/* % Remodel / Service / Repair */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Remodel/Service/Repair work performed
-                  </label>
+                    <div className="flex items-center gap-2 justify-end">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={formData.residentialPercent}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          const num = Math.min(Number(value), 100);
 
-                  <div className="flex items-center gap-2 justify-end">
+                          handleInputChange("residentialPercent", num.toString());
+                          handleInputChange(
+                            "commercialPercent",
+                            (100 - num).toString()
+                          );
+                        }}
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      />
+                      <span className="text-sm text-gray-600">%</span>
+                    </div>
+                  </div>
+
+
+                  {/* % Commercial */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Percentage of Commercial work performed:
+                    </label>
+
+                    <div className="flex items-center gap-2 justify-end">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={formData.commercialPercent}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          const num = Math.min(Number(value), 100);
+
+                          handleInputChange("commercialPercent", num.toString());
+                          handleInputChange(
+                            "residentialPercent",
+                            (100 - num).toString()
+                          );
+                        }}
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      />
+                      <span className="text-sm text-gray-600">%</span>
+                    </div>
+                  </div>
+
+
+                  {/* Max Interior Stories */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Maximum # of Interior Stories:
+                    </label>
                     <input
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      value={formData.remodelServiceRepairPercent}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        const num = Math.min(Number(value), 100);
-
-                        handleInputChange("remodelServiceRepairPercent", num.toString());
+                      value={formData.maxInteriorStories}
+                      onChange={(e) =>
                         handleInputChange(
-                          "newConstructionPercent",
-                          (100 - num).toString()
-                        );
-                      }}
-                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                          "maxInteriorStories",
+                          e.target.value.replace(/\D/g, "")
+                        )
+                      }
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
-                    <span className="text-sm text-gray-600">%</span>
                   </div>
-                </div>
 
-
-                {/* % Residential */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Residential work performed:
-                  </label>
-
-                  <div className="flex items-center gap-2 justify-end">
+                  {/* Max Exterior Stories */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Maximum # of Exterior Stories:
+                    </label>
                     <input
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      value={formData.residentialPercent}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        const num = Math.min(Number(value), 100);
-
-                        handleInputChange("residentialPercent", num.toString());
+                      value={formData.maxExteriorStories}
+                      onChange={(e) =>
                         handleInputChange(
-                          "commercialPercent",
-                          (100 - num).toString()
-                        );
-                      }}
-                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                          "maxExteriorStories",
+                          e.target.value.replace(/\D/g, "")
+                        )
+                      }
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
-                    <span className="text-sm text-gray-600">%</span>
                   </div>
-                </div>
 
-
-                {/* % Commercial */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Percentage of Commercial work performed:
-                  </label>
-
-                  <div className="flex items-center gap-2 justify-end">
+                  {/* Max Exterior Depth Below Grade */}
+                  <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
+                    <label className="text-sm font-medium text-gray-900">
+                      Maximum Exterior Depth Below Grade in Feet:
+                    </label>
                     <input
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      value={formData.commercialPercent}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        const num = Math.min(Number(value), 100);
-
-                        handleInputChange("commercialPercent", num.toString());
+                      value={formData.maxExteriorDepthBelowGrade}
+                      onChange={(e) =>
                         handleInputChange(
-                          "residentialPercent",
-                          (100 - num).toString()
-                        );
-                      }}
-                      className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                          "maxExteriorDepthBelowGrade",
+                          e.target.value.replace(/\D/g, "")
+                        )
+                      }
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
                     />
-                    <span className="text-sm text-gray-600">%</span>
                   </div>
-                </div>
-
-
-                {/* Max Interior Stories */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Maximum # of Interior Stories:
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={formData.maxInteriorStories}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxInteriorStories",
-                        e.target.value.replace(/\D/g, "")
-                      )
-                    }
-                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
-                  />
-                </div>
-
-                {/* Max Exterior Stories */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Maximum # of Exterior Stories:
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={formData.maxExteriorStories}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxExteriorStories",
-                        e.target.value.replace(/\D/g, "")
-                      )
-                    }
-                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
-                  />
-                </div>
-
-                {/* Max Exterior Depth Below Grade */}
-                <div className="grid grid-cols-[1fr_120px] items-center gap-x-6">
-                  <label className="text-sm font-medium text-gray-900">
-                    Maximum Exterior Depth Below Grade in Feet:
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={formData.maxExteriorDepthBelowGrade}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxExteriorDepthBelowGrade",
-                        e.target.value.replace(/\D/g, "")
-                      )
-                    }
-                    className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
-                  />
-                </div>
 
 
 
 
-                {/* <YesNoRadio
+                  {/* <YesNoRadio
                   label="Will you or any subcontractor perform work below grade?"
                   value={formData.workBelowGrade}
                   onChange={(val) => handleInputChange('workBelowGrade', val)}
@@ -2403,13 +2484,13 @@ export default function QuoteFormPage() {
                   </div>
                 )} */}
 
-                {/* <YesNoRadio
+                  {/* <YesNoRadio
                   label="Have you or will you build on a hillside?"
                   value={formData.buildOnHillside}
                   onChange={(val) => handleInputChange('buildOnHillside', val)}
                 /> */}
 
-                {/* {formData.buildOnHillside && (
+                  {/* {formData.buildOnHillside && (
                   <div className="pl-4 border-l-2 border-gray-200">
                     <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
                     <textarea
@@ -2421,36 +2502,77 @@ export default function QuoteFormPage() {
                   </div>
                 )} */}
 
-                <YesNoRadio
-                  label="Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?"
-                  value={formData.performRoofingOps}
-                  onChange={(val) => {
-                    handleInputChange("performRoofingOps", val);
+                  <YesNoRadio
+                    label="Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?"
+                    value={formData.performRoofingOps}
+                    disableNo={hasRoofingSelected}
+                    onChange={(val) => {
+                      // Prevent selecting NO if roofing class exists
+                      if (hasRoofingSelected && val === false) return;
 
-                    if (val === true) {
-                      handleInputChange(
-                        "roofingOpsExplanation",
-                        "Performs roofing operations as indicated by class code selection,"
-                      );
-                    } else {
-                      handleInputChange("roofingOpsExplanation", "");
-                    }
-                  }}
-                />
+                      handleInputChange("performRoofingOps", val);
 
-                {formData.performRoofingOps && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.roofingOpsExplanation}
-                      onChange={(e) => handleInputChange('roofingOpsExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
+                      if (val === true) {
+                        // If manually selecting YES (not from class code)
+                        if (!hasRoofingSelected) {
+                          handleInputChange("roofingOpsExplanation", "");
+                        }
+                      }
 
-                {/* <YesNoRadio
+                      if (val === false) {
+                        handleInputChange("roofingOpsExplanation", "");
+                      }
+                    }}
+                  />
+
+                  {formData.performRoofingOps && (
+                    <div className="pl-4 border-l-2 border-gray-200 mt-4">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                        Please explain:
+                      </label>
+
+                      <textarea
+                        value={formData.roofingOpsExplanation}
+                        onChange={(e) =>
+                          handleInputChange("roofingOpsExplanation", e.target.value)
+                        }
+                        rows={3}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  {/* <YesNoRadio
+                    label="Will you perform or subcontract any roofing operations, work on the roof or deck work on roofs?"
+                    value={formData.performRoofingOps}
+                    onChange={(val) => {
+                      handleInputChange("performRoofingOps", val);
+
+                      if (val === true) {
+                        handleInputChange(
+                          "roofingOpsExplanation",
+                          "Performs roofing operations as indicated by class code selection,"
+                        );
+                      } else {
+                        handleInputChange("roofingOpsExplanation", "");
+                      }
+                    }}
+                  />
+
+                  {formData.performRoofingOps && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.roofingOpsExplanation}
+                        onChange={(e) => handleInputChange('roofingOpsExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )} */}
+
+                  {/* <YesNoRadio
                   label="Will you be acting as the General Contractor on any projects?"
                   value={formData.actAsGeneralContractor}
                   onChange={(val) => handleInputChange('actAsGeneralContractor', val)}
@@ -2468,43 +2590,43 @@ export default function QuoteFormPage() {
                   </div>
                 )} */}
 
-                <YesNoRadio
-                  label="Will you perform any waterproofing?"
-                  value={formData.performWaterproofing}
-                  onChange={(val) => handleInputChange('performWaterproofing', val)}
-                />
+                  <YesNoRadio
+                    label="Will you perform any waterproofing?"
+                    value={formData.performWaterproofing}
+                    onChange={(val) => handleInputChange('performWaterproofing', val)}
+                  />
 
-                {formData.performWaterproofing && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.waterproofingExplanation}
-                      onChange={(e) => handleInputChange('waterproofingExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-                <YesNoRadio
-                  label="Do you use motorized or heavy equipment in any of your operations?"
-                  value={formData.useHeavyEquipment}
-                  onChange={(val) => handleInputChange('useHeavyEquipment', val)}
-                />
-
-                {formData.useHeavyEquipment && (
-                  <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-                    <div>
+                  {formData.performWaterproofing && (
+                    <div className="pl-4 border-l-2 border-gray-200">
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
                       <textarea
-                        value={formData.heavyEquipmentExplanation}
-                        onChange={(e) => handleInputChange('heavyEquipmentExplanation', e.target.value)}
+                        value={formData.waterproofingExplanation}
+                        onChange={(e) => handleInputChange('waterproofingExplanation', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                       />
                     </div>
+                  )}
 
-                    {/* <YesNoRadio
+                  <YesNoRadio
+                    label="Do you use motorized or heavy equipment in any of your operations?"
+                    value={formData.useHeavyEquipment}
+                    onChange={(val) => handleInputChange('useHeavyEquipment', val)}
+                  />
+
+                  {formData.useHeavyEquipment && (
+                    <div className="space-y-4 pl-4 border-l-2 border-gray-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                        <textarea
+                          value={formData.heavyEquipmentExplanation}
+                          onChange={(e) => handleInputChange('heavyEquipmentExplanation', e.target.value)}
+                          rows={2}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        />
+                      </div>
+
+                      {/* <YesNoRadio
                       label="Are you and all employees that operate heavy equipment certified to do so?"
                       value={formData.heavyEquipmentOperatorsCertified}
                       onChange={(val) => handleInputChange('heavyEquipmentOperatorsCertified', val)}
@@ -2523,34 +2645,34 @@ export default function QuoteFormPage() {
                         />
                       </div>
                     )} */}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                <YesNoRadio
-                  label="Will you perform work in new tract home developments of 25 or more units?"
-                  value={formData.workNewTractHomes}
-                  onChange={(val) => handleInputChange('workNewTractHomes', val)}
-                />
+                  <YesNoRadio
+                    label="Will you perform work in new tract home developments of 25 or more units?"
+                    value={formData.workNewTractHomes}
+                    onChange={(val) => handleInputChange('workNewTractHomes', val)}
+                  />
 
-                {formData.workNewTractHomes && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.tractHomesExplanation}
-                      onChange={(e) => handleInputChange('tractHomesExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
+                  {formData.workNewTractHomes && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.tractHomesExplanation}
+                        onChange={(e) => handleInputChange('tractHomesExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
 
-                <YesNoRadio
-                  label="Will any of your work involve the construction of or be for new condominiums/townhouses/multi-unit residences?"
-                  value={formData.workCondoConstruction}
-                  onChange={(val) => handleInputChange('workCondoConstruction', val)}
-                />
+                  <YesNoRadio
+                    label="Will any of your work involve the construction of or be for new condominiums/townhouses/multi-unit residences?"
+                    value={formData.workCondoConstruction}
+                    onChange={(val) => handleInputChange('workCondoConstruction', val)}
+                  />
 
-                {/* {formData.workCondoConstruction && (
+                  {/* {formData.workCondoConstruction && (
                   <div className="space-y-4 pl-4 border-l-2 border-gray-200">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
@@ -2570,13 +2692,13 @@ export default function QuoteFormPage() {
                   </div>
                 )} */}
 
-                <YesNoRadio
-                  label="Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences? "
-                  value={formData.performCondoStructuralRepair}
-                  onChange={(val) => handleInputChange('performCondoStructuralRepair', val)}
-                />
+                  <YesNoRadio
+                    label="Will you perform repair only for individual unit owners of condominiums/townhouses/multi-unit residences? "
+                    value={formData.performCondoStructuralRepair}
+                    onChange={(val) => handleInputChange('performCondoStructuralRepair', val)}
+                  />
 
-                {/* {formData.performCondoStructuralRepair && (
+                  {/* {formData.performCondoStructuralRepair && (
                   <div className="space-y-4 pl-4 border-l-2 border-gray-200">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
@@ -2596,826 +2718,829 @@ export default function QuoteFormPage() {
                   </div>
                 )} */}
 
-                <YesNoRadio
-                  label="Will you perform OCIP (Wrap-up) work?"
-                  value={formData.performOCIPWork}
-                  onChange={(val) =>
-                    handleInputChange("performOCIPWork", val)
-                  }
-                />
+                  <YesNoRadio
+                    label="Will you perform OCIP (Wrap-up) work?"
+                    value={formData.performOCIPWork}
+                    onChange={(val) =>
+                      handleInputChange("performOCIPWork", val)
+                    }
+                  />
 
-                {formData.performOCIPWork && (
-                  <div className="space-y-5 mt-4">
+                  {formData.performOCIPWork && (
+                    <div className="space-y-5 mt-4">
 
-                    {/* OCIP / Wrap-up receipts */}
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">
-                        If "Yes", what are the estimated receipts for work covered separately under OCIP/Wrap-up?
-                      </label>
-                      <div></div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                        <input
-                          type="text"
-                          value={
-                            formData.ocipWrapUpReceipts
-                              ? formatCurrencyInput(formData.ocipWrapUpReceipts)
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const formatted = formatCurrencyInput(e.target.value);
-                            handleInputChange("ocipWrapUpReceipts", formatted);
-                          }}
-                          onBlur={(e) => {
-                            const parsed = parseCurrency(e.target.value);
-                            handleInputChange(
-                              "ocipWrapUpReceipts",
-                              parsed > 0 ? parsed.toString() : ""
-                            );
-                          }}
-                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                        />
+                      {/* OCIP / Wrap-up receipts */}
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">
+                          If "Yes", what are the estimated receipts for work covered separately under OCIP/Wrap-up?
+                        </label>
+                        <div></div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                          <input
+                            type="text"
+                            value={
+                              formData.ocipWrapUpReceipts
+                                ? formatCurrencyInput(formData.ocipWrapUpReceipts)
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const formatted = formatCurrencyInput(e.target.value);
+                              handleInputChange("ocipWrapUpReceipts", formatted);
+                            }}
+                            onBlur={(e) => {
+                              const parsed = parseCurrency(e.target.value);
+                              handleInputChange(
+                                "ocipWrapUpReceipts",
+                                parsed > 0 ? parsed.toString() : ""
+                              );
+                            }}
+                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Non-OCIP receipts */}
-                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                      <label className="text-sm font-medium text-gray-900">
-                        Estimated Receipts for non-Wrap/OCIP:
-                      </label>
-                      <div></div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-gray-500">$</span>
-                        <input
-                          type="text"
-                          value={
-                            formData.nonOcipReceipts
-                              ? formatCurrencyInput(formData.nonOcipReceipts)
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const formatted = formatCurrencyInput(e.target.value);
-                            handleInputChange("nonOcipReceipts", formatted);
-                          }}
-                          onBlur={(e) => {
-                            const parsed = parseCurrency(e.target.value);
-                            handleInputChange(
-                              "nonOcipReceipts",
-                              parsed > 0 ? parsed.toString() : ""
-                            );
-                          }}
-                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                        />
+                      {/* Non-OCIP receipts */}
+                      <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                        <label className="text-sm font-medium text-gray-900">
+                          Estimated Receipts for non-Wrap/OCIP:
+                        </label>
+                        <div></div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                          <input
+                            type="text"
+                            value={
+                              formData.nonOcipReceipts
+                                ? formatCurrencyInput(formData.nonOcipReceipts)
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const formatted = formatCurrencyInput(e.target.value);
+                              handleInputChange("nonOcipReceipts", formatted);
+                            }}
+                            onBlur={(e) => {
+                              const parsed = parseCurrency(e.target.value);
+                              handleInputChange(
+                                "nonOcipReceipts",
+                                parsed > 0 ? parsed.toString() : ""
+                              );
+                            }}
+                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                          />
+                        </div>
                       </div>
+
                     </div>
+                  )}
 
-                  </div>
-                )}
+                  <YesNoRadio
+                    label="Will you or do you perform or subcontract any work involving the following: blasting operations, hazardous waste, asbestos, mold, PCBs, museums, historic buildings, oil fields, dams/levees, bridges, quarries, railroads, earthquake retrofitting, fuel tanks, pipelines, or foundation repair?"
+                    value={formData.performHazardousWork}
+                    onChange={(val) => handleInputChange('performHazardousWork', val)}
+                  />
 
-                <YesNoRadio
-                  label="Will you or do you perform or subcontract any work involving the following: blasting operations, hazardous waste, asbestos, mold, PCBs, museums, historic buildings, oil fields, dams/levees, bridges, quarries, railroads, earthquake retrofitting, fuel tanks, pipelines, or foundation repair?"
-                  value={formData.performHazardousWork}
-                  onChange={(val) => handleInputChange('performHazardousWork', val)}
-                />
-
-                {formData.performHazardousWork && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.hazardousWorkExplanation}
-                      onChange={(e) => handleInputChange('hazardousWorkExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-                <YesNoRadio
-                  label="Will you or do you perform or subcontract any work involving the following: medical facilities (including new construction), hospitals (including new construction), churches or other house of worship, museums, historic buildings, airports, schools/playgrounds/recreational facilities (including new construction)?"
-                  value={formData.performMedicalFacilities}
-                  onChange={(val) => handleInputChange('performMedicalFacilities', val)}
-                />
-
-                {formData.performMedicalFacilities && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.medicalFacilitiesExplanation}
-                      onChange={(e) => handleInputChange('medicalFacilitiesExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-                <YesNoRadio
-                  label="Will you perform work (new/remodel) on single family residences, in which the dwelling exceeds 5,000 square feet?"
-                  value={formData.workOver5000SqFt}
-                  onChange={(val) => handleInputChange('workOver5000SqFt', val)}
-                />
-
-                {formData.workOver5000SqFt && (
-                  <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-                    <div>
+                  {formData.performHazardousWork && (
+                    <div className="pl-4 border-l-2 border-gray-200">
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
                       <textarea
-                        value={formData.over5000SqFtExplanation}
-                        onChange={(e) => handleInputChange('over5000SqFtExplanation', e.target.value)}
+                        value={formData.hazardousWorkExplanation}
+                        onChange={(e) => handleInputChange('hazardousWorkExplanation', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                       />
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">
-                        What percentage of your work will be on homes over 5,000 square feet?
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={formData.over5000SqFtPercent}
-                          onChange={(e) => handleInputChange('over5000SqFtPercent', e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                          max="100"
-                        />
-                        <span className="absolute right-3 top-2 text-gray-500">%</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  <YesNoRadio
+                    label="Will you or do you perform or subcontract any work involving the following: medical facilities (including new construction), hospitals (including new construction), churches or other house of worship, museums, historic buildings, airports, schools/playgrounds/recreational facilities (including new construction)?"
+                    value={formData.performMedicalFacilities}
+                    onChange={(val) => handleInputChange('performMedicalFacilities', val)}
+                  />
 
-
-                <YesNoRadio
-                  label="Will you perform work on commercial buildings over 20,000 square feet? "
-                  value={formData.workOver20000SqFt}
-                  onChange={(val) => handleInputChange('workOver20000SqFt', val)}
-                />
-
-                {formData.workOver20000SqFt && (
-                  <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-                    <div>
+                  {formData.performMedicalFacilities && (
+                    <div className="pl-4 border-l-2 border-gray-200">
                       <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
                       <textarea
-                        value={formData.over20000SqFtExplanation}
-                        onChange={(e) => handleInputChange('over20000SqFtExplanation', e.target.value)}
+                        value={formData.medicalFacilitiesExplanation}
+                        onChange={(e) => handleInputChange('medicalFacilitiesExplanation', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
                       />
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">
-                        What percentage of your work will be on commercial buildings over 20,000 square feet?
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={formData.over20000SqFtPercent}
-                          onChange={(e) => handleInputChange('over20000SqFtPercent', e.target.value)}
+                  <YesNoRadio
+                    label="Will you perform work (new/remodel) on single family residences, in which the dwelling exceeds 5,000 square feet?"
+                    value={formData.workOver5000SqFt}
+                    onChange={(val) => handleInputChange('workOver5000SqFt', val)}
+                  />
+
+                  {formData.workOver5000SqFt && (
+                    <div className="space-y-4 pl-4 border-l-2 border-gray-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                        <textarea
+                          value={formData.over5000SqFtExplanation}
+                          onChange={(e) => handleInputChange('over5000SqFtExplanation', e.target.value)}
+                          rows={2}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                          max="100"
                         />
-                        <span className="absolute right-3 top-2 text-gray-500">%</span>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">
+                          What percentage of your work will be on homes over 5,000 square feet?
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={formData.over5000SqFtPercent}
+                            onChange={(e) => handleInputChange('over5000SqFtPercent', e.target.value)}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                            max="100"
+                          />
+                          <span className="absolute right-3 top-2 text-gray-500">%</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+
+                  <YesNoRadio
+                    label="Will you perform work on commercial buildings over 20,000 square feet? "
+                    value={formData.workOver20000SqFt}
+                    onChange={(val) => handleInputChange('workOver20000SqFt', val)}
+                  />
+
+                  {formData.workOver20000SqFt && (
+                    <div className="space-y-4 pl-4 border-l-2 border-gray-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                        <textarea
+                          value={formData.over20000SqFtExplanation}
+                          onChange={(e) => handleInputChange('over20000SqFtExplanation', e.target.value)}
+                          rows={2}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">
+                          What percentage of your work will be on commercial buildings over 20,000 square feet?
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={formData.over20000SqFtPercent}
+                            onChange={(e) => handleInputChange('over20000SqFtPercent', e.target.value)}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                            max="100"
+                          />
+                          <span className="absolute right-3 top-2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Additional Business Information */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Additional Business Information</h2>
-            </div>
-            <div className="px-8 pt-6 pb-7">
-
-              <div className="space-y-7 mt-1">
-
-                <YesNoRadio
-                  label="Are there any other business names which you have used in the past or are currently using in addition to that for which you’re currently applying for insurance? "
-                  value={formData.otherBusinessNames}
-                  onChange={(val) => handleInputChange('otherBusinessNames', val)}
-                />
-
-                {formData.otherBusinessNames && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.otherBusinessNamesExplanation}
-                      onChange={(e) => handleInputChange('otherBusinessNamesExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-                <YesNoRadio
-                  label="Has any licensing authority taken any action against you, your company or any affiliates?"
-                  value={formData.licensingActionTaken}
-                  onChange={(val) => handleInputChange('licensingActionTaken', val)}
-                />
-
-                {formData.licensingActionTaken && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.licensingActionTakenExplanation}
-                      onChange={(e) => handleInputChange('licensingActionTakenExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-                <YesNoRadio
-                  label="Have you allowed or will you allow your license to be used by any other contractor?"
-                  value={formData.licenseSharedWithOthers}
-                  onChange={(val) => handleInputChange('licenseSharedWithOthers', val)}
-                />
-
-                {formData.licenseSharedWithOthers && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.licenseSharedWithOthersExplanation}
-                      onChange={(e) => handleInputChange('licenseSharedWithOthersExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-                <YesNoRadio
-                  label="Has the applicant or business owner ever had any judgements or liens filed against them or filed for bankruptcy?"
-                  value={formData.judgementsOrLiens}
-                  onChange={(val) => handleInputChange('judgementsOrLiens', val)}
-                />
-
-                {formData.judgementsOrLiens && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.judgementsOrLiensExplanation}
-                      onChange={(e) => handleInputChange('judgementsOrLiensExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-                <YesNoRadio
-                  label="Has any lawsuit ever been filed or any claim otherwise been made against your company (including any partnership or any joint venture of which you have been a member of, any of your company's predecessors, or any person, company or entities on whose behalf your company has assumed liability?"
-                  value={formData.lawsuitsOrClaims}
-                  onChange={(val) => handleInputChange('lawsuitsOrClaims', val)}
-                />
-
-                {formData.lawsuitsOrClaims && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.lawsuitsOrClaimsExplanation}
-                      onChange={(e) => handleInputChange('lawsuitsOrClaimsExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-                <YesNoRadio
-                  label="Is your company aware of any facts, circumstances, incidents, situations, damages or accidents (including but not limited to: faulty or defective workmanship, product failure, construction dispute, property damage or construction worker injury) that a reasonably prudent person might expect to give rise to a claim or lawsuit, whether valid or not, which might directly or indirectly involve the company?"
-                  value={formData.knownIncidentsOrClaims}
-                  onChange={(val) => handleInputChange('knownIncidentsOrClaims', val)}
-                />
-
-                {formData.knownIncidentsOrClaims && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
-                    <textarea
-                      value={formData.knownIncidentsOrClaimsExplanation}
-                      onChange={(e) => handleInputChange('knownIncidentsOrClaimsExplanation', e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-                <YesNoRadio
-                  label="Do you have a written contract for all work you perform?"
-                  value={formData.writtenContractForAllWork}
-                  onChange={(val) => handleInputChange('writtenContractForAllWork', val)}
-                />
-
-                {formData.writtenContractForAllWork === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.writtenContractForAllWorkExplanation}
-                      onChange={(e) =>
-                        handleInputChange('writtenContractForAllWorkExplanation', e.target.value)
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-
-                <YesNoRadio
-                  label="Does the contract identify a start date for the work?"
-                  value={formData.contractHasStartDate}
-                  onChange={(val) => handleInputChange('contractHasStartDate', val)}
-                />
-
-                {formData.contractHasStartDate === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.contractHasStartDateExplanation}
-                      onChange={(e) =>
-                        handleInputChange('contractHasStartDateExplanation', e.target.value)
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-
-                <YesNoRadio
-                  label="Does the contract identify a precise scope of work?"
-                  value={formData.contractHasScopeOfWork}
-                  onChange={(val) => handleInputChange('contractHasScopeOfWork', val)}
-                />
-
-                {formData.contractHasScopeOfWork === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.contractHasScopeOfWorkExplanation}
-                      onChange={(e) =>
-                        handleInputChange('contractHasScopeOfWorkExplanation', e.target.value)
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-
-                <YesNoRadio
-                  label="Does the contract identify all subcontracted trades (if any)?"
-                  value={formData.contractIdentifiesSubTrades}
-                  onChange={(val) => handleInputChange('contractIdentifiesSubTrades', val)}
-                />
-
-                {formData.contractIdentifiesSubTrades === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.contractIdentifiesSubTradesExplanation}
-                      onChange={(e) =>
-                        handleInputChange(
-                          'contractIdentifiesSubTradesExplanation',
-                          e.target.value
-                        )
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-
-                <YesNoRadio
-                  label="Does the contract provide a set price?"
-                  value={formData.contractHasSetPrice}
-                  onChange={(val) => handleInputChange('contractHasSetPrice', val)}
-                />
-
-                {formData.contractHasSetPrice === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.contractHasSetPriceExplanation}
-                      onChange={(e) =>
-                        handleInputChange('contractHasSetPriceExplanation', e.target.value)
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-
-                <YesNoRadio
-                  label="Is the contract signed by all parties to the contract?"
-                  value={formData.contractSignedByAllParties}
-                  onChange={(val) => handleInputChange('contractSignedByAllParties', val)}
-                />
-
-                {formData.contractSignedByAllParties === false && (
-                  <div className="pl-4 border-l-2 border-gray-200">
-                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                      If No, please explain:
-                    </label>
-                    <textarea
-                      value={formData.contractSignedByAllPartiesExplanation}
-                      onChange={(e) =>
-                        handleInputChange(
-                          'contractSignedByAllPartiesExplanation',
-                          e.target.value
-                        )
-                      }
-                      rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                    />
-                  </div>
-                )}
-
-              </div>
-            </div>
-          </div>
-
-          {/* Subcontractors */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Subcontractors</h2>
-            </div>
-
-            <div className="px-8 pt-6 pb-7 space-y-7">
-
-              {/* Use Subcontractors */}
-              <YesNoRadio
-                label="Do you use subcontractors?"
-                value={formData.useSubcontractors}
-                onChange={handleUseSubcontractorsChange}
-              />
-
-              {/* Sub-questions */}
-              <div
-                className={`space-y-6 pl-4 border-l-2 border-gray-200 ${!formData.useSubcontractors ? "opacity-60 pointer-events-none" : ""
-                  }`}
-              >
-
-                {/* Certificates of Insurance */}
-                <YesNoRadio
-                  label="Do you always collect certificates of insurance from subcontractors?"
-                  value={formData.collectSubCertificates}
-                  disabled={!formData.useSubcontractors}
-                  onChange={(val) =>
-                    handleInputChange("collectSubCertificates", val)
-                  }
-                />
-
-                {formData.collectSubCertificates === false && (
-                  <textarea
-                    placeholder="If No, please explain"
-                    value={formData.collectSubCertificatesExplanation}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "collectSubCertificatesExplanation",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                  />
-                )}
-
-                {/* Insurance Limits */}
-                <YesNoRadio
-                  label="Do you require subcontractors to have insurance limits equal to your own?"
-                  value={formData.requireSubInsuranceEqual}
-                  disabled={!formData.useSubcontractors}
-                  onChange={(val) =>
-                    handleInputChange("requireSubInsuranceEqual", val)
-                  }
-                />
-
-                {formData.requireSubInsuranceEqual === false && (
-                  <textarea
-                    placeholder="If No, please explain"
-                    value={formData.requireSubInsuranceEqualExplanation}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "requireSubInsuranceEqualExplanation",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                  />
-                )}
-
-                {/* Additional Insured */}
-                <YesNoRadio
-                  label="Do you always require subcontractors to name you as additional insured?"
-                  value={formData.requireAdditionalInsured}
-                  disabled={!formData.useSubcontractors}
-                  onChange={(val) =>
-                    handleInputChange("requireAdditionalInsured", val)
-                  }
-                />
-
-                {formData.requireAdditionalInsured === false && (
-                  <textarea
-                    placeholder="If No, please explain"
-                    value={formData.requireAdditionalInsuredExplanation}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "requireAdditionalInsuredExplanation",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                  />
-                )}
-
-                {/* Written Contract */}
-                <YesNoRadio
-                  label="Do you have a standard formal written contract with subcontractors?"
-                  value={formData.haveWrittenSubContracts}
-                  disabled={!formData.useSubcontractors}
-                  onChange={(val) =>
-                    handleInputChange("haveWrittenSubContracts", val)
-                  }
-                />
-
-                {formData.haveWrittenSubContracts === false && (
-                  <textarea
-                    placeholder="If No, please explain"
-                    value={formData.haveWrittenSubContractsExplanation}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "haveWrittenSubContractsExplanation",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                  />
-                )}
-
-                {/* Workers Comp */}
-                <YesNoRadio
-                  label="Do you require subcontractors to carry Worker’s Compensation?"
-                  value={formData.requireWorkersComp}
-                  disabled={!formData.useSubcontractors}
-                  onChange={(val) =>
-                    handleInputChange("requireWorkersComp", val)
-                  }
-                />
-
-                {formData.requireWorkersComp === false && (
-                  <textarea
-                    placeholder="If No, please explain"
-                    value={formData.requireWorkersCompExplanation}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "requireWorkersCompExplanation",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
-                  />
-                )}
-
-              </div>
-            </div>
-          </div>
-
-
-
-
-          {/* Excess Liability Coverage */}
-          <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-
-            {/* Header */}
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-              <h2 className="text-lg font-semibold">Add Excess Liability coverage</h2>
-            </div>
-
-            <div className="px-8 pt-6 pb-7 space-y-7">
-
-              {/* Product info */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h3 className="text-[18px] font-semibold tracking-tight">
-                  Add Excess Liability
-                </h3>
-                <p className="text-sm font-semibold text-gray-700 mb-1">
-                  Sutton – A-, VII Rated
-                </p>
-                <p className="text-sm text-gray-600 mb-1">Non-Admitted</p>
-                <p className="text-sm text-gray-600">
-                  Covers General Liability, Auto, Employers Liability
-                </p>
-              </div>
-
-              {/* Yes / No */}
-              <YesNoRadio
-                label=""
-                value={formData.addExcessLiability}
-                onChange={(val) => handleInputChange("addExcessLiability", val)}
-              />
-            </div>
-          </div>
-
-          {/* ================= EXCESS QUESTIONS ================= */}
-          {formData.addExcessLiability && (
-            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
-
+            {/* Additional Business Information */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
               <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
-                <h2 className="text-lg font-semibold">Excess Questions</h2>
+                <h2 className="text-lg font-semibold">Additional Business Information</h2>
+              </div>
+              <div className="px-8 pt-6 pb-7">
+
+                <div className="space-y-7 mt-1">
+
+                  <YesNoRadio
+                    label="Are there any other business names which you have used in the past or are currently using in addition to that for which you’re currently applying for insurance? "
+                    value={formData.otherBusinessNames}
+                    onChange={(val) => handleInputChange('otherBusinessNames', val)}
+                  />
+
+                  {formData.otherBusinessNames && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.otherBusinessNamesExplanation}
+                        onChange={(e) => handleInputChange('otherBusinessNamesExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+                  <YesNoRadio
+                    label="Has any licensing authority taken any action against you, your company or any affiliates?"
+                    value={formData.licensingActionTaken}
+                    onChange={(val) => handleInputChange('licensingActionTaken', val)}
+                  />
+
+                  {formData.licensingActionTaken && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.licensingActionTakenExplanation}
+                        onChange={(e) => handleInputChange('licensingActionTakenExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+                  <YesNoRadio
+                    label="Have you allowed or will you allow your license to be used by any other contractor?"
+                    value={formData.licenseSharedWithOthers}
+                    onChange={(val) => handleInputChange('licenseSharedWithOthers', val)}
+                  />
+
+                  {formData.licenseSharedWithOthers && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.licenseSharedWithOthersExplanation}
+                        onChange={(e) => handleInputChange('licenseSharedWithOthersExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+                  <YesNoRadio
+                    label="Has the applicant or business owner ever had any judgements or liens filed against them or filed for bankruptcy?"
+                    value={formData.judgementsOrLiens}
+                    onChange={(val) => handleInputChange('judgementsOrLiens', val)}
+                  />
+
+                  {formData.judgementsOrLiens && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.judgementsOrLiensExplanation}
+                        onChange={(e) => handleInputChange('judgementsOrLiensExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+                  <YesNoRadio
+                    label="Has any lawsuit ever been filed or any claim otherwise been made against your company (including any partnership or any joint venture of which you have been a member of, any of your company's predecessors, or any person, company or entities on whose behalf your company has assumed liability?"
+                    value={formData.lawsuitsOrClaims}
+                    onChange={(val) => handleInputChange('lawsuitsOrClaims', val)}
+                  />
+
+                  {formData.lawsuitsOrClaims && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.lawsuitsOrClaimsExplanation}
+                        onChange={(e) => handleInputChange('lawsuitsOrClaimsExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+                  <YesNoRadio
+                    label="Is your company aware of any facts, circumstances, incidents, situations, damages or accidents (including but not limited to: faulty or defective workmanship, product failure, construction dispute, property damage or construction worker injury) that a reasonably prudent person might expect to give rise to a claim or lawsuit, whether valid or not, which might directly or indirectly involve the company?"
+                    value={formData.knownIncidentsOrClaims}
+                    onChange={(val) => handleInputChange('knownIncidentsOrClaims', val)}
+                  />
+
+                  {formData.knownIncidentsOrClaims && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">Please explain:</label>
+                      <textarea
+                        value={formData.knownIncidentsOrClaimsExplanation}
+                        onChange={(e) => handleInputChange('knownIncidentsOrClaimsExplanation', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+                  <YesNoRadio
+                    label="Do you have a written contract for all work you perform?"
+                    value={formData.writtenContractForAllWork}
+                    onChange={(val) => handleInputChange('writtenContractForAllWork', val)}
+                  />
+
+                  {formData.writtenContractForAllWork === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.writtenContractForAllWorkExplanation}
+                        onChange={(e) =>
+                          handleInputChange('writtenContractForAllWorkExplanation', e.target.value)
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  <YesNoRadio
+                    label="Does the contract identify a start date for the work?"
+                    value={formData.contractHasStartDate}
+                    onChange={(val) => handleInputChange('contractHasStartDate', val)}
+                  />
+
+                  {formData.contractHasStartDate === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.contractHasStartDateExplanation}
+                        onChange={(e) =>
+                          handleInputChange('contractHasStartDateExplanation', e.target.value)
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  <YesNoRadio
+                    label="Does the contract identify a precise scope of work?"
+                    value={formData.contractHasScopeOfWork}
+                    onChange={(val) => handleInputChange('contractHasScopeOfWork', val)}
+                  />
+
+                  {formData.contractHasScopeOfWork === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.contractHasScopeOfWorkExplanation}
+                        onChange={(e) =>
+                          handleInputChange('contractHasScopeOfWorkExplanation', e.target.value)
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  <YesNoRadio
+                    label="Does the contract identify all subcontracted trades (if any)?"
+                    value={formData.contractIdentifiesSubTrades}
+                    onChange={(val) => handleInputChange('contractIdentifiesSubTrades', val)}
+                  />
+
+                  {formData.contractIdentifiesSubTrades === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.contractIdentifiesSubTradesExplanation}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'contractIdentifiesSubTradesExplanation',
+                            e.target.value
+                          )
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  <YesNoRadio
+                    label="Does the contract provide a set price?"
+                    value={formData.contractHasSetPrice}
+                    onChange={(val) => handleInputChange('contractHasSetPrice', val)}
+                  />
+
+                  {formData.contractHasSetPrice === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.contractHasSetPriceExplanation}
+                        onChange={(e) =>
+                          handleInputChange('contractHasSetPriceExplanation', e.target.value)
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+
+                  <YesNoRadio
+                    label="Is the contract signed by all parties to the contract?"
+                    value={formData.contractSignedByAllParties}
+                    onChange={(val) => handleInputChange('contractSignedByAllParties', val)}
+                  />
+
+                  {formData.contractSignedByAllParties === false && (
+                    <div className="pl-4 border-l-2 border-gray-200">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        If No, please explain:
+                      </label>
+                      <textarea
+                        value={formData.contractSignedByAllPartiesExplanation}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'contractSignedByAllPartiesExplanation',
+                            e.target.value
+                          )
+                        }
+                        rows={2}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      />
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+
+            {/* Subcontractors */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Subcontractors</h2>
               </div>
 
-              <div className="px-8 pt-6 pb-7 space-y-6">
+              <div className="px-8 pt-6 pb-7 space-y-7">
 
-                {/* Desired Effective Date */}
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Desired Effective Date
-                  </label>
-                  <div></div>
-                  <input
-                    type="text"
-                    disabled
-                    placeholder="Same as GL effective date"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500"
-                  />
-                </div>
+                {/* Use Subcontractors */}
+                <YesNoRadio
+                  label="Do you use subcontractors?"
+                  value={formData.useSubcontractors}
+                  onChange={handleUseSubcontractorsChange}
+                />
 
-                {/* Excess Limits */}
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Excess Limits
-                  </label>
-                  <div></div>
-                  <select
-                    value={formData.excessLiabilityLimit || ""}
-                    onChange={(e) =>
-                      handleInputChange("excessLiabilityLimit", e.target.value)
+                {/* Sub-questions */}
+                <div
+                  className={`space-y-6 pl-4 border-l-2 border-gray-200 ${!formData.useSubcontractors ? "opacity-60 pointer-events-none" : ""
+                    }`}
+                >
+
+                  {/* Certificates of Insurance */}
+                  <YesNoRadio
+                    label="Do you always collect certificates of insurance from subcontractors?"
+                    value={formData.collectSubCertificates}
+                    disabled={!formData.useSubcontractors}
+                    onChange={(val) =>
+                      handleInputChange("collectSubCertificates", val)
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
-                  >
-                    <option value="">Select Limit</option>
-                    <option value="1M">$1,000,000</option>
-                    <option value="2M">$2,000,000</option>
-                    <option value="3M">$3,000,000</option>
-                    <option value="4M">$4,000,000</option>
-                    <option value="5M">$5,000,000</option>
-                  </select>
-                </div>
+                  />
 
-                {/* Underlying policies */}
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-gray-900">
-                    Underlying policies to be covered in addition to underlying GL policy
+                  {formData.collectSubCertificates === false && (
+                    <textarea
+                      placeholder="If No, please explain"
+                      value={formData.collectSubCertificatesExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "collectSubCertificatesExplanation",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
+                    />
+                  )}
+
+                  {/* Insurance Limits */}
+                  <YesNoRadio
+                    label="Do you require subcontractors to have insurance limits equal to your own?"
+                    value={formData.requireSubInsuranceEqual}
+                    disabled={!formData.useSubcontractors}
+                    onChange={(val) =>
+                      handleInputChange("requireSubInsuranceEqual", val)
+                    }
+                  />
+
+                  {formData.requireSubInsuranceEqual === false && (
+                    <textarea
+                      placeholder="If No, please explain"
+                      value={formData.requireSubInsuranceEqualExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "requireSubInsuranceEqualExplanation",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
+                    />
+                  )}
+
+                  {/* Additional Insured */}
+                  <YesNoRadio
+                    label="Do you always require subcontractors to name you as additional insured?"
+                    value={formData.requireAdditionalInsured}
+                    disabled={!formData.useSubcontractors}
+                    onChange={(val) =>
+                      handleInputChange("requireAdditionalInsured", val)
+                    }
+                  />
+
+                  {formData.requireAdditionalInsured === false && (
+                    <textarea
+                      placeholder="If No, please explain"
+                      value={formData.requireAdditionalInsuredExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "requireAdditionalInsuredExplanation",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
+                    />
+                  )}
+
+                  {/* Written Contract */}
+                  <YesNoRadio
+                    label="Do you have a standard formal written contract with subcontractors?"
+                    value={formData.haveWrittenSubContracts}
+                    disabled={!formData.useSubcontractors}
+                    onChange={(val) =>
+                      handleInputChange("haveWrittenSubContracts", val)
+                    }
+                  />
+
+                  {formData.haveWrittenSubContracts === false && (
+                    <textarea
+                      placeholder="If No, please explain"
+                      value={formData.haveWrittenSubContractsExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "haveWrittenSubContractsExplanation",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
+                    />
+                  )}
+
+                  {/* Workers Comp */}
+                  <YesNoRadio
+                    label="Do you require subcontractors to carry Worker’s Compensation?"
+                    value={formData.requireWorkersComp}
+                    disabled={!formData.useSubcontractors}
+                    onChange={(val) =>
+                      handleInputChange("requireWorkersComp", val)
+                    }
+                  />
+
+                  {formData.requireWorkersComp === false && (
+                    <textarea
+                      placeholder="If No, please explain"
+                      value={formData.requireWorkersCompExplanation}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "requireWorkersCompExplanation",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm"
+                    />
+                  )}
+
+                </div>
+              </div>
+            </div>
+
+
+
+
+            {/* Excess Liability Coverage */}
+            <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+
+              {/* Header */}
+              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <h2 className="text-lg font-semibold">Add Excess Liability coverage</h2>
+              </div>
+
+              <div className="px-8 pt-6 pb-7 space-y-7">
+
+                {/* Product info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-[18px] font-semibold tracking-tight">
+                    Add Excess Liability
+                  </h3>
+                  <p className="text-sm font-semibold text-gray-700 mb-1">
+                    Sutton – A-, VII Rated
                   </p>
-
-                  <YesNoRadio
-                    label="Employer’s Liability (Workers Comp)"
-                    value={formData.employersLiabilityWC}
-                    onChange={(val) =>
-                      handleInputChange("employersLiabilityWC", val)
-                    }
-                  />
-                  <YesNoRadio
-                    label="Auto"
-                    value={formData.auto}
-                    onChange={(val) =>
-                      handleInputChange("auto", val)
-                    }
-                  />
+                  <p className="text-sm text-gray-600 mb-1">Non-Admitted</p>
+                  <p className="text-sm text-gray-600">
+                    Covers General Liability, Auto, Employers Liability
+                  </p>
                 </div>
 
-                {/* Combined losses (ALWAYS visible, DISABLED) */}
-                <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
-                  <label className="text-sm font-medium text-gray-900">
-                    Combined # of losses across all underlying policies in last 5 years
-                  </label>
-                  <div></div>
-                  <select
-                    value={formData.combinedUnderlyingLosses}
-                    disabled={!formData.employersLiabilityWC}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "combinedUnderlyingLosses",
-                        e.target.value
-                      )
-                    }
-                    className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.employersLiabilityWC
-                      ? "bg-white focus:ring-1 focus:ring-[#00BCD4]"
-                      : "bg-gray-100 text-gray-500"
-                      }`}
-                  >
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6+">6+</option>
-                  </select>
+                {/* Yes / No */}
+                <YesNoRadio
+                  label=""
+                  value={formData.addExcessLiability}
+                  onChange={(val) => handleInputChange("addExcessLiability", val)}
+                />
+              </div>
+            </div>
+
+            {/* ================= EXCESS QUESTIONS ================= */}
+            {formData.addExcessLiability && (
+              <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
+
+                <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                  <h2 className="text-lg font-semibold">Excess Questions</h2>
                 </div>
 
+                <div className="px-8 pt-6 pb-7 space-y-6">
 
-                {/* Employer’s Liability Limits (ONLY when YES) */}
-                {formData.employersLiabilityWC && (
+                  {/* Desired Effective Date */}
                   <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">
-                      Employer’s Liability (Workers Comp) Limits
+                      Desired Effective Date
+                    </label>
+                    <div></div>
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Same as GL effective date"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm bg-gray-100 text-gray-500"
+                    />
+                  </div>
+
+                  {/* Excess Limits */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Excess Limits
                     </label>
                     <div></div>
                     <select
-                      value={formData.employersLiabilityWCLimit || ""}
+                      value={formData.excessLiabilityLimit || ""}
                       onChange={(e) =>
-                        handleInputChange(
-                          "employersLiabilityWCLimit",
-                          e.target.value
-                        )
+                        handleInputChange("excessLiabilityLimit", e.target.value)
                       }
                       className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
                     >
-                      <option value="">Select Limits</option>
-                      <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
-                      <option value="$500k/$500k/$500k">$500k / $500k / $500k</option>
-                      <option value="$1M/$1M/$1M">$1M / $1M / $1M</option>
+                      <option value="">Select Limit</option>
+                      <option value="1M">$1,000,000</option>
+                      <option value="2M">$2,000,000</option>
+                      <option value="3M">$3,000,000</option>
+                      <option value="4M">$4,000,000</option>
+                      <option value="5M">$5,000,000</option>
                     </select>
                   </div>
-                )}
 
+                  {/* Underlying policies */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-900">
+                      Underlying policies to be covered in addition to underlying GL policy
+                    </p>
+
+                    <YesNoRadio
+                      label="Employer’s Liability (Workers Comp)"
+                      value={formData.employersLiabilityWC}
+                      onChange={(val) =>
+                        handleInputChange("employersLiabilityWC", val)
+                      }
+                    />
+                    <YesNoRadio
+                      label="Auto"
+                      value={formData.auto}
+                      onChange={(val) =>
+                        handleInputChange("auto", val)
+                      }
+                    />
+                  </div>
+
+                  {/* Combined losses (ALWAYS visible, DISABLED) */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                    <label className="text-sm font-medium text-gray-900">
+                      Combined # of losses across all underlying policies in last 5 years
+                    </label>
+                    <div></div>
+                    <select
+                      value={formData.combinedUnderlyingLosses}
+                      disabled={!formData.employersLiabilityWC}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "combinedUnderlyingLosses",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.employersLiabilityWC
+                        ? "bg-white focus:ring-1 focus:ring-[#00BCD4]"
+                        : "bg-gray-100 text-gray-500"
+                        }`}
+                    >
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6+">6+</option>
+                    </select>
+                  </div>
+
+
+                  {/* Employer’s Liability Limits (ONLY when YES) */}
+                  {formData.employersLiabilityWC && (
+                    <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
+                      <label className="text-sm font-medium text-gray-900">
+                        Employer’s Liability (Workers Comp) Limits
+                      </label>
+                      <div></div>
+                      <select
+                        value={formData.employersLiabilityWCLimit || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "employersLiabilityWCLimit",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      >
+                        <option value="">Select Limits</option>
+                        <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
+                        <option value="$500k/$500k/$500k">$500k / $500k / $500k</option>
+                        <option value="$1M/$1M/$1M">$1M / $1M / $1M</option>
+                      </select>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            )}
+            {/* ================= END EXCESS QUESTIONS ================= */}
+
+
+
+
+
+            {/* Submit Button */}
+            <div className="flex justify-between items-center pt-6">
+              <Link
+                href="/agency/dashboard"
+                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50"
+              >
+                Return to Dashboard
+              </Link>
+              <div className="flex items-center gap-3">
+                {/* Download PDF Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadApplicationPDF}
+                  disabled={isSubmitting || isDownloadingPDF}
+                  className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
+                  title="Download Application PDF"
+                >
+                  {isDownloadingPDF ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      Download PDF
+                    </>
+                  )}
+                </button>
+
+                {/* Submit Button */}
+                {!isViewMode && (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold 
+                            hover:bg-[#8F8371] 
+                            active:bg-[#7A6F60] 
+                            transition-all duration-200 
+                            disabled:opacity-50 
+                            flex items-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Submit Application
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
-          )}
-          {/* ================= END EXCESS QUESTIONS ================= */}
-
-
-
-
-
-          {/* Submit Button */}
-          <div className="flex justify-between items-center pt-6">
-            <Link
-              href="/agency/dashboard"
-              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50"
-            >
-              Return to Dashboard
-            </Link>
-            <div className="flex items-center gap-3">
-              {/* Download PDF Button */}
-              <button
-                type="button"
-                onClick={handleDownloadApplicationPDF}
-                disabled={isSubmitting || isDownloadingPDF}
-                className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded font-semibold hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
-                title="Download Application PDF"
-              >
-                {isDownloadingPDF ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Download PDF
-                  </>
-                )}
-              </button>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold 
-                          hover:bg-[#8F8371] 
-                          active:bg-[#7A6F60] 
-                          transition-all duration-200 
-                          disabled:opacity-50 
-                          flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Submit Application
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          </fieldset>
         </form>
 
         {/* Quote Result */}
