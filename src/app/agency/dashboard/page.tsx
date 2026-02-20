@@ -321,7 +321,7 @@ function AgencyDashboardContent() {
               </button>
 
               {/* ⭐ HOME ICON */}
-              <button
+              {/* <button
                 onClick={() => router.push("/agency/broker-center")}
                 className="p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200"
               >
@@ -338,7 +338,7 @@ function AgencyDashboardContent() {
                     d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                   />
                 </svg>
-              </button>
+              </button> */}
 
               {/* ⭐ PROFILE */}
               <div className="relative">

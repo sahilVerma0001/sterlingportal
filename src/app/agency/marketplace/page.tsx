@@ -136,7 +136,7 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-white flex">
       {/* Sidebar - Matching Dashboard */}
-      <MarketplaceSidebar />
+      {/* <MarketplaceSidebar /> */}
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
@@ -144,23 +144,48 @@ export default function MarketplacePage() {
         <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 p-3">
-              <Link href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <Link title="Back" href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </Link>
-              <div>
+              {/* <div>
                 <h1 className="text-xl font-bold text-gray-900">Marketplace</h1>
                 <p className="text-sm text-gray-600">Select industries and programs</p>
-              </div>
+              </div> */}
             </div>
-            {/*this button text*/}
-            <button
-              onClick={() => router.push('/api/auth/signout')}
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                title="Home"
+                onClick={() => router.push("/agency/dashboard")}
+                className="m-3 rounded-xl hover:bg-gray-100 transition-all duration-200"
+              >
+                <svg
+                  className="w-[22px] h-[22px] text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </button>
+              <span className="absolute left-1/2 -translate-x-1/2 mt-2 scale-0 group-hover:scale-100 transition-transform bg-black text-white text-xs rounded px-2 py-1">
+                Home
+              </span>
+              {/*this button text*/}
+              <button
+                title="Sign Out"
+                onClick={() => router.push('/api/auth/signout')}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -169,7 +194,7 @@ export default function MarketplacePage() {
           {/* Industry Cards Grid */}
           <div className="flex-1">
             <div className="max-w-7xl mx-auto">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {industries.map((industry) => {
                   const isExpanded = expandedIndustry === industry.id;
@@ -186,7 +211,7 @@ export default function MarketplacePage() {
                         className={`cursor-pointer bg-white border-2 overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
                           ? 'border-[#9A8B7A] rounded-t-2xl border-b-0'
                           : 'border-gray-200 rounded-2xl hover:border-gray-300'
-                        }`}
+                          }`}
                       >
                         {/* Featured Banner */}
                         {industry.featured && !isExpanded && (
@@ -240,21 +265,21 @@ export default function MarketplacePage() {
                       {isExpanded && (
                         <div className="flex gap-6 flex-wrap pt-4 px-4 pb-4 bg-white border-2 border-t-0 border-[#9A8B7A] rounded-b-2xl">
                           {industry.programs.map((program) => (
-                          <label
-                            key={program.id}
-                            onClick={() => router.push(`/agency/quote/${program.id}`)}
-                            className="w-56 cursor-pointer group"
-                          >
-                          <div className="w-full h-56 rounded-3xl overflow-hidden bg-white shadow-sm">
-                            <Image
-                              src="/construction-box.jpeg"
-                              alt="Construction Program"
-                              width={400}
-                              height={400}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          </label>
+                            <label
+                              key={program.id}
+                              onClick={() => router.push(`/agency/quote/${program.id}`)}
+                              className="w-56 cursor-pointer group"
+                            >
+                              <div className="w-full h-56 rounded-3xl overflow-hidden bg-white shadow-sm">
+                                <Image
+                                  src="/construction-box.jpeg"
+                                  alt="Construction Program"
+                                  width={400}
+                                  height={400}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </label>
                           ))}
                         </div>
                       )}

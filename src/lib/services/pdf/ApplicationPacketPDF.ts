@@ -511,7 +511,7 @@ function generatePage2(data: ApplicationPacketData): string {
             </div>
 
 
-            <div class="page-number-page2">Page 1 of 11</div>
+            <div class="page-number-page2">Page 1 of 10</div>
 
         </div>
     </div>
@@ -613,7 +613,7 @@ function generatePage3(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page3">Page 2 of 11</div>
+        <div class="page-number page-number-page3">Page 2 of 10</div>
       </div>
     </div>
   `;
@@ -824,7 +824,7 @@ function generatePage4(data: ApplicationPacketData): string {
             </div>
 
             <div class="page-number page-number-page4">
-                Page 3 of 11
+                Page 3 of 10
             </div>
 
         </div>
@@ -943,7 +943,7 @@ function generatePage5(data: ApplicationPacketData): string {
         <div class="section-title-uppercase-page policy-endorsements-title-page5">POLICY ENDORSEMENTS</div>
         <div class="policy-endorsements-content-page5">${data.policyEndorsements}</div>
         
-        <div class="page-number page-number-page5">Page 4 of 11</div>
+        <div class="page-number page-number-page5">Page 4 of 10</div>
       </div>
     </div>
   `;
@@ -987,7 +987,7 @@ function generatePage6(data: ApplicationPacketData): string {
         
         <div class="initial-line-page6">* I have read and understand the policy exclusions identified above. Initial: _________________________</div>
         
-        <div class="page-number page-number-page6">Page 5 of 11</div>
+        <div class="page-number page-number-page6">Page 5 of 10</div>
       </div>
     </div>
   `;
@@ -1075,7 +1075,7 @@ function generatePage7(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page7">Page 6 of 11</div>
+        <div class="page-number page-number-page7">Page 6 of 10</div>
       </div>
     </div>
   `;
@@ -1151,7 +1151,7 @@ function generatePage8(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page8">Page 7 of 11</div>
+        <div class="page-number page-number-page8">Page 7 of 10</div>
       </div>
     </div>
   `;
@@ -1210,7 +1210,7 @@ function generatePage9(data: ApplicationPacketData): string {
         </div>
         
         <div class="footer-code-page9">SSI TCDN 00 02 0123</div>
-        <div class="page-number page-number-page9">Page 8 of 11</div>
+        <div class="page-number page-number-page9">Page 8 of 10</div>
       </div>
     </div>
   `;
@@ -1257,7 +1257,7 @@ function generatePage10(data: ApplicationPacketData): string {
           </div>
         </div>
         
-        <div class="page-number page-number-page10">Page 9 of 11</div>
+        <div class="page-number page-number-page10">Page 9 of 10</div>
       </div>
     </div>
   `;
@@ -1330,7 +1330,7 @@ function generatePage11(data: ApplicationPacketData): string {
           <p><strong>Warranty:</strong> The purpose of this no loss letter is to assist in the underwriting process information contained herein is specifically relied upon in determination of insurability. The undersigned, therefore, warrants that the information contained herein is true and accurate to the best of his/her knowledge, information and belief. This no loss letter shall be the basis of any insurance that may be issued and will be a part of such policy. It is understood that any misrepresentation or omission shall constitute grounds for immediate cancellation of coverage and denial of claims, if any. It is further understood that the applicant and or affiliated company is under a continuing obligation to immediately notify his/her underwriter through his/her broker of any material alteration of the information given.</p>
         </div>
         
-        <div class="page-number page-number-page11">Page 10 of 11</div>
+        <div class="page-number page-number-page11">Page 10 of 10</div>
       </div>
     </div>
   `;
@@ -3258,7 +3258,8 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       stateFormPages.push(generateStateFormsPage(dataWithQR));
     }
   }
-  const pages = [...pagesBeforeStateForms, ...stateFormPages, generatePage12(dataWithQR)].join('');
+  // const pages = [...pagesBeforeStateForms, ...stateFormPages, generatePage12(dataWithQR)].join('');
+  const pages = [...pagesBeforeStateForms, ...stateFormPages].join('');
   // Minify page body to reduce HTML size (PDFShift 2MB limit)
   const pagesMinified = pages.replace(/>\s+</g, '><').replace(/\s+/g, ' ');
 
