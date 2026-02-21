@@ -641,7 +641,16 @@ function SubmissionDetailsContent() {
                     Request Bind
                   </button>
 
-                  <button className={iscOutlineBtn}>Modify</button>
+                  <button
+                    className={iscOutlineBtn}
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        "_blank"
+                      )
+                    }>
+                    Modify
+                  </button>
 
                 </>
               )}
@@ -921,8 +930,8 @@ function SubmissionDetailsContent() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`pb-3 cursor-pointer transition ${activeTab === tab
-                      ? "border-b-2 border-black text-black font-medium"
-                      : "text-gray-400 hover:text-gray-600"
+                    ? "border-b-2 border-black text-black font-medium"
+                    : "text-gray-400 hover:text-gray-600"
                     }`}
                 >
                   {tab}
@@ -955,8 +964,8 @@ function SubmissionDetailsContent() {
                       key={item}
                       onClick={() => toggleNoteFilter(item)}
                       className={`px-3 py-1.5 rounded-md text-[13px] border transition ${noteFilters.includes(item)
-                          ? "bg-black text-white border-black"
-                          : "bg-gray-100 text-gray-700 border-gray-200"
+                        ? "bg-black text-white border-black"
+                        : "bg-gray-100 text-gray-700 border-gray-200"
                         }`}
                     >
                       {item}

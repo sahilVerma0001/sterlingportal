@@ -3,7 +3,7 @@
 
 import BrokerSidebar from "@/components/layout/BrokerSidebar";
 export const dynamic = 'force-dynamic';
-import { ArrowLeft } from "lucide-react";
+import { Clock, Bell, CheckCircle, CircleSmall } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -60,7 +60,7 @@ function AgencyDashboardContent() {
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStage, setSelectedStage] = useState("QUOTED");
+  const [selectedStage, setSelectedStage] = useState("ALL");
   const [viewMode, setViewMode] = useState<'my' | 'agency'>('my');
   const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
   const [filterType, setFilterType] = useState<string>("ALL");
@@ -84,16 +84,17 @@ function AgencyDashboardContent() {
 
   // Pipeline stages matching ISC (counts will be updated from real data)
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
+    { id: "ALL", label: "All Applications", count: 0 },
     { id: "IN_PROGRESS", label: "In Progress", count: 0 },
-    { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
+    // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
     { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
-    { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
+    // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
     { id: "APPROVED_QUOTE", label: "Approved Quote", count: 0, color: "teal" },
-    { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
-    { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
-    { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
+    // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
+    // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
+    // { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
     { id: "NEWLY_BOUND", label: "Newly Bound", count: 0 },
-    { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
+    // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
 
   useEffect(() => {
@@ -187,16 +188,17 @@ function AgencyDashboardContent() {
 
       // Update pipeline stages with real counts
       setPipelineStages([
+        { id: "ALL", label: "All Applications", count: fetchedSubmissions.length },
         { id: "IN_PROGRESS", label: "In Progress", count: counts.SUBMITTED || 0 },
-        { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
-        { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: Math.floor((counts.ROUTED || 0) / 3) },
-        { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
+        // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
+        // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: Math.floor((counts.ROUTED || 0) / 3) },
+        // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
         { id: "APPROVED_QUOTE", label: "Approved Quote", count: counts.QUOTED || 0, color: "teal" },
-        { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
-        { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
-        { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
+        // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },
+        // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
+        // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND || 0 },
-        { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
+        // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 
       // Filter by selected stage initially
@@ -216,11 +218,15 @@ function AgencyDashboardContent() {
 
     // Filter by selected stage
     const stageStatus = stageToStatusMap[selectedStage];
-    if (stageStatus) {
-      if (Array.isArray(stageStatus)) {
-        filtered = filtered.filter(sub => stageStatus.includes(sub.status));
-      } else {
-        filtered = filtered.filter(sub => sub.status === stageStatus);
+    if (selectedStage !== "ALL") {
+      const stageStatus = stageToStatusMap[selectedStage];
+
+      if (stageStatus) {
+        if (Array.isArray(stageStatus)) {
+          filtered = filtered.filter(sub => stageStatus.includes(sub.status));
+        } else {
+          filtered = filtered.filter(sub => sub.status === stageStatus);
+        }
       }
     }
 
@@ -302,8 +308,13 @@ function AgencyDashboardContent() {
 
             <div className="flex items-center gap-4 mb-6">
 
-              <h1 className="text-[34px] font-semibold text-[#2D2D2D] text-2xl font-semibold">
-                Sales Pipeline
+              {/* <h1 className="text-[34px] font-semibold text-[#2D2D2D] text-2xl font-semibold">
+                Sterling Insurance Services
+              </h1> */}
+              <h1
+                className="px-6 py-2.5 rounded-2xl bg-[#9A8B7A] text-white shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.98] transition-all duration-200 text-[34px] font-semibold inline-block cursor-pointer"
+              >
+                Sterling Insurance Services
               </h1>
             </div>
 
@@ -407,22 +418,82 @@ function AgencyDashboardContent() {
           {/* LEFT PIPELINE */}
           <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
 
-            {pipelineStages.map((stage) => (
-              <button
-                key={stage.id}
-                onClick={() => setSelectedStage(stage.id)}
-                className={`w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm transition ${selectedStage === stage.id
-                    ? "bg-white shadow-sm font-semibold"
-                    : "hover:bg-white"
-                  }`}
-              >
-                <span>{stage.label}</span>
-                <span className="bg-[#E7E3DF] text-[#5A5A5A] text-xs px-2 py-1 rounded-md">
-                  {stage.count}
-                </span>
-              </button>
-            ))}
+            {pipelineStages.map((stage) => {
+              const isAll = stage.id === "ALL";
+              const isActive = selectedStage === stage.id;
 
+              const isInProgress = stage.id === "IN_PROGRESS";
+              const isApproved = stage.id === "APPROVED_QUOTE";
+              const isBound = stage.id === "NEWLY_BOUND";
+
+              return (
+                <div key={stage.id}>
+                  <button
+                    onClick={() => setSelectedStage(stage.id)}
+                    className={`
+          w-full flex justify-between items-center px-4 py-3 rounded-xl text-sm
+          transition-all duration-200
+
+          ${!isActive ? "hover:bg-[#F6F3F0]" : "font-semibold"}
+
+          ${isInProgress && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+          ${isApproved && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+          ${isBound && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+          ${isAll && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+        `}
+                  >
+                    {/* LEFT SIDE */}
+                    <div className="flex items-center gap-2">
+
+                      {isAll && (
+                        <CircleSmall className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
+                      {isInProgress && (
+                        <Clock className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
+                      {isApproved && (
+                        <Bell className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
+                      {isBound && (
+                        <CheckCircle className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
+                      <span
+                        className={`
+              ${isAll ? "text-[#9A8B7A]" : ""}
+              ${isInProgress ? "text-[#9A8B7A]" : ""}
+              ${isApproved ? "text-[#9A8B7A]" : ""}
+              ${isBound ? "text-[#9A8B7A]" : ""}
+            `}
+                      >
+                        {stage.label}
+                      </span>
+                    </div>
+
+                    {/* COUNT BADGE */}
+                    <span
+                      className={`
+            text-xs px-2 py-1 rounded-md font-medium
+
+            ${isAll ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+            ${isInProgress ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+            ${isApproved ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+            ${isBound ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+          `}
+                    >
+                      {stage.count}
+                    </span>
+                  </button>
+
+                  {isAll && (
+                    <div className="my-4 border-t border-[#E5E2DF]" />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* RIGHT TABLE SECTION */}
@@ -483,17 +554,12 @@ function AgencyDashboardContent() {
 
                 <tbody className="divide-y divide-[#ECEAE7]">
                   {submissions.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-[#F9F8F7] transition">
+                    <tr key={sub._id} className="hover:bg-[#F9F8F7] transition cursor-pointer" onClick={() => router.push(`/agency/submissions/${sub._id}`)}>
                       <td className="px-6 py-4">
                         {sub.status === "SUBMITTED" ? "New business" : "Renewal"}
                       </td>
-                      <td className="px-6 py-4">
-                        <Link
-                          href={`/agency/submissions/${sub._id}`}
-                          className="text-[#9A8B7A] font-medium"
-                        >
-                          {sub.submissionNumber}
-                        </Link>
+                      <td className="px-6 py-4 text-[#9A8B7A] font-medium">
+                        {sub.submissionNumber}
                       </td>
                       <td className="px-6 py-4">{sub.clientName}</td>
                       <td className="px-6 py-4">{sub.industry}</td>

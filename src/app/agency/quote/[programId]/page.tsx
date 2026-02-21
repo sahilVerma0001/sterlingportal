@@ -72,7 +72,9 @@ export default function QuoteFormPage() {
   const params = useParams();
   const programId = params.programId as string;
   const searchParams = useSearchParams();
-  const isViewMode = searchParams.get("mode") === "view";
+  const mode = searchParams.get("mode");
+  const isViewMode = mode === "view";
+  const isEditMode = mode === "edit";
   const submissionId = searchParams.get("id");
 
 
@@ -938,39 +940,57 @@ export default function QuoteFormPage() {
     e.preventDefault();
 
     if (!formData.companyName.trim()) {
-      toast.error('Company name is required');
+      toast.error("Company name is required");
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      // Submit application (no premium calculation)
-      const response = await fetch('/api/agency/applications/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          programId,
-          programName: 'Advantage Contractor GL',
-          formData,
-          carrierEmail: process.env.NEXT_PUBLIC_DEFAULT_CARRIER_EMAIL || 'carrier@example.com',
-        }),
-      });
+      let response;
 
-      if (!response.ok) throw new Error('Failed to submit application');
+      if (isEditMode && submissionId) {
+        response = await fetch(`/api/agency/submissions/${submissionId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            payload: formData,
+          }),
+        });
+      } else {
+        response = await fetch("/api/agency/applications/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            programId,
+            programName: "Advantage Contractor GL",
+            formData,
+          }),
+        });
+      }
 
       const data = await response.json();
 
-      toast.success('Application submitted successfully! The carrier will review and provide a quote.');
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit");
+      }
 
-      // Redirect to agency dashboard after 2 seconds
+      toast.success(
+        isEditMode
+          ? "Application updated successfully!"
+          : "Application submitted successfully!"
+      );
+
       setTimeout(() => {
-        window.location.href = '/agency/dashboard';
-      }, 2000);
-
+        window.location.href = "/agency/dashboard";
+      }, 1500);
     } catch (error: any) {
-      console.error('Submit error:', error);
-      toast.error('Failed to submit application');
+      console.error("Submit error:", error);
+      toast.error(error.message || "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
@@ -3524,28 +3544,31 @@ export default function QuoteFormPage() {
                 </button>
 
                 {/* Submit Button */}
+                {/* Submit / Update Button */}
                 {!isViewMode && (
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold 
-                            hover:bg-[#8F8371] 
-                            active:bg-[#7A6F60] 
-                            transition-all duration-200 
-                            disabled:opacity-50 
-                            flex items-center gap-2"
-                  >
+                    className="px-8 py-3 bg-[#A79A87] text-black rounded-md font-semibold hover:bg-[#8F8371]  active:bg-[#7A6F60]  transition-all duration-200     disabled:opacity-50 flex items-center gap-2"     >
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                        Submitting...
+                        {isEditMode ? "Updating..." : "Submitting..."}
                       </>
                     ) : (
                       <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Submit Application
+                        {isEditMode ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M11 5h2m-1-1v2m-6 4h12M5 12h14M5 16h14M5 20h14" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                        {isEditMode ? "Update Application" : "Submit Application"}
                       </>
                     )}
                   </button>
@@ -3635,6 +3658,6 @@ export default function QuoteFormPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

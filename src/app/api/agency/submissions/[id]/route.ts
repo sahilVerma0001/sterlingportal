@@ -70,9 +70,9 @@ export async function GET(
         agencyId: submission.agencyId.toString(),
         templateId: submission.templateId
           ? {
-              ...submission.templateId,
-              _id: (submission.templateId as any)._id.toString(),
-            }
+            ...submission.templateId,
+            _id: (submission.templateId as any)._id.toString(),
+          }
           : null,
         programId: (submission as any).programId || null,
         programName: (submission as any).programName || null,
@@ -84,10 +84,10 @@ export async function GET(
         submissionId: log.submissionId.toString(),
         carrierId: log.carrierId
           ? {
-              _id: (log.carrierId as any)._id.toString(),
-              name: (log.carrierId as any).name,
-              email: (log.carrierId as any).email,
-            }
+            _id: (log.carrierId as any)._id.toString(),
+            name: (log.carrierId as any).name,
+            email: (log.carrierId as any).email,
+          }
           : null,
       })),
       quotes: quotes.map((quote: any) => ({
@@ -96,10 +96,10 @@ export async function GET(
         submissionId: quote.submissionId.toString(),
         carrierId: quote.carrierId
           ? {
-              _id: (quote.carrierId as any)._id.toString(),
-              name: (quote.carrierId as any).name,
-              email: (quote.carrierId as any).email,
-            }
+            _id: (quote.carrierId as any)._id.toString(),
+            name: (quote.carrierId as any).name,
+            email: (quote.carrierId as any).email,
+          }
           : null,
       })),
     });
@@ -116,6 +116,169 @@ export async function GET(
  * PATCH /api/agency/submissions/[id]
  * Update a submission (only allowed for ENTERED or DRAFT status)
  */
+// export async function PATCH(
+//   req: NextRequest,
+//   { params }: { params: { id: string } }
+// ) {
+//   try {
+//     const session = await getServerSession(authOptions);
+
+//     if (!session || !session.user) {
+//       return NextResponse.json(
+//         { error: "Unauthorized" },
+//         { status: 401 }
+//       );
+//     }
+
+//     // Only agency users can update submissions
+//     const userRole = (session.user as any).role;
+//     if (userRole !== "agency_admin" && userRole !== "agency_user") {
+//       return NextResponse.json(
+//         { error: "Forbidden - Agency access required" },
+//         { status: 403 }
+//       );
+//     }
+
+//     await connectDB();
+
+//     // Find submission and verify it belongs to the agency
+//     const submission = await Submission.findOne({
+//       _id: params.id,
+//       agencyId: (session.user as any).agencyId,
+//     });
+
+//     if (!submission) {
+//       return NextResponse.json(
+//         { error: "Submission not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     // Check if submission can be edited (only DRAFT or SUBMITTED status) 
+//     const status = submission.status as string;
+//     if (status !== "DRAFT" && status !== "SUBMITTED") {
+//       return NextResponse.json(
+//         { error: "Submission cannot be edited. Only ENTERED or DRAFT submissions can be modified." },
+//         { status: 400 }
+//       );
+//     }
+
+//     // Check if submission has been routed (has routing logs)
+//     const routingLogsCount = await RoutingLog.countDocuments({
+//       submissionId: params.id,
+//     });
+
+//     if (routingLogsCount > 0) {
+//       return NextResponse.json(
+//         { error: "Submission cannot be edited. It has already been routed to carriers." },
+//         { status: 400 }
+//       );
+//     }
+
+//     // Parse form data
+//     const formData = await req.formData();
+
+//     // Update client contact information
+//     if (formData.get("clientName")) {
+//       submission.clientContact.name = formData.get("clientName") as string;
+//     }
+//     if (formData.get("clientPhone")) {
+//       submission.clientContact.phone = formData.get("clientPhone") as string;
+//     }
+//     if (formData.get("clientEmail")) {
+//       submission.clientContact.email = formData.get("clientEmail") as string;
+//     }
+//     if (formData.get("clientEIN")) {
+//       submission.clientContact.EIN = formData.get("clientEIN") as string;
+//     }
+//     if (formData.get("clientStreet")) {
+//       submission.clientContact.businessAddress.street = formData.get("clientStreet") as string;
+//     }
+//     if (formData.get("clientCity")) {
+//       submission.clientContact.businessAddress.city = formData.get("clientCity") as string;
+//     }
+//     if (formData.get("clientState")) {
+//       submission.clientContact.businessAddress.state = formData.get("clientState") as string;
+//       submission.state = formData.get("clientState") as string;
+//     }
+//     if (formData.get("clientZip")) {
+//       submission.clientContact.businessAddress.zip = formData.get("clientZip") as string;
+//     }
+
+//     // Update CCPA consent
+//     if (formData.get("ccpaConsent")) {
+//       submission.ccpaConsent = formData.get("ccpaConsent") === "true";
+//     }
+
+//     // Update payload (form data)
+//     const payload: Record<string, any> = {};
+//     formData.forEach((value, key) => {
+//       // Skip known fields that are not part of payload
+//       if (!["clientName", "clientPhone", "clientEmail", "clientEIN", 
+//             "clientStreet", "clientCity", "clientState", "clientZip",
+//             "ccpaConsent", "templateId", "carrierId", "files", "isCAOperations"].includes(key)) {
+//         payload[key] = value.toString();
+//       }
+//     });
+
+//     if (Object.keys(payload).length > 0) {
+//       submission.payload = { ...submission.payload, ...payload };
+//     }
+
+//     // Handle file updates (if new files are provided)
+//     // Note: File handling would need to be implemented similar to the create submission route
+//     // For now, we'll skip file updates in edit mode to keep it simple
+//     // Files can be managed separately if needed
+
+//     await submission.save();
+
+//     // Log activity: Submission updated
+//     await logActivity(
+//       createActivityLogData(
+//         "SUBMISSION_UPDATED",
+//         `Submission updated by agency`,
+//         {
+//           submissionId: submission._id.toString(),
+//           user: {
+//             id: (session.user as any).id,
+//             name: (session.user as any).name || (session.user as any).email,
+//             email: (session.user as any).email,
+//             role: (session.user as any).role || "agency",
+//           },
+//           details: {
+//             updatedFields: Object.keys(payload).length > 0 ? "payload" : "clientContact",
+//           },
+//         }
+//       )
+//     );
+
+//     return NextResponse.json({
+//       success: true,
+//       submission: {
+//         _id: submission._id.toString(),
+//         status: submission.status,
+//         updatedAt: submission.updatedAt,
+//       },
+//     });
+//   } catch (error: any) {
+//     console.error("Update submission error:", error);
+//     return NextResponse.json(
+//       { error: error.message || "Failed to update submission" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+
+
+
+
+/**
+ * PATCH /api/agency/submissions/[id]
+ * Update submission (Modify mode)
+*/
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -141,11 +304,12 @@ export async function PATCH(
 
     await connectDB();
 
-    // Find submission and verify it belongs to the agency
+    // Find submission and verify agency ownership
     const submission = await Submission.findOne({
       _id: params.id,
       agencyId: (session.user as any).agencyId,
     });
+    console.log("Current Submission Status:", submission.status);
 
     if (!submission) {
       return NextResponse.json(
@@ -154,99 +318,90 @@ export async function PATCH(
       );
     }
 
-    // Check if submission can be edited (only DRAFT or SUBMITTED status) 
-    const status = submission.status as string;
-    if (status !== "DRAFT" && status !== "SUBMITTED") {
+    // Allow edit only if DRAFT or SUBMITTED
+    // if (
+    //   submission.status !== "DRAFT" &&
+    //   submission.status !== "SUBMITTED"
+    // ) {
+    //   return NextResponse.json(
+    //     { error: "Submission cannot be edited." },
+    //     { status: 400 }
+    //   );
+    // }
+
+    // Only prevent editing if BOUND
+    if (submission.status === "BOUND") {
       return NextResponse.json(
-        { error: "Submission cannot be edited. Only ENTERED or DRAFT submissions can be modified." },
+        { error: "Bound submissions cannot be edited." },
         { status: 400 }
       );
     }
 
-    // Check if submission has been routed (has routing logs)
+    // Prevent editing if already routed
     const routingLogsCount = await RoutingLog.countDocuments({
       submissionId: params.id,
     });
 
     if (routingLogsCount > 0) {
       return NextResponse.json(
-        { error: "Submission cannot be edited. It has already been routed to carriers." },
+        { error: "Submission already routed to carriers." },
         { status: 400 }
       );
     }
 
-    // Parse form data
-    const formData = await req.formData();
+    // ✅ Parse JSON body (matches your React frontend)
+    const body = await req.json();
 
-    // Update client contact information
-    if (formData.get("clientName")) {
-      submission.clientContact.name = formData.get("clientName") as string;
-    }
-    if (formData.get("clientPhone")) {
-      submission.clientContact.phone = formData.get("clientPhone") as string;
-    }
-    if (formData.get("clientEmail")) {
-      submission.clientContact.email = formData.get("clientEmail") as string;
-    }
-    if (formData.get("clientEIN")) {
-      submission.clientContact.EIN = formData.get("clientEIN") as string;
-    }
-    if (formData.get("clientStreet")) {
-      submission.clientContact.businessAddress.street = formData.get("clientStreet") as string;
-    }
-    if (formData.get("clientCity")) {
-      submission.clientContact.businessAddress.city = formData.get("clientCity") as string;
-    }
-    if (formData.get("clientState")) {
-      submission.clientContact.businessAddress.state = formData.get("clientState") as string;
-      submission.state = formData.get("clientState") as string;
-    }
-    if (formData.get("clientZip")) {
-      submission.clientContact.businessAddress.zip = formData.get("clientZip") as string;
-    }
+    // -----------------------------
+    // Update Client Contact (if sent)
+    // -----------------------------
+    if (body.clientContact) {
+      submission.clientContact = {
+        ...submission.clientContact,
+        ...body.clientContact,
+      };
 
-    // Update CCPA consent
-    if (formData.get("ccpaConsent")) {
-      submission.ccpaConsent = formData.get("ccpaConsent") === "true";
-    }
-
-    // Update payload (form data)
-    const payload: Record<string, any> = {};
-    formData.forEach((value, key) => {
-      // Skip known fields that are not part of payload
-      if (!["clientName", "clientPhone", "clientEmail", "clientEIN", 
-            "clientStreet", "clientCity", "clientState", "clientZip",
-            "ccpaConsent", "templateId", "carrierId", "files", "isCAOperations"].includes(key)) {
-        payload[key] = value.toString();
+      if (body.clientContact.businessAddress?.state) {
+        submission.state = body.clientContact.businessAddress.state;
       }
-    });
-    
-    if (Object.keys(payload).length > 0) {
-      submission.payload = { ...submission.payload, ...payload };
     }
 
-    // Handle file updates (if new files are provided)
-    // Note: File handling would need to be implemented similar to the create submission route
-    // For now, we'll skip file updates in edit mode to keep it simple
-    // Files can be managed separately if needed
+    // -----------------------------
+    // Update CCPA Consent
+    // -----------------------------
+    if (typeof body.ccpaConsent === "boolean") {
+      submission.ccpaConsent = body.ccpaConsent;
+    }
 
+    // -----------------------------
+    // Replace Entire Payload (Main Form Data)
+    // -----------------------------
+    if (body.payload) {
+      submission.payload = body.payload;
+    }
+
+    // Save submission (timestamps auto update updatedAt)
     await submission.save();
 
-    // Log activity: Submission updated
+    // -----------------------------
+    // Activity Logging
+    // -----------------------------
     await logActivity(
       createActivityLogData(
         "SUBMISSION_UPDATED",
-        `Submission updated by agency`,
+        "Submission updated by agency",
         {
           submissionId: submission._id.toString(),
           user: {
             id: (session.user as any).id,
-            name: (session.user as any).name || (session.user as any).email,
+            name:
+              (session.user as any).name ||
+              (session.user as any).email,
             email: (session.user as any).email,
             role: (session.user as any).role || "agency",
           },
           details: {
-            updatedFields: Object.keys(payload).length > 0 ? "payload" : "clientContact",
+            updatedAt: submission.updatedAt,
           },
         }
       )
@@ -262,6 +417,7 @@ export async function PATCH(
     });
   } catch (error: any) {
     console.error("Update submission error:", error);
+
     return NextResponse.json(
       { error: error.message || "Failed to update submission" },
       { status: 500 }
