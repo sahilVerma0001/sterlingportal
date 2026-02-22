@@ -190,107 +190,32 @@ export default function MarketplacePage() {
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          {/* Industry Cards Grid */}
-          <div className="flex-1">
-            <div className="max-w-7xl mx-auto">
+        <div className="flex justify-start p-10">
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {industries.map((industry) => {
-                  const isExpanded = expandedIndustry === industry.id;
-
-                  return (
-                    <div
-                      key={industry.id}
-                      className={`relative transition-all duration-300 ${isExpanded ? 'col-span-1' : ''
-                        }`}
-                    >
-                      {/* Industry Card Header */}
-                      <div
-                        onClick={() => handleIndustryClick(industry.id)}
-                        className={`cursor-pointer bg-white border-2 overflow-hidden transition-all duration-300 hover:shadow-lg ${isExpanded
-                          ? 'border-[#9A8B7A] rounded-t-2xl border-b-0'
-                          : 'border-gray-200 rounded-2xl hover:border-gray-300'
-                          }`}
-                      >
-                        {/* Featured Banner */}
-                        {industry.featured && !isExpanded && (
-                          <div className="bg-[#9A8B7A] px-4 py-3 text-white text-center">
-                            <p className="text-sm font-semibold leading-tight">
-                              {industry.featuredText}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Card Header */}
-                        <div className={`flex items-center gap-3 p-4 ${industry.featured && !isExpanded ? '' : 'pt-6'}`}>
-                          {/* Icon */}
-                          <div className="relative flex-shrink-0">
-                            {industry.icon === "construction" && (
-                              <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l9-9 9 9M5 12l7-7 7 7" />
-                              </svg>
-                            )}
-                            {industry.icon === "property" && (
-                              <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                              </svg>
-                            )}
-                            {industry.icon === "hospitality" && (
-                              <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                            )}
-                            {industry.icon === "trucking" && (
-                              <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12M8 7v13M8 7V4m12 3l4 6v7h-4m0 0a2 2 0 11-4 0m4 0a2 2 0 10-4 0m-12 0a2 2 0 11-4 0m4 0H4" />
-                              </svg>
-                            )}
-                            {industry.icon === "excess" && (
-                              <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={1.5} />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m-4-4h8" />
-                              </svg>
-                            )}
-                          </div>
-
-                          {/* Title */}
-                          <h3 className="text-base font-semibold text-gray-900 flex-1">
-                            {industry.name}
-                          </h3>
-                        </div>
-                      </div>
-
-                      {/* Expanded Programs List */}
-                      {isExpanded && (
-                        <div className="flex gap-6 flex-wrap pt-4 px-4 pb-4 bg-white border-2 border-t-0 border-[#9A8B7A] rounded-b-2xl">
-                          {industry.programs.map((program) => (
-                            <label
-                              key={program.id}
-                              onClick={() => router.push(`/agency/quote/${program.id}`)}
-                              className="w-56 cursor-pointer group"
-                            >
-                              <div className="w-full h-56 rounded-3xl overflow-hidden bg-white shadow-sm">
-                                <Image
-                                  src="/construction-box.jpeg"
-                                  alt="Construction Program"
-                                  width={400}
-                                  height={400}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Continue Button  this is button edting */}
+          {/* BIG CONSTRUCTION BUTTON */}
+          <button
+            onClick={() => router.push("/agency/quote/advantage-contractor")}
+            className="
+              w-[320px] 
+              h-[120px] 
+              rounded-2xl 
+              bg-[#9A8B7A] 
+              text-white 
+              text-2xl 
+              font-semibold
+              flex 
+              items-center 
+              justify-center
+              shadow-md
+              hover:shadow-lg
+              hover:scale-[1.02]
+              active:scale-[0.98]
+              transition-all
+              duration-200
+            "
+          >
+            Construction
+          </button>
 
         </div>
       </main>

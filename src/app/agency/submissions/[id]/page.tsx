@@ -611,6 +611,18 @@ function SubmissionDetailsContent() {
               {isQuoted && (
                 <>
                   <button
+                    // onClick={() =>
+                    //   window.open(
+                    //     `/api/agency/applications/${submissionId}/pdf`,
+                    //     "_blank"
+                    //   )
+                    // }
+                    className={iscOutlineBtn}
+                  >
+                    Invoice
+                  </button>                
+
+                  <button
                     onClick={() =>
                       window.open(
                         `/api/agency/applications/${submissionId}/pdf`,
@@ -629,7 +641,7 @@ function SubmissionDetailsContent() {
                         "_blank"
                       )
                     }
-                    className="btn-secondary"
+                    className={iscOutlineBtn}
                   >
                     View
                   </button>
@@ -924,7 +936,7 @@ function SubmissionDetailsContent() {
         <div className="bg-white px-8 py-6 border-t border-gray-200">
           {/* Tabs */}
           <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
-            {["Notes", "Status History", "Email History", "Rating Information", "Contact Information"].map(
+            {["Notes", "Status History", "Email History", "Contact Information", "Rating Information"].map(
               (tab) => (
                 <button
                   key={tab}
@@ -1054,7 +1066,7 @@ function SubmissionDetailsContent() {
               ))}
             </div>
           )}
-          {activeTab === "Rating Information" && (
+          {activeTab === "Contact Information" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
               {/* LEFT SIDE – PREMIUM INFO */}
@@ -1065,7 +1077,7 @@ function SubmissionDetailsContent() {
 
                 {quotes.length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    No rating information available.
+                    No Contact information available.
                   </p>
                 ) : (
                   <>
@@ -1093,7 +1105,7 @@ function SubmissionDetailsContent() {
                     </div>
                   </>
                 )}
-                {activeTab === "Rating Information" && (
+                {activeTab === "Contact Information" && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
                     {/* ================= PRODUCER ================= */}
@@ -1106,7 +1118,7 @@ function SubmissionDetailsContent() {
 
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {submission.clientContact.name}
+                            {session?.user?.name || "—"}
                           </p>
                           <p className="text-gray-500">
                             {(session?.user as any)?.agencyName || "Agency Name"}
@@ -1147,7 +1159,7 @@ function SubmissionDetailsContent() {
 
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {quotes[0]?.carrierId?.name || "Integrated Specialty Coverage"}
+                            {quotes[0]?.carrierId?.name || "Sterling nsurance Services"}
                           </p>
                         </div>
 
@@ -1167,7 +1179,7 @@ function SubmissionDetailsContent() {
                           <div className="flex items-center gap-2">
                             <Mail className="w-4 h-4 text-gray-400" />
                             <span>
-                              {quotes[0]?.carrierId?.email || "info@iscovers.com"}
+                              {quotes[0]?.carrierId?.email || "info@sterling.com"}
                             </span>
                           </div>
                         </div>
@@ -1211,14 +1223,14 @@ function SubmissionDetailsContent() {
 
             </div>
           )}
-          {activeTab === "Rating Information" && (
+          {activeTab === "Contact Information" && (
             <div className="border rounded-md bg-white">
 
               {quotes.length === 0 ? (
                 <div className="py-20 flex flex-col items-center justify-center text-center">
                   <div className="w-20 h-16 bg-gray-200 rounded mb-4" />
                   <p className="text-[15px] font-medium text-gray-700 mb-1">
-                    No rating information available
+                    No Contact information available
                   </p>
                   <p className="text-[13px] text-gray-500">
                     Rating details will appear here once a quote is generated.

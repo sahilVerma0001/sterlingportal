@@ -42,7 +42,6 @@ interface ApplicationPacketData {
   otherBusinessNames?: string;
   paymentOption: string;
 
-
   // Loss History
   generalLiabilityLosses?: {
     dateOfLoss: string;
@@ -56,6 +55,10 @@ interface ApplicationPacketData {
   desiredCoverageDates: string;
   /** When true (approved quote), state-specific forms section is included in the packet */
   includeStateForms?: boolean;
+
+  /** When true, pages 8, 9, 10 are excluded from packet */
+  excludePages8910?: boolean;
+
 
   // General Liability Coverages
   aggregateLimit: string;
@@ -2854,7 +2857,8 @@ export function mapFormDataToPacketData(
   agency: any,
   quote?: any,
   submission?: any,
-  capitalCoLogoSVG?: string
+  capitalCoLogoSVG?: string,
+  excludePages8910?: boolean
 ): ApplicationPacketData {
   // Extract class code and description
   const classCodeWork = formData.classCodeWork || {};
@@ -2963,9 +2967,11 @@ export function mapFormDataToPacketData(
     contactPerson: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || formData.contactPerson || '',
     applicantAddress: applicantAddress,
     applicantCity: formData.city || '',
-
-
     applicantState: (formData.state || formData.addressState || '').trim(),
+
+    // exclude pages
+    excludePages8910: !!excludePages8910,
+
     // applicantState: applicantState,
 
 
@@ -3214,19 +3220,41 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
   const dataWithQR = { ...data, qrCodeDataUrl };
 
   // Generate all pages; state-specific forms (only for approved quotes) go just before Invoice Statement (page 12)
+  // const pagesBeforeStateForms = [
+  //   // generatePage1(dataWithQR),
+  //   generatePage2(dataWithQR),
+  //   generatePage3(dataWithQR),
+  //   generatePage4(dataWithQR),
+  //   generatePage5(dataWithQR),
+  //   generatePage6(dataWithQR),
+  //   generatePage7(dataWithQR),
+  //   generatePage8(dataWithQR),
+  //   generatePage9(dataWithQR),
+  //   generatePage10(dataWithQR),
+  //   generatePage11(dataWithQR),
+  // ];
+
+
   const pagesBeforeStateForms = [
-    // generatePage1(dataWithQR),
     generatePage2(dataWithQR),
     generatePage3(dataWithQR),
     generatePage4(dataWithQR),
     generatePage5(dataWithQR),
     generatePage6(dataWithQR),
     generatePage7(dataWithQR),
-    generatePage8(dataWithQR),
-    generatePage9(dataWithQR),
-    generatePage10(dataWithQR),
+
+    ...(data.excludePages8910
+      ? []
+      : [
+        generatePage8(dataWithQR),
+        generatePage9(dataWithQR),
+        generatePage10(dataWithQR),
+      ]),
+
     generatePage11(dataWithQR),
   ];
+
+
   const stateFormPages: string[] = [];
   if (data.includeStateForms && data.applicantState) {
     const stateCode = toStateCode(data.applicantState);

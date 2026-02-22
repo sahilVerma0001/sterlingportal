@@ -102,6 +102,7 @@ export default function QuoteFormPage() {
 
   const [formData, setFormData] = useState<any>({
     /* ================= APPLICATION INFO ================= */
+    agentName: "",
     companyName: "",
     zip: "",
     state: "California",
@@ -998,7 +999,7 @@ export default function QuoteFormPage() {
 
   const handleDownloadPDF = () => {
     if (!quoteId) return;
-    window.open(`/api/agency/quotes/${quoteId}/pdf`, '_blank');
+    // window.open(`/api/agency/quotes/${quoteId}/pdf`, '_blank');
   };
 
   const handleDownloadApplicationPDF = async () => {
@@ -1012,6 +1013,7 @@ export default function QuoteFormPage() {
           programId,
           programName: 'Advantage Contractor GL',
           formData,
+          excludePages8910: true,
         }),
       });
 
@@ -1085,6 +1087,27 @@ export default function QuoteFormPage() {
     "Welding (Non-Structural)",
   ];
 
+  const agents = [
+    {
+      id: "agent_1",
+      name: "John Carter",
+      email: "john@agency.com",
+      phone: "(310) 111-2222",
+    },
+    {
+      id: "agent_2",
+      name: "Sarah Lee",
+      email: "sarah@agency.com",
+      phone: "(310) 333-4444",
+    },
+    {
+      id: "agent_3",
+      name: "Michael Stone",
+      email: "michael@agency.com",
+      phone: "(310) 555-6666",
+    },
+  ];
+
   const statesList = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
     "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho",
@@ -1156,7 +1179,70 @@ export default function QuoteFormPage() {
               </div>
               <div className="px-8 pt-6 pb-7">
 
+
                 <div className="space-y-6 mt-1">
+
+
+                  {/*  Agent */}
+                  <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">
+                      Agent <span className="text-red-500">*</span>
+                    </label>
+                    <div></div>
+                    <div>
+                      <select
+                        value={formData.agentName}
+                        onChange={(e) =>
+                          handleInputChange("agentName", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      >
+                        <option value="" selected disabled hidden>Select Agent</option>
+                        <option value="John Carter">John Carter</option>
+                        <option value="Sarah Lee">Sarah Lee</option>
+                        <option value="Michael Stone">Michael Stone</option>
+                      </select>
+                    </div>
+                  </div>
+
+
+                  {/* <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-start">
+                    <label className="text-sm font-medium text-gray-900 pt-2">
+                      Agent <span className="text-red-500">*</span>
+                    </label>
+                    <div></div>
+                    <div>
+                      <select
+                        value={formData.agentId || ""}
+                        onChange={(e) => {
+                          const selectedAgent = agents.find(
+                            (agent) => agent.id === e.target.value
+                          );
+
+                          handleInputChange("agentId", selectedAgent?.id || "");
+                          handleInputChange("agentName", selectedAgent?.name || "");
+                          handleInputChange("agentEmail", selectedAgent?.email || "");
+                          handleInputChange("agentPhone", selectedAgent?.phone || "");
+                        }}
+                        className={`w-full px-4 py-2.5 border rounded text-sm ${!formData.agentId ? "border-red-300" : "border-gray-300"} focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4]`} required >
+                        <option value="">Select Agent</option>
+                        {agents.map((agent) => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {!formData.agentId && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Please select an agent
+                        </p>
+                      )}
+                    </div>
+                  </div> */}
+
+
                   <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
                     <label className="text-sm font-medium text-gray-900">
                       Company Name <span className="text-red-500">*</span>
@@ -1880,7 +1966,7 @@ export default function QuoteFormPage() {
                       >
                         <option value="" selected disabled hidden>Select payment option</option>
                         <option value="Full Pay">Full Pay</option>
-                        <option value="3rd Party">Premium Financial Partners Co.</option>
+                        <option value="Premium Financial Partners Co.">Premium Financial Partners Co.</option>
                       </select>
                       {/* <p className="text-xs text-gray-500 mt-1">
                       Note: Financing options will not be available until the zip is filled out and a product is selected.

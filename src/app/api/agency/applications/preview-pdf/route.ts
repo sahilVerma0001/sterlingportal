@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = session.user as any;
-    const { programId, programName, formData, agencyInfo } = await req.json();
+    const { programId, programName, formData, agencyInfo, excludePages8910 } = await req.json();
 
     if (!formData) {
       return NextResponse.json(
@@ -76,7 +76,8 @@ export async function POST(req: NextRequest) {
       agency,
       undefined, // No quote for preview
       { programName: programName || "Advantage Contractor GL" } as any,
-      capitalCoLogoSVG
+      capitalCoLogoSVG,
+      excludePages8910,
     );
 
     // Generate 12-page application packet HTML
