@@ -987,7 +987,11 @@ export default function QuoteFormPage() {
       );
 
       setTimeout(() => {
-        window.location.href = "/agency/dashboard";
+        if (isEditMode && submissionId) {
+          window.location.href = `/agency/submissions/${submissionId}?updated=true`;
+        } else {
+          window.location.href = "/agency/dashboard";
+        }
       }, 1500);
     } catch (error: any) {
       console.error("Submit error:", error);

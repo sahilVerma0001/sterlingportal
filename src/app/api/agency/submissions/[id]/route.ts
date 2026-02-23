@@ -337,18 +337,6 @@ export async function PATCH(
       );
     }
 
-    // Prevent editing if already routed
-    const routingLogsCount = await RoutingLog.countDocuments({
-      submissionId: params.id,
-    });
-
-    if (routingLogsCount > 0) {
-      return NextResponse.json(
-        { error: "Submission already routed to carriers." },
-        { status: 400 }
-      );
-    }
-
     // ✅ Parse JSON body (matches your React frontend)
     const body = await req.json();
 
@@ -378,6 +366,14 @@ export async function PATCH(
     // -----------------------------
     if (body.payload) {
       submission.payload = body.payload;
+
+      // Sync clientContact.name from companyName field if present
+      if (body.payload.companyName) {
+        submission.clientContact = {
+          ...submission.clientContact,
+          name: body.payload.companyName,
+        };
+      }
     }
 
     // Save submission (timestamps auto update updatedAt)
