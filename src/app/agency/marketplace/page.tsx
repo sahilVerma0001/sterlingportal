@@ -26,7 +26,7 @@ export default function MarketplacePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [expandedIndustry, setExpandedIndustry] = useState<string | null>("construction");
-
+  const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const industries: Industry[] = [
@@ -141,20 +141,25 @@ export default function MarketplacePage() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
+        {/* DASHBOARD STYLE HEADER */}
+        <div className="px-10 pt-8 pb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 p-3">
-              <Link title="Back" href="/agency/dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              {/* <div>
-                <h1 className="text-xl font-bold text-gray-900">Marketplace</h1>
-                <p className="text-sm text-gray-600">Select industries and programs</p>
-              </div> */}
-            </div>
-            <div className="flex items-center gap-4">
+
+            {/* LEFT TITLE */}
+            <h1
+              className="
+                px-6 py-2.5 rounded-2xl bg-[#9A8B7A] text-white
+                shadow-md hover:shadow-lg hover:scale-[1.04]
+                active:scale-[0.98] transition-all duration-200
+                text-[34px] font-semibold inline-block cursor-pointer
+              "
+            >
+              Sterling Insurance Services
+            </h1>
+
+            {/* RIGHT SIDE */}
+            <div className="flex items-center gap-5 relative">
+
               <button
                 title="Home"
                 onClick={() => router.push("/agency/dashboard")}
@@ -177,14 +182,34 @@ export default function MarketplacePage() {
               <span className="absolute left-1/2 -translate-x-1/2 mt-2 scale-0 group-hover:scale-100 transition-transform bg-black text-white text-xs rounded px-2 py-1">
                 Home
               </span>
-              {/*this button text*/}
-              <button
-                title="Sign Out"
-                onClick={() => router.push('/api/auth/signout')}
-                className="text-sm text-red-600 hover:text-red-800 font-medium"
-              >
-                Sign Out
-              </button>
+              {/* PROFILE */}
+              <div className="relative">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold text-sm shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                >
+                  {session?.user?.name?.[0] || "U"}
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+
+                    <div className="px-4 py-3 border-b bg-gray-50">
+                      <p className="text-sm font-semibold">{session?.user?.name}</p>
+                      <p className="text-xs text-gray-500">{session?.user?.email}</p>
+                    </div>
+
+                    <button
+                      onClick={() => router.push("/api/auth/signout")}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>

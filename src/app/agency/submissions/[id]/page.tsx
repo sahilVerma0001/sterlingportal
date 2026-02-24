@@ -365,10 +365,10 @@ function SubmissionDetailsContent() {
         <aside className="w-[70px] bg-[#3A3C3F] flex flex-col items-center pt-6 pb-8 fixed h-full z-50 border-r border-gray-700">
           <Link href="/agency/dashboard" className="mb-8 group flex flex-col items-center">
             <div className="relative mb-3">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
-              <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#00BCD4]/20 group-hover:border-[#00BCD4]/40 transition-all overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#A79A87] to-[#0097A7] rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-all"></div>
+              <div className="relative w-14 h-14 bg-gradient-to-br from-[#1A1F2E] via-[#2A3240] to-[#1A1F2E] rounded-xl flex items-center justify-center shadow-2xl border border-[#A79A87]/20 group-hover:border-[#A79A87]/40 transition-all overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#00BCD4] to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#A79A87] to-transparent"></div>
                 </div>
                 <svg className="relative w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M50 10 L80 25 L80 55 Q80 75 50 90 Q20 75 20 55 L20 25 Z" fill="url(#logoGradient1)" className="drop-shadow-lg" />
@@ -377,7 +377,7 @@ function SubmissionDetailsContent() {
                   <path d="M40 47 L60 47" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
                   <defs>
                     <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#00BCD4" stopOpacity={0.9} />
+                      <stop offset="0%" stopColor="#A79A87" stopOpacity={0.9} />
                       <stop offset="100%" stopColor="#0097A7" stopOpacity={0.95} />
                     </linearGradient>
                     <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -386,8 +386,8 @@ function SubmissionDetailsContent() {
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
-                <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#00BCD4] rounded-full opacity-60"></div>
+                <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#A79A87] rounded-full opacity-60"></div>
+                <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-[#A79A87] rounded-full opacity-60"></div>
               </div>
             </div>
             <div className="text-center px-2">
@@ -400,7 +400,7 @@ function SubmissionDetailsContent() {
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
             <p className="text-red-600 mb-6">{error || "Submission not found"}</p>
-            <Link href="/agency/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00BCD4] text-white rounded-lg text-sm font-medium hover:bg-[#00ACC1] transition-colors">
+            <Link href="/agency/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#A79A87] text-white rounded-lg text-sm font-medium hover:bg-[#00ACC1] transition-colors">
               ← Back to Dashboard
             </Link>
           </div>
@@ -475,7 +475,7 @@ function SubmissionDetailsContent() {
 
   return (
     <DashboardLayout>
-
+      
       {/* Sidebar - Matching Dashboard */}
 
       {/* Main Content */}
@@ -586,11 +586,22 @@ function SubmissionDetailsContent() {
                   <button
                     onClick={() =>
                       window.open(
+                        `/api/agency/applications/${submissionId}/pdf`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    App Packet
+                  </button>               
+                  <button
+                    onClick={() =>
+                      window.open(
                         `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
                         "_blank"
                       )
                     }
-                    className="btn-secondary"
+                    className={iscOutlineBtn}
                   >
                     View
                   </button>
@@ -677,7 +688,7 @@ function SubmissionDetailsContent() {
                         "_blank"
                       )
                     }
-                    className="btn-secondary"
+                    className={iscOutlineBtn}
                   >
                     View
                   </button>
@@ -696,7 +707,7 @@ function SubmissionDetailsContent() {
             {/* ================= BOUND (NEWLY BOUND) ================= */}
             {submission.status === "BOUND" && (
               <>
-                <button className="btn-secondary">View</button>
+                <button className={iscOutlineBtn}>View</button>
               </>
             )}
           </div>
@@ -762,7 +773,7 @@ function SubmissionDetailsContent() {
           {/* SECTION TITLE */}
           <div className="mb-6">
             <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-              Standard GL A-Rated - Claims Made
+              General Liability
             </h3>
             <div className="mt-2 h-[1px] w-64 bg-gray-300" />
           </div>
@@ -1022,12 +1033,7 @@ function SubmissionDetailsContent() {
                   </h3>
 
                   <div className="flex gap-2">
-                    <button className="px-3 py-1.5 text-[13px] rounded-md bg-black text-white">
-                      Default
-                    </button>
-                    <button className="px-3 py-1.5 text-[13px] rounded-md bg-gray-100 text-gray-700">
-                      System Only
-                    </button>
+
                   </div>
                 </div>
 
@@ -1286,7 +1292,7 @@ function SubmissionDetailsContent() {
                       <div className="flex justify-between">
                         <span className="text-gray-500">Effective Date</span>
                         <span className="font-medium text-gray-900">
-                          {new Date(submission.createdAt).toLocaleDateString()}
+                          {new Date(submission.createdAt).toLocaleDateString("en-US")}
                         </span>
                       </div>
 

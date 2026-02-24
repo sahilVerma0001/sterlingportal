@@ -119,16 +119,16 @@ interface ApplicationPacketData {
   licensingActionTaken?: boolean;
   licensingActionExplanation?: string;
   allowedLicenseUseByOthers?: boolean;
-  licenseUseExplanation?: string;
+  allowedLicenseUseByOthersExplanation?: string;
   judgementsOrLiens?: boolean;
   judgementsExplanation?: string;
-  lawsuitsFiled?: boolean;
+  lawsuitsOrClaims?: boolean;
   lawsuitsExplanation?: string;
-  awareOfPotentialClaims?: boolean;
+  knownIncidentsOrClaims?: boolean;
   potentialClaimsExplanation?: string;
 
   // Written Contract Questions
-  haveWrittenContract?: boolean;
+  writtenContractForAllWork?: boolean;
   contractHasStartDate?: boolean;
   contractStartDateExplanation?: string;
   contractHasScopeOfWork?: boolean;
@@ -512,10 +512,6 @@ function generatePage2(data: ApplicationPacketData): string {
                 </div>
 
             </div>
-
-
-            <div class="page-number-page2">Page 1 of 10</div>
-
         </div>
     </div>
   `;
@@ -615,8 +611,6 @@ function generatePage3(data: ApplicationPacketData): string {
             <div class="yes-no-options-page3">${formatYesNo(data.performCondoRepairOnly)}</div>
           </div>
         </div>
-        
-        <div class="page-number page-number-page3">Page 2 of 10</div>
       </div>
     </div>
   `;
@@ -628,7 +622,8 @@ function generatePage3(data: ApplicationPacketData): string {
 function generatePage4(data: ApplicationPacketData): string {
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P4`;
-
+  console.log(data.allowedLicenseUseByOthers);
+  console.log(data.allowedLicenseUseByOthersExplanation);
   return `
     <div class="page page4-isc" style="page-break-after: always;">
       <div class="main-content main-content-page4">
@@ -743,7 +738,7 @@ function generatePage4(data: ApplicationPacketData): string {
                     </div>
                     ${data.allowedLicenseUseByOthers ? `
                     <div class="explanation-field-page4">
-                        If "Yes", please explain: ${data.licenseUseExplanation || ''}
+                        If "Yes", please explain: ${data.allowedLicenseUseByOthersExplanation || ''}
                     </div>` : ``}
                 </div>
 
@@ -764,29 +759,27 @@ function generatePage4(data: ApplicationPacketData): string {
 
                 <!-- 9 -->
                 <div class="question-item-page4">
-                    <div class="question-text-page4">
-                        <span>Has any lawsuit ever been filed or any claim otherwise been made against your
-                            company?</span>
-                        <div class="yes-no-options-page4">
-                            ${formatYesNo(data.lawsuitsFiled)}
-                        </div>
+                  <div class="question-text-page4">
+                    <span>Has any lawsuit ever been filed or any claim otherwise been made against your company (including any partnership or any joint venture of which you have been a member of, any of your company's predecessors, or any person, company or entities on whose behalf your company has assumed liability?</span>
+                    <div class="yes-no-options-page4">
+                      ${formatYesNo(data.lawsuitsOrClaims)}
                     </div>
-                    ${data.lawsuitsFiled ? `
-                    <div class="explanation-field-page4">
-                        If "Yes", please explain: ${data.lawsuitsExplanation || ''}
-                    </div>` : ``}
+                  </div>
+                  ${data.lawsuitsOrClaims ? `
+                  <div class="explanation-field-page4">
+                    If "Yes", please explain: ${data.lawsuitsExplanation || ''}
+                  </div>` : ``}
                 </div>
 
                 <!-- 10 -->
                 <div class="question-item-page4">
                     <div class="question-text-page4">
-                        <span>Is your company aware of any facts or incidents that might give rise to a claim or
-                            lawsuit?</span>
+                        <span>Is your company aware of any facts, circumstances, incidents, situations, damages or accidents (including but not limited to: faulty or defective workmanship, product failure, construction dispute, property damage or construction worker injury) that a reasonably prudent person might expect to give rise to a claim or lawsuit, whether valid or not, which might directly or indirectly involve the company?</span>
                         <div class="yes-no-options-page4">
-                            ${formatYesNo(data.awareOfPotentialClaims)}
+                            ${formatYesNo(data.knownIncidentsOrClaims)}
                         </div>
                     </div>
-                    ${data.awareOfPotentialClaims ? `
+                    ${data.knownIncidentsOrClaims ? `
                     <div class="explanation-field-page4">
                         If "Yes", please explain: ${data.potentialClaimsExplanation || ''}
                     </div>` : ``}
@@ -825,11 +818,6 @@ function generatePage4(data: ApplicationPacketData): string {
                 `}
 
             </div>
-
-            <div class="page-number page-number-page4">
-                Page 3 of 10
-            </div>
-
         </div>
     </div>
   `;
@@ -851,10 +839,10 @@ function generatePage5(data: ApplicationPacketData): string {
 
           <div class="question-item-page4">
             <div class="question-text-page4"><span>Do you have a written contract for all work you perform?</span>
-              <div class="yes-no-options-page4">${formatYesNo(data.haveWrittenContract)}</div>
+              <div class="yes-no-options-page4">${formatYesNo(data.writtenContractForAllWork)}</div>
             </div>
-            ${data.haveWrittenContract ? `<div class="explanation-field-page4">If "Yes", answer the following questions:</div>` : ''}
-            ${data.haveWrittenContract ? `
+            ${data.writtenContractForAllWork ? `<div class="explanation-field-page4">If "Yes", answer the following questions:</div>` : ''}
+            ${data.writtenContractForAllWork ? `
             <div class="question-item-page4">
               <div class="question-text-page4"><span>Does the contract identify a start date for the work?</span>
                 <div class="yes-no-options-page4">${formatYesNo(data.contractHasStartDate, true)}</div>
@@ -882,7 +870,7 @@ function generatePage5(data: ApplicationPacketData): string {
             </div>
             <div class="question-item-page4">
               <div class="question-text-page4"><span>Is the contract signed by all parties to the contract?</span>
-                <div class="yes-no-options-page4">${formatYesNo(data.contractSignedByAllParties, true)}
+                <div class="yes-no-options-page4">${formatYesNo(data.contractSignedByAllParties, true)} </div>
               </div>
               
               ${!data.contractSignedByAllParties ? `<div class="explanation-field-page4"><span>If "No", please explain:</span> ${data.contractSignedExplanation || ''}</div>` : ''}
@@ -946,7 +934,6 @@ function generatePage5(data: ApplicationPacketData): string {
         <div class="section-title-uppercase-page policy-endorsements-title-page5">POLICY ENDORSEMENTS</div>
         <div class="policy-endorsements-content-page5">${data.policyEndorsements}</div>
         
-        <div class="page-number page-number-page5">Page 4 of 10</div>
       </div>
     </div>
   `;
@@ -989,8 +976,7 @@ function generatePage6(data: ApplicationPacketData): string {
         </div>
         
         <div class="initial-line-page6">* I have read and understand the policy exclusions identified above. Initial: _________________________</div>
-        
-        <div class="page-number page-number-page6">Page 5 of 10</div>
+  
       </div>
     </div>
   `;
@@ -1026,12 +1012,6 @@ function generatePage7(data: ApplicationPacketData): string {
         <div class="initial-line-page7">Initial: _________________________</div>
         
         <div class="agreement-content-page7">
-          <p>Applicant acknowledges that this policy is subject to a self-insured retention. The total limit of liability as stated in the policy declarations shall apply in excess of the self-insured retention. The limits of insurance applicable to such coverages will not be reduced by the amount of such self-insured retention. This policy applies only to the amount excess of the self-insured retention. Complete satisfaction of the SIR by the applicant is a "condition precedent" to Company's duty to defend and/or indemnity. Please note that Company is not obligated to defend and/or indemnify the applicant until the SIR is paid in full. The self-insured retention shall remain applicable even if you file for bankruptcy, discontinues business or otherwise becomes unable to unwilling to pay the self-insured retention. The risk of insolvency is retained by you and is not transferrable. Please consult your policy for the full terms and conditions of the SIR.</p>
-        </div>
-        
-        <div class="initial-line-page7">Initial: _________________________</div>
-        
-        <div class="agreement-content-page7">
           <p>If you are applying for a "claims made" policy then please note that policy provides coverage only for "claims made" and reported to the company in writing during the policy period. Thus there is NO retroactive coverage. Please consult your policy and or agent/broker for further information.</p>
         </div>
         
@@ -1058,27 +1038,28 @@ function generatePage7(data: ApplicationPacketData): string {
         </div>
         
         <div class="signature-section-page7">
-          <div class="signature-field-page7">
-            <div class="signature-label-page7">Signature of Applicant</div>
-            <div class="signature-line-page7">${data.applicantSignature || '_________________________'}</div>
-          </div>
-          <div class="signature-field-page7" style="display: flex; gap: 0.2in;">
-            <div style="flex: 1;">
+
+          <div class="signature-field-page7" style="display: flex; gap: 0.3in; align-items: flex-end;">
+            <div class="signature-field-page7" style="flex: 1;">
+              <div class="signature-label-page7">Signature of Applicant</div>
+              <div class="signature-line-page7">${data.applicantSignature || ' '}</div>
+            </div>
+          
+            <div class="signature-field-page7" style="flex: 1;">
               <div class="signature-label-page7">Date</div>
-              <div class="signature-line-page7">${data.applicantSignatureDate || '_________________________'}</div>
+              <div class="signature-line-page7">${data.applicantSignatureDate || ' '}</div>
             </div>
           </div>
+
           <div class="signature-field-page7">
             <div class="signature-label-page7">Title (Owner, Officer, Partner)</div>
-            <div class="signature-line-page7">${data.applicantTitle || '_________________________'}</div>
+            <div class="signature-line-page7">${data.applicantTitle || ' '}</div>
           </div>
           <div class="signature-field-page7">
             <div class="signature-label-page7">Signature of Producer (Agent or Broker)</div>
-            <div class="signature-line-page7">${data.producerSignature || '_________________________'}</div>
+            <div class="signature-line-page7">${data.producerSignature || ' '}</div>
           </div>
         </div>
-        
-        <div class="page-number page-number-page7">Page 6 of 10</div>
       </div>
     </div>
   `;
@@ -1137,24 +1118,22 @@ function generatePage8(data: ApplicationPacketData): string {
           <div class="signature-field-page8" style="display: flex; gap: 0.3in; align-items: flex-end;">
             <div style="flex: 1;">
               <div class="signature-label-page8">Signature of Applicant</div>
-              <div class="signature-line-page8">${data.applicantSignature || '_________________________'}</div>
+              <div class="signature-line-page8">${data.applicantSignature || ' '}</div>
             </div>
             <div style="flex: 1;">
               <div class="signature-label-page8">Date</div>
-              <div class="signature-line-page8">${data.applicantSignatureDate || '_________________________'}</div>
+              <div class="signature-line-page8">${data.applicantSignatureDate || ' '}</div>
             </div>
           </div>
           <div class="signature-field-page8">
             <div class="signature-label-page8">Title (Owner, Officer, Partner)</div>
-            <div class="signature-line-page8">${data.applicantTitle || '_________________________'}</div>
+            <div class="signature-line-page8">${data.applicantTitle || ' '}</div>
           </div>
           <div class="signature-field-page8">
             <div class="signature-label-page8">Signature of Producer (Agent or Broker)</div>
-            <div class="signature-line-page8">${data.producerSignature || '_________________________'}</div>
+            <div class="signature-line-page8">${data.producerSignature || ' '}</div>
           </div>
         </div>
-        
-        <div class="page-number page-number-page8">Page 7 of 10</div>
       </div>
     </div>
   `;
@@ -1199,21 +1178,18 @@ function generatePage9(data: ApplicationPacketData): string {
           <div class="signature-field-page9" style="display: flex; gap: 0.3in; align-items: flex-end;">
             <div style="flex: 1;">
               <div class="signature-label-page9">Member/Insured Signature:</div>
-              <div class="signature-line-page9">${data.rejectionStatementSignature || '_________________________'}</div>
+              <div class="signature-line-page9">${data.rejectionStatementSignature || ' '}</div>
             </div>
             <div style="flex: 1;">
               <div class="signature-label-page9">Date:</div>
-              <div class="signature-line-page9">${data.rejectionStatementDate || '_________________________'}</div>
+              <div class="signature-line-page9">${data.rejectionStatementDate || ' '}</div>
             </div>
           </div>
           <div class="signature-field-page9">
             <div class="signature-label-page9">Printed Name/Title:</div>
-            <div class="signature-line-page9">${data.rejectionStatementPrintedName || '_________________________'}</div>
+            <div class="signature-line-page9">${data.rejectionStatementPrintedName || ' '}</div>
           </div>
         </div>
-        
-        <div class="footer-code-page9">SSI TCDN 00 02 0123</div>
-        <div class="page-number page-number-page9">Page 8 of 10</div>
       </div>
     </div>
   `;
@@ -1242,25 +1218,23 @@ function generatePage10(data: ApplicationPacketData): string {
         <div class="signature-section-page10">
           <div class="signature-field-page10">
             <div class="signature-label-page10">TBD-AppID ${data.applicationId}</div>
-            <div class="signature-line-page10">${data.policyNumber || '_________________________'}</div>
+            <div class="signature-line-page10">${data.policyNumber || ' '}</div>
           </div>
           <div class="signature-field-page10">
             <div class="signature-label-page10">Policy Number</div>
-            <div class="signature-line-page10">${data.policyNumber || '_________________________'}</div>
+            <div class="signature-line-page10">${data.policyNumber || ' '}</div>
           </div>
           <div class="signature-field-page10">
             <div class="signature-label-page10">Signature of Licensed Retail/Producing Agent/Broker</div>
-            <div class="signature-line-page10">${data.surplusLinesSignature || '_________________________'}</div>
+            <div class="signature-line-page10">${data.surplusLinesSignature || ' '}</div>
           </div>
           <div class="signature-field-page10" style="display: flex; gap: 0.3in; align-items: flex-end;">
             <div style="flex: 1;">
               <div class="signature-label-page10">Date</div>
-              <div class="signature-line-page10">${data.surplusLinesDate || '_________________________'}</div>
+              <div class="signature-line-page10">${data.surplusLinesDate}</div>
             </div>
           </div>
         </div>
-        
-        <div class="page-number page-number-page10">Page 9 of 10</div>
       </div>
     </div>
   `;
@@ -1314,18 +1288,18 @@ function generatePage11(data: ApplicationPacketData): string {
         <div class="signature-section-page11">
           <div class="signature-field-page11">
             <div class="signature-label-page11"><strong>${data.companyName}</strong></div>
-            <div class="signature-line-page11">${data.lossWarrantyCompanySignature || '_________________________'}</div>
+            <div class="signature-line-page11">${data.lossWarrantyCompanySignature || ' '}</div>
             <div class="signature-row-page11">
               <div class="signature-label-small-page11" style="margin-right: auto;">Company/ Member</div>
               <div class="signature-label-small-page11">Date</div>
-              <div class="signature-line-page11 signature-line-date-page11">${data.lossWarrantyDate || '_________________________'}</div>
+              <div class="signature-line-page11 signature-line-date-page11">${data.lossWarrantyDate}</div>
             </div>
           </div>
           <div class="signature-field-page11">
             <div class="signature-label-page11">Signature of Partner, Officer, Principal or Owner</div>
-            <div class="signature-line-page11">${data.lossWarrantySignature || '_________________________'}</div>
+            <div class="signature-line-page11">${data.lossWarrantySignature || ' '}</div>
             <div class="signature-label-small-page11" style="margin-top: 0.05in;">Title</div>
-            <div class="signature-line-page11">${data.lossWarrantyTitle || '_________________________'}</div>
+            <div class="signature-line-page11">${data.lossWarrantyTitle || ' '}</div>
           </div>
         </div>
         
@@ -1333,7 +1307,6 @@ function generatePage11(data: ApplicationPacketData): string {
           <p><strong>Warranty:</strong> The purpose of this no loss letter is to assist in the underwriting process information contained herein is specifically relied upon in determination of insurability. The undersigned, therefore, warrants that the information contained herein is true and accurate to the best of his/her knowledge, information and belief. This no loss letter shall be the basis of any insurance that may be issued and will be a part of such policy. It is understood that any misrepresentation or omission shall constitute grounds for immediate cancellation of coverage and denial of claims, if any. It is further understood that the applicant and or affiliated company is under a continuing obligation to immediately notify his/her underwriter through his/her broker of any material alteration of the information given.</p>
         </div>
         
-        <div class="page-number page-number-page11">Page 10 of 10</div>
       </div>
     </div>
   `;
@@ -2950,7 +2923,6 @@ export function mapFormDataToPacketData(
     applicationId: formData.applicationId || submissionId.substring(0, 7) || '0000000',
     submissionId: submissionId,
     formDate: formDate,
-
     // Agency Information
     agencyName: agency?.name || 'Gamaty Insurance Agency LLC DBA Capital & Co Insurance Services',
     agencyContactName: formData.agencyContactName || 'Eidan Gamaty',
@@ -3064,16 +3036,16 @@ export function mapFormDataToPacketData(
     licensingActionTaken: formData.licensingActionTaken,
     licensingActionExplanation: formData.licensingActionExplanation,
     allowedLicenseUseByOthers: formData.allowedLicenseUseByOthers,
-    licenseUseExplanation: formData.licenseUseExplanation,
+    allowedLicenseUseByOthersExplanation: formData.allowedLicenseUseByOthersExplanation,
     judgementsOrLiens: formData.judgementsOrLiens,
     judgementsExplanation: formData.judgementsExplanation,
-    lawsuitsFiled: formData.lawsuitsFiled,
+    lawsuitsOrClaims: formData.lawsuitsOrClaims,
     lawsuitsExplanation: formData.lawsuitsExplanation,
-    awareOfPotentialClaims: formData.awareOfPotentialClaims,
+    knownIncidentsOrClaims: formData.knownIncidentsOrClaims,
     potentialClaimsExplanation: formData.potentialClaimsExplanation,
 
     // Written Contract Questions
-    haveWrittenContract: formData.haveWrittenContract,
+    writtenContractForAllWork: formData.writtenContractForAllWork,
     contractHasStartDate: formData.contractHasStartDate,
     contractStartDateExplanation: formData.contractStartDateExplanation,
     contractHasScopeOfWork: formData.contractHasScopeOfWork,
@@ -3362,7 +3334,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     
     /* Inter Font Face - Modern Fintech Style */
     @font-face {
-      font-family: 'Inter';
+      font-family: 'Arial';
       font-style: normal;
       font-weight: 400;
       font-display: swap;
@@ -3370,7 +3342,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     @font-face {
-      font-family: 'Inter';
+      font-family: 'Arial';
       font-style: normal;
       font-weight: 500;
       font-display: swap;
@@ -3378,7 +3350,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     @font-face {
-      font-family: 'Inter';
+      font-family: 'Arial';
       font-style: normal;
       font-weight: 600;
       font-display: swap;
@@ -3386,7 +3358,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+      font-family: 'Arial','Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', 'Helvetica', sans-serif;
       font-size: 12pt;
       font-weight: 400; /* Inter Regular */
       line-height: 1.6;
@@ -4930,11 +4902,9 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page7-isc .main-content-page7 {
-      padding: 0.25in 0.35in;
+      padding: 0.4in 0.5in;
       font-size: 9pt;
-      line-height: 1.2;
-      max-height: 10.5in;
-      overflow: hidden;
+      line-height: 1;
       display: flex;
       flex-direction: column;
     }
@@ -4943,14 +4913,10 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 10pt;
       font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 6px;
-      padding-bottom: 2px;
+      margin-bottom: 0.04in;
+      padding-bottom: 0.05in;
       border-bottom: 2px solid #000;
-      color: #0f172a;
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-      width: 100%;
-      position: relative;
+      letter-spacing: 0.5px;
     }
     
     .page7-isc .section-title-uppercase-page7::before {
@@ -4964,28 +4930,28 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page7-isc .agreement-content-page7 {
-      margin-bottom: 0.05in;
+      margin-top: 0.04in;
+      margin-bottom: 0.06in;
     }
     
     .page7-isc .agreement-content-page7 p {
-      font-size: 9pt;
+      font-size: 8pt;
+      font-weight: 400 !important;
       line-height: 1.2;
       margin-bottom: 0.04in;
-      color: #1f2937;
+      text-align: justify;
+      color: #3b3a3a;
     }
     
     .page7-isc .initial-line-page7 {
       font-size: 9pt;
-      margin-top: 0.03in;
-      margin-bottom: 0.05in;
-      color: #1f2937;
+      margin-top: 0.15in;
+      margin-bottom: 0.1in;
     }
     
     .page7-isc .signature-section-page7 {
-      margin-top: 0.15in;
-      display: flex;
-      flex-direction: column;
-      gap: 0.08in;
+      margin-top: 0.05in;
+      gap: 0.03in;
     }
     
     .page7-isc .signature-field-page7 {
@@ -4995,15 +4961,14 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     .page7-isc .signature-label-page7 {
       font-size: 9pt;
       font-weight: 600;
-      margin-bottom: 0.02in;
-      color: #1f2937;
+      margin-bottom: 0.05in;
     }
     
     .page7-isc .signature-line-page7 {
       font-size: 9pt;
-      border-bottom: 1px solid #1f2937;
-      min-height: 0.2in;
-      color: #1f2937;
+      border-bottom: 1px solid #000;
+      min-height: 0.25in;
+      margin-top: 0.12in;
     }
     
     .page7-isc .page-number-page7 {
@@ -5100,7 +5065,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 9pt;
       font-weight: 600;
       text-align: center;
-      margin-bottom: 0.05in;
+      margin-bottom: 0.04in;
       color: #1f2937;
     }
     
@@ -5108,7 +5073,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 11pt;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 0.04in;
+      margin-bottom: 0.03in;
       color: #1f2937;
     }
     
@@ -5116,7 +5081,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 10pt;
       font-weight: 600;
       text-align: center;
-      margin-bottom: 0.04in;
+      margin-bottom: 0.03in;
       color: #1f2937;
     }
     
@@ -5124,33 +5089,33 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       font-size: 11pt;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 0.05in;
+      margin-bottom: 0.03in;
       color: #1f2937;
     }
     
     .page8-isc .section-title-bold-page8 {
       font-size: var(--font-size-xl); /* 22-24px ≈ 16.5-18pt */
       font-weight: 600; /* Inter SemiBold */
-      margin-top: 0.08in;
-      margin-bottom: 0.05in;
+      margin-top: 0.03in;
+      margin-bottom: 0.04in;
       color: #0f172a;
       text-decoration: underline;
       letter-spacing: 0.3px;
     }
     
     .page8-isc .terrorism-content-page8 {
-      margin-bottom: 0.06in;
+      margin-bottom: 0.04in;
     }
     
     .page8-isc .terrorism-content-page8 p {
       font-size: 9pt;
       line-height: 1.2;
-      margin-bottom: 0.04in;
+      margin-bottom: 0.03in;
       color: #1f2937;
     }
     
     .page8-isc .agreement-content-page8 {
-      margin-bottom: 0.08in;
+      margin-bottom: 0.04in;
     }
     
     .page8-isc .agreement-content-page8 p {
@@ -5161,7 +5126,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
     }
     
     .page8-isc .signature-section-page8 {
-      margin-top: 0.15in;
+      margin-top: 0.1in;
       display: flex;
       flex-direction: column;
       gap: 0.08in;
@@ -5183,6 +5148,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       border-bottom: 1px solid #1f2937;
       min-height: 0.2in;
       color: #1f2937;
+      margin-top: 0.12in;
       padding-bottom: 0.05in;
     }
     
@@ -5339,6 +5305,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       border-bottom: 1px solid #1f2937;
       min-height: 0.2in;
       color: #1f2937;
+      margin-top: 0.2in;
     }
     
     .page9-isc .signature-line-extended-page9 {
@@ -5419,6 +5386,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       border-bottom: 1px solid #1f2937;
       min-height: 0.2in;
       color: #1f2937;
+      margin-top: 0.2in;
     }
     
     .page10-isc .page-number-page10 {
@@ -5602,6 +5570,7 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
       min-height: 0.2in;
       color: #1f2937;
       width: 100%;
+      margin-top: 0.2in;
     }
     
     .page11-isc .signature-line-date-page11 {

@@ -413,7 +413,7 @@ function AgencyDashboardContent() {
         )}
 
         {/* MAIN CARD CONTAINER */}
-        <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden">
+        <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden h-[calc(100vh-260px)]">
 
           {/* LEFT PIPELINE */}
           <div className="w-[270px] bg-[#F9F8F7] border-r border-[#E5E2DF] p-6 space-y-3">
@@ -497,7 +497,7 @@ function AgencyDashboardContent() {
           </div>
 
           {/* RIGHT TABLE SECTION */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
 
             {/* FILTER BAR */}
             <div className="p-6 border-b border-[#ECEAE7] flex items-center gap-4">
@@ -537,18 +537,17 @@ function AgencyDashboardContent() {
             </div>
 
             {/* TABLE */}
-            <div className="overflow-y-auto">
+            <div className="flex-1 overflow-y-auto border-t border-b border-[#ECEAE7] rounded-b-2xl">
 
               <table className="w-full text-sm">
-                <thead className="bg-[#F9F8F7] text-[#6B6B6B] uppercase text-xs">
+                <thead className="bg-[#F9F8F7] text-[#6B6B6B] uppercase text-xs sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-4 text-left">Type</th>
                     <th className="px-6 py-4 text-left">App ID</th>
                     <th className="px-6 py-4 text-left">Applicant Company</th>
                     <th className="px-6 py-4 text-left">Program</th>
                     <th className="px-6 py-4 text-left">Effective Date</th>
-                    <th className="px-6 py-4 text-left">Line of Business</th>
-                    <th className="px-6 py-4 text-center">Info</th>
+                    <th className="px-6 py-4 text-center">Total Cost</th>
                   </tr>
                 </thead>
 
@@ -564,9 +563,9 @@ function AgencyDashboardContent() {
                       <td className="px-6 py-4">{sub.clientName}</td>
                       <td className="px-6 py-4">{sub.industry}</td>
                       <td className="px-6 py-4">
-                        {new Date(sub.createdAt).toISOString().split("T")[0]}
+                        {new Date(sub.createdAt).toLocaleDateString("en-US")}
                       </td>
-                      <td className="px-6 py-4">{sub.subtype}</td>
+                      
                       <td className="px-6 py-4 text-center">ⓘ</td>
                     </tr>
                   ))}

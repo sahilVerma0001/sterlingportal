@@ -40,7 +40,7 @@ const YesNoRadio = ({
             onChange(true);
             onInteraction?.();
           }}
-          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
         />
         <span className="text-sm text-gray-700">Yes</span>
       </label>
@@ -57,7 +57,7 @@ const YesNoRadio = ({
             onChange(false);
             onInteraction?.();
           }}
-          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
         />
         <span className="text-sm text-gray-700">No</span>
       </label>
@@ -586,13 +586,13 @@ export default function QuoteFormPage() {
         onClick={() => onChange(!value)}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded border text-sm text-left transition
         ${value
-            ? "bg-[#E6FAFD] border-[#00BCD4]"
+            ? "bg-[#F3F0ED] border-[#9A8B7A]"
             : "bg-white border-gray-300 hover:bg-gray-50"
           }`}
       >
         <span
           className={`w-4 h-4 flex items-center justify-center rounded border ${value
-            ? "bg-[#00BCD4] border-[#00BCD4] text-white"
+            ? "bg-[#9A8B7A] border-[#9A8B7A] text-white"
             : "border-gray-400 bg-white"
             }`}
         >
@@ -1126,7 +1126,7 @@ export default function QuoteFormPage() {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00BCD4]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9A8B7A]"></div>
       </div>
     );
   }
@@ -1178,7 +1178,7 @@ export default function QuoteFormPage() {
 
             {/* Indication Information */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold\">Application Information</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
@@ -1200,12 +1200,15 @@ export default function QuoteFormPage() {
                           handleInputChange("agentName", e.target.value)
                         }
                         required
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       >
                         <option value="" selected disabled hidden>Select Agent</option>
-                        <option value="John Carter">John Carter</option>
-                        <option value="Sarah Lee">Sarah Lee</option>
-                        <option value="Michael Stone">Michael Stone</option>
+                        <option value="Michal kraut">Michal kraut</option>
+                        <option value="Ben solender">Ben solender</option>
+                        <option value="Micheal gamety">Micheal gamety</option>
+                        <option value="Moshe gamety">Moshe gamety</option>
+                        <option value="Eidan gamaty">Eidan gamaty</option>
+                        <option value="Jake weiner">Jake weiner</option>
                       </select>
                     </div>
                   </div>
@@ -1229,7 +1232,7 @@ export default function QuoteFormPage() {
                           handleInputChange("agentEmail", selectedAgent?.email || "");
                           handleInputChange("agentPhone", selectedAgent?.phone || "");
                         }}
-                        className={`w-full px-4 py-2.5 border rounded text-sm ${!formData.agentId ? "border-red-300" : "border-gray-300"} focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4]`} required >
+                        className={`w-full px-4 py-2.5 border rounded text-sm ${!formData.agentId ? "border-red-300" : "border-gray-300"} focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]`} required >
                         <option value="">Select Agent</option>
                         {agents.map((agent) => (
                           <option key={agent.id} value={agent.id}>
@@ -1256,7 +1259,7 @@ export default function QuoteFormPage() {
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange('companyName', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       required
                     />
                   </div>
@@ -1278,7 +1281,7 @@ export default function QuoteFormPage() {
                           const parsed = parseCurrency(e.target.value);
                           handleInputChange('estimatedGrossReceipts', parsed > 0 ? parsed.toString() : '');
                         }}
-                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       />
                     </div>
                   </div>
@@ -1319,7 +1322,7 @@ export default function QuoteFormPage() {
                             combinedCostError ||
                             subcontractingZeroError
                             ? "border-red-500 focus:ring-red-400"
-                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                            : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
                             }`}
                         />
                       </div>
@@ -1366,7 +1369,7 @@ export default function QuoteFormPage() {
                           }}
                           className={`w-full pl-8 pr-4 py-2.5 border rounded text-sm focus:ring-1 ${materialCostError || combinedCostError
                             ? "border-red-500 focus:ring-red-400"
-                            : "border-gray-300 focus:ring-[#00BCD4] focus:border-[#00BCD4]"
+                            : "border-gray-300 focus:ring-[#9A8B7A] focus:border-[#9A8B7A]"
                             }`}
                         />
                       </div>
@@ -1393,7 +1396,7 @@ export default function QuoteFormPage() {
                         onChange={(e) =>
                           handleInputChange("fieldEmployees", e.target.value)
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       >
                         {Array.from({ length: 21 }, (_, i) => (
                           <option key={i} value={i}>
@@ -1431,7 +1434,7 @@ export default function QuoteFormPage() {
                               parsed > 0 ? parsed.toString() : ""
                             );
                           }}
-                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                          className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                           placeholder="Enter payroll amount"
                         />
                       </div>
@@ -1448,7 +1451,7 @@ export default function QuoteFormPage() {
                       value={formData.yearsInBusiness}
                       placeholder="4"
                       onChange={(e) => handleInputChange('yearsInBusiness', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                     />
                   </div>
 
@@ -1459,7 +1462,7 @@ export default function QuoteFormPage() {
                     type="number"
                     value={formData.yearsExperience}
                     onChange={(e) => handleInputChange('yearsExperience', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                   />
                 </div> */}
 
@@ -1478,7 +1481,7 @@ export default function QuoteFormPage() {
                     {/* <select
                       value=""
                       onChange={(e) => handleAddClassCode(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] bg-white"
                     >
                       <option value="">Select Class Code</option>
                       {classCodeOptions
@@ -1494,7 +1497,7 @@ export default function QuoteFormPage() {
 
                     <select
                       value=""
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] bg-white"
                       onChange={(e) => {
                         const selectedCode = e.target.value;
                         if (selectedCode) {
@@ -1595,7 +1598,7 @@ export default function QuoteFormPage() {
                         onChange={(e) =>
                           handleInputChange("coverageLimits", e.target.value)
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       >
                         <option value="1M / 1M / 1M">1M / 1M / 1M</option>
                         <option value="1M / 2M / 1M">1M / 2M / 1M</option>
@@ -1625,7 +1628,7 @@ export default function QuoteFormPage() {
                         onChange={(e) =>
                           handleInputChange("fireLegalLimit", e.target.value)
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                       >
                         <option value="$50,000">$50,000</option>
                         <option value="$100,000">$100,000</option>
@@ -1643,7 +1646,7 @@ export default function QuoteFormPage() {
                         onChange={(e) =>
                           handleInputChange("medicalExpenseLimit", e.target.value)
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                       >
                         <option value="Not Applicable">Not Applicable</option>
                         <option value="$5,000">$5,000</option>
@@ -1661,7 +1664,7 @@ export default function QuoteFormPage() {
                     <select
                       value={formData.selfInsuredRetention}
                       onChange={(e) => handleInputChange('selfInsuredRetention', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     >
                       <option>$10,000</option>
                       <option>$5,000</option>
@@ -1702,7 +1705,7 @@ export default function QuoteFormPage() {
 
                         handleInputChange("lossesLast5Years", value);
                       }}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     >
                       <option value="0">0</option>
                       <option value="1">1</option>
@@ -1722,7 +1725,7 @@ export default function QuoteFormPage() {
                       type="date"
                       value={formData.effectiveDate}
                       onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
                   </div>
 
@@ -1736,7 +1739,7 @@ export default function QuoteFormPage() {
 
                     <div></div>
 
-                    <div className="w-full border border-gray-300 rounded px-2 py-2 focus-within:ring-1 focus-within:ring-[#00BCD4]">
+                    <div className="w-full border border-gray-300 rounded px-2 py-2 focus-within:ring-1 focus-within:ring-[#9A8B7A]">
 
                       {/* Selected state chips */}
                       <div className="flex flex-wrap gap-2 mb-2">
@@ -1812,7 +1815,7 @@ export default function QuoteFormPage() {
             {/*Description of operations*/}
 
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Description of operations</h2>
               </div>
 
@@ -1839,7 +1842,7 @@ export default function QuoteFormPage() {
             {/* Endorsements */}
 
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Endorsements</h2>
               </div>
 
@@ -1900,7 +1903,7 @@ export default function QuoteFormPage() {
 
             {/* Payment Options */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Payment Options</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
@@ -1922,7 +1925,7 @@ export default function QuoteFormPage() {
                           const parsed = parseCurrency(e.target.value);
                           handleInputChange('brokerFee', parsed > 0 ? parsed.toString() : '0');
                         }}
-                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         placeholder="0"
                       />
                     </div>
@@ -1940,7 +1943,7 @@ export default function QuoteFormPage() {
                             handleInputChange('displayBrokerFee', true);
                             triggerAnimation();
                           }}
-                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-700">Yes</span>
                       </label>
@@ -1952,7 +1955,7 @@ export default function QuoteFormPage() {
                             handleInputChange('displayBrokerFee', false);
                             triggerAnimation();
                           }}
-                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-700">No</span>
                       </label>
@@ -1966,7 +1969,7 @@ export default function QuoteFormPage() {
                       <select
                         value={formData.paymentOption}
                         onChange={(e) => handleInputChange('paymentOption', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       >
                         <option value="" selected disabled hidden>Select payment option</option>
                         <option value="Full Pay">Full Pay</option>
@@ -1983,7 +1986,7 @@ export default function QuoteFormPage() {
 
             {/* Company Information */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Company Information</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
@@ -1998,7 +2001,7 @@ export default function QuoteFormPage() {
                           type="radio"
                           checked={formData.contractorsLicense === true}
                           onChange={() => handleInputChange('contractorsLicense', true)}
-                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-700">Yes</span>
                       </label>
@@ -2007,7 +2010,7 @@ export default function QuoteFormPage() {
                           type="radio"
                           checked={formData.contractorsLicense === false}
                           onChange={() => handleInputChange('contractorsLicense', false)}
-                          className="w-4 h-4 text-[#00BCD4] border-gray-300 focus:ring-[#00BCD4]"
+                          className="w-4 h-4 text-[#9A8B7A] border-gray-300 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-700">No</span>
                       </label>
@@ -2023,7 +2026,7 @@ export default function QuoteFormPage() {
                           type="text"
                           value={formData.licenseNumber}
                           onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
                       <div className="grid grid-cols-[200px_1fr_320px] gap-x-6 items-center">
@@ -2033,7 +2036,7 @@ export default function QuoteFormPage() {
                           type="text"
                           value={formData.licenseClassification}
                           onChange={(e) => handleInputChange('licenseClassification', e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
                     </>
@@ -2046,7 +2049,7 @@ export default function QuoteFormPage() {
                       type="text"
                       value={formData.dba}
                       onChange={(e) => handleInputChange('dba', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       placeholder="Doing Business As"
                     />
                   </div>
@@ -2058,7 +2061,7 @@ export default function QuoteFormPage() {
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
                   </div>
 
@@ -2069,7 +2072,7 @@ export default function QuoteFormPage() {
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
                   </div>
 
@@ -2081,7 +2084,7 @@ export default function QuoteFormPage() {
                       value={formData.yearsOfExperienceTrade}
                       placeholder="4"
                       onChange={(e) => handleInputChange('yearsOfExperienceTrade', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                     />
                   </div>
 
@@ -2091,7 +2094,7 @@ export default function QuoteFormPage() {
                     <select
                       value={formData.entityType}
                       onChange={(e) => handleInputChange('entityType', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     >
                       <option>Individual</option>
                       <option>Corporation</option>
@@ -2124,7 +2127,7 @@ export default function QuoteFormPage() {
                         handleInputChange("applicantSSN", formatted);
                         validateSSN(formatted);
                       }}
-                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.ssn
+                      className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm ${validationErrors.ssn
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300"
                         }`}
@@ -2157,7 +2160,7 @@ export default function QuoteFormPage() {
                           handleInputChange('phone', formatted);
                           validatePhone(formatted, 'phone');
                         }}
-                        className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#00BCD4] text-sm ${validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        className={`w-full px-4 py-2.5 border rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm ${validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
                           }`}
                         placeholder="(123) 456-7890"
                         maxLength={14}
@@ -2178,7 +2181,7 @@ export default function QuoteFormPage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       placeholder="insured@example.com"
                     />
                   </div>
@@ -2190,97 +2193,88 @@ export default function QuoteFormPage() {
 
             {/* Applicant Physical Location */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Applicant Physical Location</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
 
-                <div className="space-y-7 mt-1">
+                {/* ROW 1 */}
+                <div className="grid grid-cols-2 gap-6 mb-7">
+
+                  {/* Address */}
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-3">
                       Address
-                      {/* <span className="ml-1 text-xs text-gray-500">(? icon would show help)</span> */}
                     </label>
                     <input
                       ref={addressInputRef}
                       type="text"
                       value={formData.streetAddress}
                       onChange={(e) => handleInputChange('streetAddress', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       placeholder="Start typing address..."
                       autoComplete="off"
                     />
-                    {isGoogleLoaded && (
-                      <div className="mt-1 text-xs text-gray-400 flex items-center justify-end gap-1">
-                        <span>powered by</span>
-                        <span className="font-semibold">Google</span>
-                      </div>
-                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
-                      <input
-                        type="text"
-                        value={formData.aptSuite}
-                        onChange={(e) => handleInputChange('aptSuite', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                        placeholder="Apt. #24"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
-                      <input
-                        type="text"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
-                      />
-                    </div>
-
-
-                    <div className="grid grid-cols-[10px_1fr_320px] gap-x-6 items-center">
-                      {/* Left label */}
-                      <label className="text-sm font-medium text-gray-900">
-                        Zip
-                      </label>
-
-                      {/* Right inputs */}
-                      <div className="flex items-center gap-3">
-                        {/* Zip input */}
-                        <input
-                          type="text"
-                          value={formData.zip}
-                          onChange={(e) => handleInputChange("zip", e.target.value)}
-                          maxLength={5}
-                          className="w-32 px-4 py-2.5 border border-gray-300 rounded 
-                 focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
-                        />
-
-                        {/* State label + dropdown */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            State
-                          </span>
-
-                          <select
-                            value={formData.state}
-                            onChange={(e) => handleInputChange("state", e.target.value)}
-                            className="px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm w-40">
-                            {statesList.map((state) => (
-                              <option key={state} value={state}>
-                                {state}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
+                  {/* Apt/Suite */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Apt/Suite</label>
+                    <input
+                      type="text"
+                      value={formData.aptSuite}
+                      onChange={(e) => handleInputChange('aptSuite', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
+                      placeholder="Apt. #24"
+                    />
                   </div>
+
                 </div>
+
+                {/* ROW 2 */}
+                <div className="grid grid-cols-3 gap-6">
+
+                  {/* City */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-3">City</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
+                    />
+                  </div>
+
+                  {/* Zip */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-3">Zip</label>
+                    <input
+                      type="text"
+                      value={formData.zip}
+                      onChange={(e) => handleInputChange("zip", e.target.value)}
+                      maxLength={5}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
+                    />
+                  </div>
+
+                  {/* State */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-3">State</label>
+                    <select
+                      value={formData.state}
+                      onChange={(e) => handleInputChange("state", e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
+                    >
+                      {statesList.map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                </div>
+
               </div>
             </div>
 
@@ -2290,7 +2284,7 @@ export default function QuoteFormPage() {
               {formData.generalLiabilityLosses.length > 0 && (
                 <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
 
-                  <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                  <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                     <h2 className="text-lg font-semibold">
                       General Liability Loss Information
                     </h2>
@@ -2369,7 +2363,7 @@ export default function QuoteFormPage() {
                           { dateOfLoss: "", amountOfLoss: "" },
                         ])
                       }
-                      className="text-[#00BCD4] text-sm font-semibold"
+                      className="text-[#9A8B7A] text-sm font-semibold"
                     >
                       + Add Loss Information
                     </button>
@@ -2384,7 +2378,7 @@ export default function QuoteFormPage() {
 
             {/* Type of Work Performed */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Type of Work Performed</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
@@ -2414,7 +2408,7 @@ export default function QuoteFormPage() {
                               (100 - num).toString()
                             );
                           }}
-                          className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                          className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                         />
                         <span className="text-sm text-gray-600">%</span>
                       </div>
@@ -2445,7 +2439,7 @@ export default function QuoteFormPage() {
                             (100 - num).toString()
                           );
                         }}
-                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                       />
                       <span className="text-sm text-gray-600">%</span>
                     </div>
@@ -2474,7 +2468,7 @@ export default function QuoteFormPage() {
                             (100 - num).toString()
                           );
                         }}
-                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                       />
                       <span className="text-sm text-gray-600">%</span>
                     </div>
@@ -2503,7 +2497,7 @@ export default function QuoteFormPage() {
                             (100 - num).toString()
                           );
                         }}
-                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                        className="w-[90px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                       />
                       <span className="text-sm text-gray-600">%</span>
                     </div>
@@ -2526,7 +2520,7 @@ export default function QuoteFormPage() {
                           e.target.value.replace(/\D/g, "")
                         )
                       }
-                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                     />
                   </div>
 
@@ -2546,7 +2540,7 @@ export default function QuoteFormPage() {
                           e.target.value.replace(/\D/g, "")
                         )
                       }
-                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                     />
                   </div>
 
@@ -2566,7 +2560,7 @@ export default function QuoteFormPage() {
                           e.target.value.replace(/\D/g, "")
                         )
                       }
-                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#00BCD4]"
+                      className="w-[120px] px-3 py-2 border border-gray-300 rounded text-sm text-right focus:ring-1 focus:ring-[#9A8B7A]"
                     />
                   </div>
 
@@ -2587,7 +2581,7 @@ export default function QuoteFormPage() {
                         type="number"
                         value={formData.belowGradeDepth}
                         onChange={(e) => handleInputChange('belowGradeDepth', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                     <div>
@@ -2597,7 +2591,7 @@ export default function QuoteFormPage() {
                           type="number"
                           value={formData.belowGradePercent}
                           onChange={(e) => handleInputChange('belowGradePercent', e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                           max="100"
                         />
                         <span className="absolute right-3 top-2 text-gray-500">%</span>
@@ -2619,7 +2613,7 @@ export default function QuoteFormPage() {
                       value={formData.hillsideExplanation}
                       onChange={(e) => handleInputChange('hillsideExplanation', e.target.value)}
                       rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
                   </div>
                 )} */}
@@ -2659,7 +2653,7 @@ export default function QuoteFormPage() {
                           handleInputChange("roofingOpsExplanation", e.target.value)
                         }
                         rows={3}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -2689,7 +2683,7 @@ export default function QuoteFormPage() {
                         value={formData.roofingOpsExplanation}
                         onChange={(e) => handleInputChange('roofingOpsExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )} */}
@@ -2707,7 +2701,7 @@ export default function QuoteFormPage() {
                       value={formData.generalContractorExplanation}
                       onChange={(e) => handleInputChange('generalContractorExplanation', e.target.value)}
                       rows={2}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                     />
                   </div>
                 )} */}
@@ -2725,7 +2719,7 @@ export default function QuoteFormPage() {
                         value={formData.waterproofingExplanation}
                         onChange={(e) => handleInputChange('waterproofingExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -2744,7 +2738,7 @@ export default function QuoteFormPage() {
                           value={formData.heavyEquipmentExplanation}
                           onChange={(e) => handleInputChange('heavyEquipmentExplanation', e.target.value)}
                           rows={2}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
 
@@ -2763,7 +2757,7 @@ export default function QuoteFormPage() {
                           type="number"
                           value={formData.heavyEquipmentYearsExpRequired}
                           onChange={(e) => handleInputChange('heavyEquipmentYearsExpRequired', e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
                     )} */}
@@ -2783,7 +2777,7 @@ export default function QuoteFormPage() {
                         value={formData.tractHomesExplanation}
                         onChange={(e) => handleInputChange('tractHomesExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -2802,7 +2796,7 @@ export default function QuoteFormPage() {
                         value={formData.condoConstructionExplanation}
                         onChange={(e) => handleInputChange('condoConstructionExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
 
@@ -2828,7 +2822,7 @@ export default function QuoteFormPage() {
                         value={formData.condoRepairExplanation}
                         onChange={(e) => handleInputChange('condoRepairExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
 
@@ -2877,7 +2871,7 @@ export default function QuoteFormPage() {
                                 parsed > 0 ? parsed.toString() : ""
                               );
                             }}
-                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                           />
                         </div>
                       </div>
@@ -2908,7 +2902,7 @@ export default function QuoteFormPage() {
                                 parsed > 0 ? parsed.toString() : ""
                               );
                             }}
-                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] focus:border-[#00BCD4] text-sm"
+                            className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                           />
                         </div>
                       </div>
@@ -2929,7 +2923,7 @@ export default function QuoteFormPage() {
                         value={formData.hazardousWorkExplanation}
                         onChange={(e) => handleInputChange('hazardousWorkExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -2947,7 +2941,7 @@ export default function QuoteFormPage() {
                         value={formData.medicalFacilitiesExplanation}
                         onChange={(e) => handleInputChange('medicalFacilitiesExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -2966,7 +2960,7 @@ export default function QuoteFormPage() {
                           value={formData.over5000SqFtExplanation}
                           onChange={(e) => handleInputChange('over5000SqFtExplanation', e.target.value)}
                           rows={2}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
 
@@ -2979,7 +2973,7 @@ export default function QuoteFormPage() {
                             type="number"
                             value={formData.over5000SqFtPercent}
                             onChange={(e) => handleInputChange('over5000SqFtPercent', e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                             max="100"
                           />
                           <span className="absolute right-3 top-2 text-gray-500">%</span>
@@ -3003,7 +2997,7 @@ export default function QuoteFormPage() {
                           value={formData.over20000SqFtExplanation}
                           onChange={(e) => handleInputChange('over20000SqFtExplanation', e.target.value)}
                           rows={2}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                         />
                       </div>
 
@@ -3016,7 +3010,7 @@ export default function QuoteFormPage() {
                             type="number"
                             value={formData.over20000SqFtPercent}
                             onChange={(e) => handleInputChange('over20000SqFtPercent', e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                             max="100"
                           />
                           <span className="absolute right-3 top-2 text-gray-500">%</span>
@@ -3030,7 +3024,7 @@ export default function QuoteFormPage() {
 
             {/* Additional Business Information */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Additional Business Information</h2>
               </div>
               <div className="px-8 pt-6 pb-7">
@@ -3050,7 +3044,7 @@ export default function QuoteFormPage() {
                         value={formData.otherBusinessNamesExplanation}
                         onChange={(e) => handleInputChange('otherBusinessNamesExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3067,7 +3061,7 @@ export default function QuoteFormPage() {
                         value={formData.licensingActionTakenExplanation}
                         onChange={(e) => handleInputChange('licensingActionTakenExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3084,7 +3078,7 @@ export default function QuoteFormPage() {
                         value={formData.licenseSharedWithOthersExplanation}
                         onChange={(e) => handleInputChange('licenseSharedWithOthersExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3101,7 +3095,7 @@ export default function QuoteFormPage() {
                         value={formData.judgementsOrLiensExplanation}
                         onChange={(e) => handleInputChange('judgementsOrLiensExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3118,7 +3112,7 @@ export default function QuoteFormPage() {
                         value={formData.lawsuitsOrClaimsExplanation}
                         onChange={(e) => handleInputChange('lawsuitsOrClaimsExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3135,7 +3129,7 @@ export default function QuoteFormPage() {
                         value={formData.knownIncidentsOrClaimsExplanation}
                         onChange={(e) => handleInputChange('knownIncidentsOrClaimsExplanation', e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3157,7 +3151,7 @@ export default function QuoteFormPage() {
                           handleInputChange('writtenContractForAllWorkExplanation', e.target.value)
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3180,7 +3174,7 @@ export default function QuoteFormPage() {
                           handleInputChange('contractHasStartDateExplanation', e.target.value)
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3203,7 +3197,7 @@ export default function QuoteFormPage() {
                           handleInputChange('contractHasScopeOfWorkExplanation', e.target.value)
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3229,7 +3223,7 @@ export default function QuoteFormPage() {
                           )
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3252,7 +3246,7 @@ export default function QuoteFormPage() {
                           handleInputChange('contractHasSetPriceExplanation', e.target.value)
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3278,7 +3272,7 @@ export default function QuoteFormPage() {
                           )
                         }
                         rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm"
                       />
                     </div>
                   )}
@@ -3289,7 +3283,7 @@ export default function QuoteFormPage() {
 
             {/* Subcontractors */}
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Subcontractors</h2>
               </div>
 
@@ -3439,7 +3433,7 @@ export default function QuoteFormPage() {
             <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200">
 
               {/* Header */}
-              <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+              <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                 <h2 className="text-lg font-semibold">Add Excess Liability coverage</h2>
               </div>
 
@@ -3472,7 +3466,7 @@ export default function QuoteFormPage() {
             {formData.addExcessLiability && (
               <div className="bg-white rounded shadow-md overflow-hidden border border-gray-200 mt-6">
 
-                <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+                <div className="bg-[#7A6F64] text-white px-6 py-3.5">
                   <h2 className="text-lg font-semibold">Excess Questions</h2>
                 </div>
 
@@ -3503,7 +3497,7 @@ export default function QuoteFormPage() {
                       onChange={(e) =>
                         handleInputChange("excessLiabilityLimit", e.target.value)
                       }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                     >
                       <option value="">Select Limit</option>
                       <option value="1M">$1,000,000</option>
@@ -3552,7 +3546,7 @@ export default function QuoteFormPage() {
                         )
                       }
                       className={`w-full px-4 py-2.5 border border-gray-300 rounded text-sm ${formData.employersLiabilityWC
-                        ? "bg-white focus:ring-1 focus:ring-[#00BCD4]"
+                        ? "bg-white focus:ring-1 focus:ring-[#9A8B7A]"
                         : "bg-gray-100 text-gray-500"
                         }`}
                     >
@@ -3582,7 +3576,7 @@ export default function QuoteFormPage() {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#00BCD4] text-sm bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] text-sm bg-white"
                       >
                         <option value="">Select Limits</option>
                         <option value="$100k/$500k/$100k">$100k / $500k / $100k</option>
@@ -3671,12 +3665,12 @@ export default function QuoteFormPage() {
         {/* Quote Result */}
         {calculatedPremium && quoteId && (
           <div id="quote-result" className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-[#3A3C3F] text-white px-6 py-3.5">
+            <div className="bg-[#7A6F64] text-white px-6 py-3.5">
               <h2 className="text-lg font-semibold">Quote Summary</h2>
             </div>
             <div className="px-8 pt-6 pb-7">
 
-              <div className="bg-gradient-to-br from-[#00BCD4] to-[#0097A7] rounded-2xl p-8 text-center text-white shadow-2xl mb-6">
+              <div className="bg-gradient-to-br from-[#9A8B7A] to-[#0097A7] rounded-2xl p-8 text-center text-white shadow-2xl mb-6">
                 <p className="text-lg font-semibold mb-2 opacity-90">As Low As</p>
                 <p className="text-6xl font-bold mb-2">${calculatedPremium.toLocaleString()}</p>
                 <p className="text-sm opacity-75">per year</p>
@@ -3685,7 +3679,7 @@ export default function QuoteFormPage() {
               <div className="flex gap-4">
                 <button
                   onClick={handleDownloadPDF}
-                  className="flex-1 py-4 border-2 border-[#00BCD4] text-[#00BCD4] rounded font-semibold hover:bg-[#00BCD4]/5 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 border-2 border-[#9A8B7A] text-[#9A8B7A] rounded font-semibold hover:bg-[#9A8B7A]/5 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -3694,7 +3688,7 @@ export default function QuoteFormPage() {
                 </button>
                 <button
                   onClick={handleEmailQuote}
-                  className="flex-1 py-4 bg-gradient-to-r from-[#00BCD4] to-[#0097A7] text-white rounded font-semibold hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-gradient-to-r from-[#9A8B7A] to-[#0097A7] text-white rounded font-semibold hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
