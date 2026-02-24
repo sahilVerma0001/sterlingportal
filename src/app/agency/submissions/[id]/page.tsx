@@ -532,7 +532,7 @@ function SubmissionDetailsContent() {
             <div className="flex items-center gap-4">
 
               {/* ICON ACTIONS */}
-              <div className="flex items-center gap-5">
+             {/* <div className="flex items-center gap-5"
                 <button aria-label="Favorite"
                   className="p-2 rounded-md hover:bg-gray-100">
                   <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
@@ -558,7 +558,7 @@ function SubmissionDetailsContent() {
                 >
                   <Share2 className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
                 </button>
-              </div>
+              </div>*/}
               {/* APP ID */}
               <span className="text-[14px] text-gray-500 ml-2">
                 App ID {submission.submissionId || submission._id.slice(-6)}
@@ -978,10 +978,8 @@ function SubmissionDetailsContent() {
                     "Underwriter",
                     "Accounting",
                     "Endorsements",
-                    "Additional Insured Endorsements",
                     "Cancellations",
                     "Audits",
-                    "Inspections",
                   ].map((item) => (
                     <button
                       key={item}

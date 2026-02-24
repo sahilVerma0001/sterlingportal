@@ -3191,21 +3191,6 @@ export async function generateApplicationPacketHTML(data: ApplicationPacketData)
   // Add QR code data URL to data object for page generation
   const dataWithQR = { ...data, qrCodeDataUrl };
 
-  // Generate all pages; state-specific forms (only for approved quotes) go just before Invoice Statement (page 12)
-  // const pagesBeforeStateForms = [
-  //   // generatePage1(dataWithQR),
-  //   generatePage2(dataWithQR),
-  //   generatePage3(dataWithQR),
-  //   generatePage4(dataWithQR),
-  //   generatePage5(dataWithQR),
-  //   generatePage6(dataWithQR),
-  //   generatePage7(dataWithQR),
-  //   generatePage8(dataWithQR),
-  //   generatePage9(dataWithQR),
-  //   generatePage10(dataWithQR),
-  //   generatePage11(dataWithQR),
-  // ];
-
 
   const pagesBeforeStateForms = [
     generatePage2(dataWithQR),
