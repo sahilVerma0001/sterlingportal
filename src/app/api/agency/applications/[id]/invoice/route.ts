@@ -5,11 +5,11 @@ import connectDB from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Agency from "@/models/Agency";
 import Quote from "@/models/Quote";
-import { generateApplicationPacketHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
+import { generateInvoiceHTML, mapFormDataToPacketData, loadCapitalCoLogo } from "@/lib/services/pdf/ApplicationPacketPDF";
 
 /**
- * GET /api/agency/applications/[id]/pdf
- * Generate and download application PDF
+ * GET /api/agency/applications/[id]/invoice
+ * Generate and download invoice PDF
  */
 export async function GET(
   req: NextRequest,
@@ -95,7 +95,7 @@ export async function GET(
     );
 
     // Generate 12-page application packet HTML
-    const htmlContent = await generateApplicationPacketHTML(packetData);
+    const invoiceHTML = await generateInvoiceHTML(packetData);
 
     // Generate PDF using production service (PDFShift)
     let pdfBuffer: Buffer;
@@ -103,7 +103,7 @@ export async function GET(
       console.log("📄 [PDF Download] Starting PDF generation...");
       const { generatePDFFromHTML } = await import('@/lib/services/pdf/PDFService');
       pdfBuffer = await generatePDFFromHTML({
-        html: htmlContent,
+        html: invoiceHTML,
         format: 'A4',
         printBackground: true,
         margin: {
@@ -168,11 +168,3 @@ export async function GET(
     );
   }
 }
-
-
-
-
-
-
-
-

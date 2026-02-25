@@ -43,12 +43,16 @@ export async function POST(
 
     const submissionId = params.id; // In this endpoint, [id] represents submissionId
     const body = await req.json();
-    const { 
-      carrierId, 
+    const {
+      carrierId,
       carrierQuoteUSD,
+      carrierFeesUSD,
+      sterlingInsuranceServicesFeesUSD,
       premiumTaxPercent,
       premiumTaxAmountUSD,
       policyFeeUSD,
+      stampingFeePercent,
+      stampingFeeAmountUSD,
       brokerFeeAmountUSD,
       limits,
       endorsements,
@@ -107,20 +111,33 @@ export async function POST(
 
     // Calculate final amount (no wholesale fee - removed per user request)
     const brokerFee = parseFloat(brokerFeeAmountUSD) || 0;
+    const carrierFees = parseFloat(carrierFeesUSD) || 0;
+    const sterlingFees = parseFloat(sterlingInsuranceServicesFeesUSD) || 0;
+    const stampingAmount = parseFloat(stampingFeeAmountUSD) || 0;
     const taxAmount = parseFloat(premiumTaxAmountUSD) || 0;
     const policyFee = parseFloat(policyFeeUSD) || 0;
-    const finalAmountUSD = carrierQuoteUSD + brokerFee + taxAmount + policyFee;
-
+    const finalAmountUSD =
+      carrierQuoteUSD +
+      carrierFees +
+      sterlingFees +
+      brokerFee +
+      taxAmount +
+      stampingAmount +   // ✅ ADD THIS
+      policyFee;
     // Create quote (admin enters carrier quote)
     const quote = await Quote.create({
       submissionId,
       carrierId,
       carrierQuoteUSD,
       // No wholesale fee - removed per user request
+      carrierFeesUSD: carrierFees > 0 ? carrierFees : undefined,
+      sterlingInsuranceServicesFeesUSD: sterlingFees > 0 ? sterlingFees : undefined,
       brokerFeeAmountUSD: brokerFee,
       premiumTaxPercent: premiumTaxPercent ? parseFloat(premiumTaxPercent) : undefined,
       premiumTaxAmountUSD: taxAmount > 0 ? taxAmount : undefined,
       policyFeeUSD: policyFee > 0 ? policyFee : undefined,
+      stampingFeePercent: stampingFeePercent ? parseFloat(stampingFeePercent) : undefined,
+      stampingFeeAmountUSD: stampingAmount > 0 ? stampingAmount : undefined,
       finalAmountUSD,
       limits: limits || undefined,
       endorsements: endorsements || [],
@@ -129,10 +146,10 @@ export async function POST(
       policyNumber: policyNumber || undefined,
       carrierReference: carrierReference || undefined,
       specialNotes: specialNotes || undefined,
-        status: "POSTED", // Posted to broker
-        enteredByAdminId: (session.user as any).id,
-        enteredAt: new Date(),
-        postedAt: new Date(),
+      status: "POSTED", // Posted to broker
+      enteredByAdminId: (session.user as any).id,
+      enteredAt: new Date(),
+      postedAt: new Date(),
     });
 
     // Update submission status to QUOTED
@@ -157,6 +174,8 @@ export async function POST(
           details: {
             carrierName: carrier.name,
             carrierQuoteUSD: carrierQuoteUSD,
+            carrierFeesUSD: carrierFees,
+            sterlingInsuranceServicesFeesUSD: sterlingFees,
             finalAmountUSD: finalAmountUSD,
             status: "POSTED",
           },
@@ -196,6 +215,8 @@ export async function POST(
         expirationDate: expirationDate ? new Date(expirationDate).toLocaleDateString() : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
         programName: (submission as any).programName || "Advantage Contractor GL",
         carrierQuoteUSD,
+        carrierFeesUSD: carrierFees > 0 ? carrierFees : undefined,
+        sterlingInsuranceServicesFeesUSD: sterlingFees > 0 ? sterlingFees : undefined,
         // No wholesale fee - removed per user request
         premiumTaxPercent: premiumTaxPercent ? parseFloat(premiumTaxPercent) : undefined,
         premiumTaxAmountUSD: taxAmount > 0 ? taxAmount : undefined,
@@ -263,7 +284,7 @@ export async function POST(
     // Send email to broker
     try {
       const { sendQuoteToBroker } = await import("@/lib/services/email/EmailService");
-      
+
       await sendQuoteToBroker({
         brokerEmail: agency?.email || submission.clientContact?.email || "",
         brokerName: agency?.name || "Broker",

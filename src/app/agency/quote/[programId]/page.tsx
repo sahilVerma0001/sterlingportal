@@ -68,6 +68,11 @@ const YesNoRadio = ({
 
 export default function QuoteFormPage() {
   const { data: session, status } = useSession();
+const email = session?.user?.email || "";
+
+const isCapco = email === "admin@agency1.com";
+const isBlueAngel = email === "admin@blueangel.com";
+const isSJJ = email === "admin@sjjinsurance.com";
   const router = useRouter();
   const params = useParams();
   const programId = params.programId as string;
@@ -1196,19 +1201,45 @@ export default function QuoteFormPage() {
                     <div>
                       <select
                         value={formData.agentName}
-                        onChange={(e) =>
-                          handleInputChange("agentName", e.target.value)
-                        }
+                        onChange={(e) => handleInputChange("agentName", e.target.value)}
                         required
                         className="w-full px-4 py-2.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#9A8B7A] focus:border-[#9A8B7A] text-sm"
                       >
-                        <option value="" selected disabled hidden>Select Agent</option>
-                        <option value="Michal kraut">Michal kraut</option>
-                        <option value="Ben solender">Ben solender</option>
-                        <option value="Micheal gamety">Micheal gamety</option>
-                        <option value="Moshe gamety">Moshe gamety</option>
-                        <option value="Eidan gamaty">Eidan gamaty</option>
-                        <option value="Jake weiner">Jake weiner</option>
+                        <option value="" disabled hidden>Select Agent</option>
+
+                        {/* ⭐ CAPCO */}
+                        {isCapco && (
+                          <>
+                            <option value="Eidan gamaty">Eidan gamaty</option>
+                            <option value="Moshe gamety">Moshe gamety</option>
+                            <option value="Michael Gamaty">Michael Gamaty</option>
+                            <option value="Yoav Anatian ">Yoav Anatian</option>
+                            <option value="Jake Weiner ">Jake Weiner</option>
+                            <option value=" Benjamin Solender"> Benjamin Solender</option>
+                            <option value="Michal Kraut">Michal Kraut</option>
+                            <option value="Jonathan Akwa ">Jonathan Akwa</option>
+                          </>
+                        )}
+
+                        {/* ⭐ BLUE ANGEL */}
+                        {isBlueAngel && (
+                          <>
+                            <option value="Max Mintz">Max Mintz</option>
+                          </>
+                        )}
+
+                        {/* ⭐ SJJ */}
+                        {isSJJ && (
+                          <>
+                            <option value="Sam Joffe">Sam Joffe</option>
+                            <option value="Nathan Gawronsky">Nathan Gawronsky</option>
+                            <option value="Jack Douek">Jack Douek</option>
+                            <option value="Will Feldsher">Will Feldsher</option>
+                            <option value="Joel Gabai">Joel Gabai</option>
+                            <option value="Dean Halleluyan">Dean Halleluyan</option>
+                            <option value="Harel Fedida">Harel Fedida</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>

@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { calculatePremiumTax } from "@/lib/data/stateTaxRates";
+import {
+  calculatePremiumTax,
+  calculateStampingFee,
+} from "@/lib/data/stateTaxRates";
 
 /**
  * Tax Calculator API
- * GET /api/tax/calculate?state=CA&premium=10000
- * 
- * Returns tax percentage and amount for a given state and premium
- * Uses real state tax rates from our database
+ * Supports:
+ *  - Premium Tax
+ *  - Stamping Fee
+ *
+ * GET /api/tax/calculate?state=CA&premium=10000&type=premium
+ * GET /api/tax/calculate?state=CA&premium=10000&type=stamping
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+
     const state = searchParams.get("state");
     const premium = parseFloat(searchParams.get("premium") || "0");
+    const type = searchParams.get("type") || "premium"; // default = premium
 
     if (!state) {
       return NextResponse.json(
@@ -28,11 +35,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Calculate tax using real state tax rates
-    const result = calculatePremiumTax(premium, state);
-    
-    // Debug logging
-    console.log(`[Tax Calculator] State received: "${state}", Rate: ${result.taxRate}%, Amount: $${result.taxAmount}`);
+    let result;
+
+    if (type === "stamping") {
+      result = calculateStampingFee(premium, state);
+    } else {
+      result = calculatePremiumTax(premium, state);
+    }
+
+    console.log(
+      `[Tax Calculator] Type: ${type}, State: ${state}, Rate: ${result.taxRate}%, Amount: $${result.taxAmount}`
+    );
 
     return NextResponse.json({
       state: state.toUpperCase(),
@@ -52,13 +65,12 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/tax/calculate
- * Alternative endpoint for POST requests
+ * POST version (optional)
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { state, premium } = body;
+    const { state, premium, type } = body;
 
     if (!state) {
       return NextResponse.json(
@@ -68,6 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     const premiumAmount = parseFloat(premium || "0");
+
     if (!premiumAmount || premiumAmount <= 0) {
       return NextResponse.json(
         { error: "Premium amount must be greater than 0" },
@@ -75,8 +88,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate tax using real state tax rates
-    const result = calculatePremiumTax(premiumAmount, state);
+    let result;
+
+    if (type === "stamping") {
+      result = calculateStampingFee(premiumAmount, state);
+    } else {
+      result = calculatePremiumTax(premiumAmount, state);
+    }
 
     return NextResponse.json({
       state: state.toUpperCase(),
@@ -94,4 +112,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

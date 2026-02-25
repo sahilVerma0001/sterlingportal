@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export type QuoteStatus = 
-  | "ENTERED" 
-  | "POSTED" 
+export type QuoteStatus =
+  | "ENTERED"
+  | "POSTED"
   | "APPROVED"
   | "PAYMENT_RECEIVED"
   | "BIND_REQUESTED"
@@ -21,9 +21,13 @@ export interface ILimits {
 export interface IQuote extends Document {
   submissionId: mongoose.Types.ObjectId;
   carrierId: mongoose.Types.ObjectId;
-  
+
   // Premium breakdown
   carrierQuoteUSD: number;
+  carrierFeesUSD?: number;
+  sterlingInsuranceServicesFeesUSD?: number;
+  stampingFeePercent?: number;
+  stampingFeeAmountUSD?: number;
   wholesaleFeePercent?: number; // Optional - removed per user request
   wholesaleFeeAmountUSD?: number; // Optional - removed per user request
   brokerFeeAmountUSD: number;
@@ -31,7 +35,7 @@ export interface IQuote extends Document {
   premiumTaxAmountUSD?: number;
   policyFeeUSD?: number;
   finalAmountUSD: number;
-  
+
   // Policy details
   limits?: ILimits;
   endorsements?: string[]; // Array of endorsement names
@@ -40,10 +44,10 @@ export interface IQuote extends Document {
   policyNumber?: string;
   specialNotes?: string;
   adminNotes?: string; // Internal notes visible to agencies
-  
+
   // Documents
   binderPdfUrl?: string;
-  
+
   status: QuoteStatus;
   // Admin entry fields
   enteredByAdminId?: mongoose.Types.ObjectId;
@@ -84,6 +88,23 @@ const QuoteSchema: Schema = new Schema(
     carrierQuoteUSD: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    carrierFeesUSD: {
+      type: Number,
+      min: 0,
+    },
+    sterlingInsuranceServicesFeesUSD: {
+      type: Number,
+      min: 0,
+    },
+    stampingFeePercent: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    stampingFeeAmountUSD: {
+      type: Number,
       min: 0,
     },
     wholesaleFeePercent: {

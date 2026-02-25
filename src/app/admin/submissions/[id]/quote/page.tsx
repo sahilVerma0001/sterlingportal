@@ -43,26 +43,30 @@ export default function AdminQuotePage() {
   const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [selectedCarrierId, setSelectedCarrierId] = useState("");
   const [carrierQuoteUSD, setCarrierQuoteUSD] = useState("");
-  
+  const [carrierFeesUSD, setCarrierFeesUSD] = useState("");
+  const [sterlingFeesUSD, setSterlingFeesUSD] = useState("");
+
   // Premium breakdown fields
   const [premiumTaxPercent, setPremiumTaxPercent] = useState("");
   const [premiumTaxAmountUSD, setPremiumTaxAmountUSD] = useState("");
   const [policyFeeUSD, setPolicyFeeUSD] = useState("");
-  
+  const [stampingFeePercent, setStampingFeePercent] = useState("");
+  const [stampingFeeAmountUSD, setStampingFeeAmountUSD] = useState("");
+
   // Policy details (will be auto-populated from application form)
   const [generalLiabilityLimit, setGeneralLiabilityLimit] = useState("");
   const [aggregateLimit, setAggregateLimit] = useState("");
   const [fireLegalLimit, setFireLegalLimit] = useState("");
-  const [medicalExpenseLimit, setMedicalExpenseLimit] = useState("");
+  const [medicalExpenseLimit, setMedicalExpenseLimit] = useState("Not Applicable");
   const [deductible, setDeductible] = useState("");
   const [excessLimit, setExcessLimit] = useState(""); // New: Excess limits
-  
+
   // Endorsements (will be auto-populated from application form)
   const [selectedEndorsements, setSelectedEndorsements] = useState<string[]>([]);
-  
+
   // Broker fee from application form
   const [brokerFeeFromForm, setBrokerFeeFromForm] = useState<number>(0);
-  
+
   // Dates and other
   const [effectiveDate, setEffectiveDate] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
@@ -70,15 +74,15 @@ export default function AdminQuotePage() {
   const [policyNumber, setPolicyNumber] = useState("");
   const [carrierReference, setCarrierReference] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
-  
+
   // Tax calculator
   const [calculatingTax, setCalculatingTax] = useState(false);
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  
+
   // Available endorsements
   const availableEndorsements = [
     "Blanket Additional Insured",
@@ -112,18 +116,18 @@ export default function AdminQuotePage() {
   useEffect(() => {
     if (submission && (submission as any).payload) {
       const formData = (submission as any).payload;
-      
+
       // Get broker fee from form
       const brokerFee = parseFloat(formData.brokerFee) || 0;
       setBrokerFeeFromForm(brokerFee);
-      
+
       // Get limits from form
       if (formData.coverageLimits) {
         const limitsStr = formData.coverageLimits;
         setGeneralLiabilityLimit(limitsStr);
         setAggregateLimit(limitsStr);
       }
-      
+
       // Fire Legal Limit and Medical Expense Limit may have dollar signs
       if (formData.fireLegalLimit) {
         const cleanValue = formData.fireLegalLimit.replace(/[$,]/g, '');
@@ -137,7 +141,7 @@ export default function AdminQuotePage() {
         const cleanValue = formData.deductible.replace(/[$,]/g, '');
         setDeductible(cleanValue);
       }
-      
+
       // Get endorsements from form
       const formEndorsements: string[] = [];
       if (formData.blanketAdditionalInsured) formEndorsements.push("Blanket Additional Insured");
@@ -147,7 +151,7 @@ export default function AdminQuotePage() {
       if (formData.blanketCompletedOpsAggregate) formEndorsements.push("Blanket Completed Operations Aggregate");
       if (formData.actsOfTerrorism) formEndorsements.push("Acts of Terrorism");
       if (formData.noticeOfCancellationToThirdParties) formEndorsements.push("Notice of Cancellation to Third Parties");
-      
+
       if (formEndorsements.length > 0) {
         setSelectedEndorsements(formEndorsements);
       }
@@ -161,13 +165,13 @@ export default function AdminQuotePage() {
       // Fetch submission
       const subRes = await fetch(`/api/admin/submissions/${submissionId}`);
       const subData = await subRes.json();
-      
+
       if (!subRes.ok) {
         setError(subData.error || "Failed to load submission");
         setLoading(false);
         return;
       }
-      
+
       if (subData.submission) {
         setSubmission(subData.submission);
       } else {
@@ -180,7 +184,7 @@ export default function AdminQuotePage() {
       const carriersRes = await fetch(`/api/admin/submissions/${submissionId}/carriers`);
       const carriersData = await carriersRes.json();
       console.log("Carriers API response:", carriersData);
-      
+
       if (!carriersRes.ok) {
         console.error("Carriers API error:", carriersData.error);
         setError(`Failed to load carriers: ${carriersData.error}`);
@@ -202,12 +206,21 @@ export default function AdminQuotePage() {
 
   const selectedCarrier = carriers.find((c) => c._id === selectedCarrierId);
 
+  const combinedPremium = useMemo(() => {
+    const base = parseCurrency(carrierQuoteUSD) || 0;
+    const carrierFees = parseCurrency(carrierFeesUSD) || 0;
+    const sterlingFees = parseCurrency(sterlingFeesUSD) || 0;
+
+    return base + carrierFees + sterlingFees;
+  }, [carrierQuoteUSD, carrierFeesUSD, sterlingFeesUSD]);
+
+
   // Auto-calculate tax when carrier quote or state changes (Change 1: Tax Calculator API)
   useEffect(() => {
     const calculateTax = async () => {
-      if (!carrierQuoteUSD || !submission) return;
-      
-      const carrierQuote = parseCurrency(carrierQuoteUSD);
+      if (!combinedPremium || !submission) return;
+
+      const carrierQuote = combinedPremium;
       if (isNaN(carrierQuote) || carrierQuote <= 0) {
         setPremiumTaxAmountUSD("");
         setPremiumTaxPercent("");
@@ -216,20 +229,20 @@ export default function AdminQuotePage() {
 
       // Get state from submission and convert to state code
       const stateRaw = (submission as any).state || (submission as any).clientContact?.businessAddress?.state || "CA";
-      
+
       // Convert state name to code (e.g., "California" → "CA")
       const state = getStateCode(stateRaw);
-      
+
       // Debug logging
       console.log(`[Quote Page] Calculating tax for state: "${stateRaw}" → "${state}", premium: $${carrierQuote}`);
-      
+
       setCalculatingTax(true);
       try {
         const response = await fetch(`/api/tax/calculate?state=${state}&premium=${carrierQuote.toFixed(2)}`);
         const data = await response.json();
-        
+
         console.log(`[Quote Page] Tax API response:`, data);
-        
+
         if (data.success && data.taxRate && data.taxAmount) {
           setPremiumTaxPercent(data.taxRate.toFixed(2));
           setPremiumTaxAmountUSD(data.taxAmount.toString());
@@ -246,34 +259,65 @@ export default function AdminQuotePage() {
     };
 
     calculateTax();
-  }, [carrierQuoteUSD, submission]);
+  }, [combinedPremium, submission]);
 
   // Calculate tax amount when tax percent is manually changed
   useEffect(() => {
-    if (carrierQuoteUSD && premiumTaxPercent) {
-      const carrierQuote = parseCurrency(carrierQuoteUSD);
+    if (combinedPremium && premiumTaxPercent) {
       const taxPercent = parseFloat(premiumTaxPercent);
-      if (!isNaN(carrierQuote) && !isNaN(taxPercent) && carrierQuote > 0) {
-        const taxAmount = (carrierQuote * taxPercent) / 100;
+
+      if (!isNaN(combinedPremium) && !isNaN(taxPercent) && combinedPremium > 0) {
+        const taxAmount = (combinedPremium * taxPercent) / 100;
         setPremiumTaxAmountUSD(taxAmount.toString());
       } else {
         setPremiumTaxAmountUSD("");
       }
     }
-  }, [premiumTaxPercent]);
+  }, [premiumTaxPercent, combinedPremium]);
+
+  // calculate stamping fees
+  useEffect(() => {
+    const calculateStamping = async () => {
+      if (!combinedPremium || !submission) return;
+
+      const stateRaw =
+        (submission as any).state ||
+        (submission as any).clientContact?.businessAddress?.state ||
+        "CA";
+
+      const state = getStateCode(stateRaw);
+
+      try {
+        const response = await fetch(
+          `/api/tax/calculate?state=${state}&premium=${combinedPremium}&type=stamping`
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          setStampingFeePercent(data.taxRate.toFixed(2));
+          setStampingFeeAmountUSD(data.taxAmount.toString());
+        }
+      } catch (err) {
+        console.error("Stamping fee calculation error:", err);
+      }
+    };
+
+    calculateStamping();
+  }, [combinedPremium, submission]);
 
   // Auto-calculate expiration date when effective date or duration changes (Change 5: Duration Tabs)
   useEffect(() => {
     if (effectiveDate && policyDuration) {
       const effective = new Date(effectiveDate);
       const expiration = new Date(effective);
-      
+
       if (policyDuration === "6months") {
         expiration.setMonth(expiration.getMonth() + 6);
       } else if (policyDuration === "1year") {
         expiration.setFullYear(expiration.getFullYear() + 1);
       }
-      
+
       // Format as YYYY-MM-DD for date input
       const expirationStr = expiration.toISOString().split('T')[0];
       setExpirationDate(expirationStr);
@@ -283,20 +327,21 @@ export default function AdminQuotePage() {
   const calculateBreakdown = () => {
     if (!carrierQuoteUSD || !selectedCarrier) return null;
 
-    const carrierQuote = parseCurrency(carrierQuoteUSD);
+    const carrierQuote = combinedPremium;
     if (isNaN(carrierQuote) || carrierQuote <= 0) return null;
-    
+
     const brokerFee = brokerFeeFromForm; // From application form
     const taxAmount = parseCurrency(premiumTaxAmountUSD) || 0;
     const policyFee = parseCurrency(policyFeeUSD) || 0;
-    
+    const stampingAmount = parseFloat(stampingFeeAmountUSD) || 0;
     // No wholesale fee - removed per user request
-    const finalAmount = carrierQuote + brokerFee + taxAmount + policyFee;
+    const finalAmount = carrierQuote + brokerFee + taxAmount + stampingAmount + policyFee;
 
     return {
       carrierQuote,
       brokerFeeAmount: brokerFee,
       premiumTaxAmount: taxAmount,
+      stampingFeeAmount: stampingAmount,
       policyFeeAmount: policyFee,
       finalAmount,
     };
@@ -311,6 +356,10 @@ export default function AdminQuotePage() {
     premiumTaxPercent,
     premiumTaxAmountUSD,
     policyFeeUSD,
+    carrierFeesUSD,
+    sterlingFeesUSD,
+    stampingFeePercent,
+    stampingFeeAmountUSD,
     generalLiabilityLimit,
     aggregateLimit,
     fireLegalLimit,
@@ -330,6 +379,8 @@ export default function AdminQuotePage() {
     premiumTaxPercent,
     premiumTaxAmountUSD,
     policyFeeUSD,
+    carrierFeesUSD,
+    sterlingFeesUSD,
     generalLiabilityLimit,
     aggregateLimit,
     fireLegalLimit,
@@ -368,11 +419,41 @@ export default function AdminQuotePage() {
           if (draftData.carrierQuoteUSD !== undefined && draftData.carrierQuoteUSD !== null && draftData.carrierQuoteUSD !== "") {
             setCarrierQuoteUSD(String(draftData.carrierQuoteUSD));
           }
+          if (
+            draftData.carrierFeesUSD !== undefined &&
+            draftData.carrierFeesUSD !== null &&
+            draftData.carrierFeesUSD !== ""
+          ) {
+            setCarrierFeesUSD(String(draftData.carrierFeesUSD));
+          }
+
+          if (
+            draftData.sterlingFeesUSD !== undefined &&
+            draftData.sterlingFeesUSD !== null &&
+            draftData.sterlingFeesUSD !== ""
+          ) {
+            setSterlingFeesUSD(String(draftData.sterlingFeesUSD));
+          }
           if (draftData.premiumTaxPercent !== undefined && draftData.premiumTaxPercent !== null && draftData.premiumTaxPercent !== "") {
             setPremiumTaxPercent(String(draftData.premiumTaxPercent));
           }
           if (draftData.premiumTaxAmountUSD !== undefined && draftData.premiumTaxAmountUSD !== null && draftData.premiumTaxAmountUSD !== "") {
             setPremiumTaxAmountUSD(String(draftData.premiumTaxAmountUSD));
+          }
+          if (
+            draftData.stampingFeePercent !== undefined &&
+            draftData.stampingFeePercent !== null &&
+            draftData.stampingFeePercent !== ""
+          ) {
+            setStampingFeePercent(String(draftData.stampingFeePercent));
+          }
+
+          if (
+            draftData.stampingFeeAmountUSD !== undefined &&
+            draftData.stampingFeeAmountUSD !== null &&
+            draftData.stampingFeeAmountUSD !== ""
+          ) {
+            setStampingFeeAmountUSD(String(draftData.stampingFeeAmountUSD));
           }
           if (draftData.policyFeeUSD !== undefined && draftData.policyFeeUSD !== null && draftData.policyFeeUSD !== "") {
             setPolicyFeeUSD(String(draftData.policyFeeUSD));
@@ -466,7 +547,13 @@ export default function AdminQuotePage() {
           carrierQuoteUSD: quoteAmount,
           premiumTaxPercent: premiumTaxPercent || undefined,
           premiumTaxAmountUSD: premiumTaxAmountUSD ? parseCurrency(premiumTaxAmountUSD) : undefined,
+          stampingFeePercent: stampingFeePercent || undefined,
+          stampingFeeAmountUSD: stampingFeeAmountUSD
+            ? parseCurrency(stampingFeeAmountUSD)
+            : undefined,
           policyFeeUSD: policyFeeUSD ? parseCurrency(policyFeeUSD) : undefined,
+          carrierFeesUSD: carrierFeesUSD ? parseCurrency(carrierFeesUSD) : undefined,
+          sterlingInsuranceServicesFeesUSD: sterlingFeesUSD ? parseCurrency(sterlingFeesUSD) : undefined,
           brokerFeeAmountUSD: brokerFeeFromForm || undefined,
           limits: Object.keys(limits).some(k => limits[k as keyof typeof limits]) ? limits : undefined,
           excessLimit: excessLimit || undefined,
@@ -635,7 +722,7 @@ export default function AdminQuotePage() {
                 </Link>
               </nav>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <p className="text-sm font-semibold text-gray-900">{(session?.user as any)?.name || "Admin"}</p>
@@ -736,7 +823,7 @@ export default function AdminQuotePage() {
               )}
             </div>
 
-            {/* Carrier Quote Amount */}
+            {/* all amounts  */}
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200/60">
               <label
                 htmlFor="carrierQuote"
@@ -745,7 +832,7 @@ export default function AdminQuotePage() {
                 <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Carrier Quote Amount (USD) <span className="text-red-500">*</span>
+                Premium <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold text-lg">
@@ -768,7 +855,56 @@ export default function AdminQuotePage() {
                   placeholder="0"
                 />
               </div>
+
+              <label className="block text-sm font-bold text-gray-900 mb-3">
+                Carrier Fees
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold text-lg">
+                  $
+                </span>
+                <input
+                  type="text"
+                  value={carrierFeesUSD ? formatCurrencyInput(carrierFeesUSD) : ''}
+                  onChange={(e) => {
+                    const formatted = formatCurrencyInput(e.target.value);
+                    setCarrierFeesUSD(formatted);
+                  }}
+                  onBlur={(e) => {
+                    const parsed = parseCurrency(e.target.value);
+                    setCarrierFeesUSD(parsed > 0 ? parsed.toString() : '');
+                  }}
+                  className="w-full pl-10 pr-4 py-3 bg-white border-2 border-emerald-200 rounded-xl"
+                  placeholder="0"
+                />
+              </div>
+
+              <label className="block text-sm font-bold text-gray-900 mb-3">
+                Sterling Insurance Services Fees
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold text-lg">
+                  $
+                </span>
+                <input
+                  type="text"
+                  value={sterlingFeesUSD ? formatCurrencyInput(sterlingFeesUSD) : ''}
+                  onChange={(e) => {
+                    const formatted = formatCurrencyInput(e.target.value);
+                    setSterlingFeesUSD(formatted);
+                  }}
+                  onBlur={(e) => {
+                    const parsed = parseCurrency(e.target.value);
+                    setSterlingFeesUSD(parsed > 0 ? parsed.toString() : '');
+                  }}
+                  className="w-full pl-10 pr-4 py-3 bg-white border-2 border-emerald-200 rounded-xl"
+                  placeholder="0"
+                />
+              </div>
+
             </div>
+
+
 
             {/* Premium Breakdown Section */}
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200/60">
@@ -780,7 +916,7 @@ export default function AdminQuotePage() {
                 </div>
                 Premium Breakdown
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Premium Tax - Auto-calculated from API */}
                 <div>
@@ -817,12 +953,15 @@ export default function AdminQuotePage() {
                     <span className="text-gray-600 font-semibold self-center px-3">%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {submission && (submission as any).state 
+                    {submission && (submission as any).state
                       ? `Tax rate for ${(submission as any).state || (submission as any).clientContact?.businessAddress?.state || 'state'} (auto-calculated)`
                       : "Tax will be calculated automatically when premium is entered"}
                   </p>
+
+
+
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Premium Tax Amount (USD)
@@ -840,7 +979,7 @@ export default function AdminQuotePage() {
                 </div>
 
                 {/* Policy Fee */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Policy Fee (USD)
                   </label>
@@ -859,6 +998,48 @@ export default function AdminQuotePage() {
                       }}
                       className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all hover:border-gray-300 !text-gray-900"
                       placeholder="0"
+                    />
+                  </div>
+                </div> */}
+
+                {/* Stamping Fee - Auto-calculated */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Stamping Fee (%)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={stampingFeePercent}
+                      readOnly
+                      className="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold"
+                      placeholder="Auto-calculated"
+                    />
+                    <span className="text-gray-600 font-semibold self-center px-3">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Stamping Fee Amount (USD)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      value={
+                        stampingFeeAmountUSD
+                          ? formatCurrency(parseFloat(stampingFeeAmountUSD), 2)
+                          : ""
+                      }
+                      readOnly
+                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold"
+                      placeholder="Auto-calculated"
                     />
                   </div>
                 </div>
@@ -893,7 +1074,7 @@ export default function AdminQuotePage() {
                 </div>
                 Policy Limits
               </h3>
-              
+
               <div className="mb-4 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
                 <p className="text-xs text-amber-800 font-medium flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -913,10 +1094,9 @@ export default function AdminQuotePage() {
                     onChange={(e) => setGeneralLiabilityLimit(e.target.value)}
                     className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                   >
-                    <option value="">-- Select Limit --</option>
-                    <option value="1/1/1">1/1/1</option>
-                    <option value="1/2/1">1/2/1</option>
-                    <option value="1/2/2">1/2/2</option>
+                    <option value="1M/1M/1M">1M/1M/1M</option>
+                    <option value="1M/2M/1M">1M/2M/1M</option>
+                    <option value="1M/2M/2M">1M/2M/2M</option>
                   </select>
                 </div>
 
@@ -944,22 +1124,22 @@ export default function AdminQuotePage() {
                     className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                   >
                     <option value="">-- Select Fire Legal Limit --</option>
+                    <option value="300000">$50,000</option>
                     <option value="100000">$100,000</option>
-                    <option value="300000">$300,000</option>
                   </select>
                 </div>
 
                 {/* Change 4: Medical Expense Limit - Dropdown */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Medical Expense Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
+                    Med Pay Limit <span className="text-xs text-gray-500 font-normal">(from application)</span>
                   </label>
                   <select
                     value={medicalExpenseLimit}
                     onChange={(e) => setMedicalExpenseLimit(e.target.value)}
                     className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all hover:border-gray-300 !text-gray-900"
                   >
-                    <option value="">-- Select Medical Expense Limit --</option>
+                    <option value="Not Applicable" selected>Not Applicable</option>
                     <option value="5000">$5,000</option>
                     <option value="10000">$10,000</option>
                   </select>
@@ -1048,7 +1228,7 @@ export default function AdminQuotePage() {
                 </div>
                 Policy Details
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Change 5: Effective Date with Duration Tabs */}
                 <div>
@@ -1061,7 +1241,7 @@ export default function AdminQuotePage() {
                     onChange={(e) => setEffectiveDate(e.target.value)}
                     className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all hover:border-gray-300 !text-gray-900"
                   />
-                  
+
                   {/* Duration Tabs - Show when effective date is selected */}
                   {effectiveDate && (
                     <div className="mt-3">
@@ -1072,22 +1252,20 @@ export default function AdminQuotePage() {
                         <button
                           type="button"
                           onClick={() => setPolicyDuration("6months")}
-                          className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-                            policyDuration === "6months"
-                              ? "bg-teal-600 text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-teal-400 hover:bg-teal-50"
-                          }`}
+                          className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${policyDuration === "6months"
+                            ? "bg-teal-600 text-white shadow-lg scale-105"
+                            : "bg-white border-2 border-gray-300 text-gray-700 hover:border-teal-400 hover:bg-teal-50"
+                            }`}
                         >
                           6 Months
                         </button>
                         <button
                           type="button"
                           onClick={() => setPolicyDuration("1year")}
-                          className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-                            policyDuration === "1year"
-                              ? "bg-teal-600 text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-teal-400 hover:bg-teal-50"
-                          }`}
+                          className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${policyDuration === "1year"
+                            ? "bg-teal-600 text-white shadow-lg scale-105"
+                            : "bg-white border-2 border-gray-300 text-gray-700 hover:border-teal-400 hover:bg-teal-50"
+                            }`}
                         >
                           1 Year
                         </button>
@@ -1176,6 +1354,16 @@ export default function AdminQuotePage() {
                       <span className="text-gray-700 font-medium">Premium Tax:</span>
                       <span className="font-bold text-gray-900">
                         {formatCurrency(breakdown.premiumTaxAmount, 2)}
+                      </span>
+                    </div>
+                  )}
+                  {breakdown.stampingFeeAmount > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                      <span className="text-gray-700 font-medium">
+                        Stamping Fee:
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        {formatCurrency(breakdown.stampingFeeAmount, 2)}
                       </span>
                     </div>
                   )}

@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 interface SubmissionDetails {
   submission: {
+    submissionNumber?: string;
     _id: string;
     agencyId: string;
     templateId: any;
@@ -561,7 +562,7 @@ function SubmissionDetailsContent() {
               </div>*/}
               {/* APP ID */}
               <span className="text-[14px] text-gray-500 ml-2">
-                App ID {submission.submissionId || submission._id.slice(-6)}
+                App ID {submission.submissionNumber || submission._id.slice(-6)}
               </span>
             </div>
           </div>
@@ -1076,7 +1077,7 @@ function SubmissionDetailsContent() {
               {/* LEFT SIDE – PREMIUM INFO */}
               <div className="border rounded-md p-6">
                 <h3 className="text-[15px] font-semibold mb-4">
-                  Premium Breakdown
+                  Contact Information
                 </h3>
 
                 {quotes.length === 0 ? (
@@ -1086,26 +1087,9 @@ function SubmissionDetailsContent() {
                 ) : (
                   <>
                     <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span>Carrier Premium</span>
-                        <span>
-                          ${quotes[0].carrierQuoteUSD.toLocaleString()}
-                        </span>
-                      </div>
 
-                      <div className="flex justify-between">
-                        <span>Broker Fee</span>
-                        <span>
-                          ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
-                        </span>
-                      </div>
 
-                      <div className="flex justify-between font-semibold border-t pt-3">
-                        <span>Total Premium</span>
-                        <span>
-                          ${quotes[0].finalAmountUSD.toLocaleString()}
-                        </span>
-                      </div>
+
                     </div>
                   </>
                 )}
@@ -1194,36 +1178,7 @@ function SubmissionDetailsContent() {
                 )}
               </div>
 
-              {/* RIGHT SIDE – POLICY INFO */}
-              <div className="border rounded-md p-6">
-                <h3 className="text-[15px] font-semibold mb-4">
-                  Policy Information
-                </h3>
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span>Program</span>
-                    <span>{submission.programName || "GL Program"}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>Effective Date</span>
-                    <span>
-                      {new Date(submission.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>Status</span>
-                    <span>{submission.status}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>State</span>
-                    <span>{submission.state}</span>
-                  </div>
-                </div>
-              </div>
 
             </div>
           )}
@@ -1243,72 +1198,9 @@ function SubmissionDetailsContent() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
 
-                  {/* LEFT – PREMIUM */}
-                  <div>
-                    <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
-                      Premium Breakdown
-                    </h3>
-
-                    <div className="space-y-4 text-[14px]">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Carrier Premium</span>
-                        <span className="font-medium text-gray-900">
-                          ${quotes[0].carrierQuoteUSD.toLocaleString()}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Broker Fee</span>
-                        <span className="font-medium text-gray-900">
-                          ${quotes[0].brokerFeeAmountUSD.toLocaleString()}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between border-t pt-4 font-semibold">
-                        <span>Total Premium</span>
-                        <span>
-                          ${quotes[0].finalAmountUSD.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
                   {/* RIGHT – POLICY INFO */}
-                  <div>
-                    <h3 className="text-[15px] font-semibold text-gray-900 mb-6">
-                      Policy Information
-                    </h3>
 
-                    <div className="space-y-4 text-[14px]">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Program</span>
-                        <span className="font-medium text-gray-900">
-                          {submission.programName || "General Liability"}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Effective Date</span>
-                        <span className="font-medium text-gray-900">
-                          {new Date(submission.createdAt).toLocaleDateString("en-US")}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Status</span>
-                        <span className="font-medium text-gray-900">
-                          {submission.status.replace("_", " ")}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">State</span>
-                        <span className="font-medium text-gray-900">
-                          {submission.state}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
                 </div>
               )}
