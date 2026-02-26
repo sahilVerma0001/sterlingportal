@@ -712,6 +712,12 @@ function SubmissionDetailsContent() {
                     }>
                     Modify
                   </button>
+                  <button
+                    onClick={handleCancelRequest}
+                    className={iscOutlineBtn}
+                  >
+                    Cancel Quote
+                  </button>
 
                 </>
               )}
@@ -730,6 +736,12 @@ function SubmissionDetailsContent() {
                   >
                     View
                   </button>
+                  <button
+                    onClick={handleCancelRequest}
+                    className={iscOutlineBtn}
+                  >
+                    Cancel Quote
+                  </button>
                 </>
               )}
 
@@ -737,6 +749,12 @@ function SubmissionDetailsContent() {
               {isBound && (
                 <>
                   <button className={iscOutlineBtn}>View Policy</button>
+                  <button
+                    onClick={handleCancelRequest}
+                    className={iscOutlineBtn}
+                  >
+                    Cancel Quote
+                  </button>
                 </>
               )}
 
@@ -746,6 +764,12 @@ function SubmissionDetailsContent() {
             {submission.status === "BOUND" && (
               <>
                 <button className={iscOutlineBtn}>View</button>
+                <button
+                  onClick={handleCancelRequest}
+                  className={iscOutlineBtn}
+                >
+                  Cancel Quote
+                </button>
               </>
             )}
           </div>
