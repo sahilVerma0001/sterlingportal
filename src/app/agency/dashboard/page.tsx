@@ -3,7 +3,7 @@
 
 import BrokerSidebar from "@/components/layout/BrokerSidebar";
 export const dynamic = 'force-dynamic';
-import { Clock, Bell, CheckCircle, CircleSmall } from "lucide-react";
+import { Clock, Bell, CheckCircle, CircleSmall, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -80,6 +80,7 @@ function AgencyDashboardContent() {
     "READY_TO_BIND": "BIND_REQUESTED",
     "NEWLY_BOUND": "BOUND",
     "UNDERWRITING_DECLINED": "DECLINED",
+    "CANCELLED": "CANCELLED",
   };
 
   // Pipeline stages matching ISC (counts will be updated from real data)
@@ -94,6 +95,7 @@ function AgencyDashboardContent() {
     // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
     // { id: "READY_TO_BIND", label: "Ready To Bind", count: 0 },
     { id: "NEWLY_BOUND", label: "Newly Bound", count: 0 },
+    { id: "CANCELLED", label: "Cancelled", count: 0 },
     // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
   ]);
 
@@ -198,6 +200,7 @@ function AgencyDashboardContent() {
         // { id: "INCOMPLETE_BIND", label: "Incomplete Bind", count: 0 },
         // { id: "READY_TO_BIND", label: "Ready To Bind", count: counts.BIND_REQUESTED || 0 },
         { id: "NEWLY_BOUND", label: "Newly Bound", count: counts.BOUND || 0 },
+        { id: "CANCELLED", label: "Cancelled", count: 0 },
         // { id: "UNDERWRITING_DECLINED", label: "Underwriting Declined", count: 0 },
       ]);
 
@@ -392,7 +395,7 @@ function AgencyDashboardContent() {
         </div>
 
         {/* NOTIFICATION BAR */}
-        {newQuotes.length > 0 && (
+        {/* {newQuotes.length > 0 && (
           <div className="mx-10 mb-6 bg-[#9A8B7A] text-white rounded-xl shadow-sm px-6 py-4 flex items-center justify-between">
             <div>
               <p className="font-semibold text-lg">
@@ -410,7 +413,7 @@ function AgencyDashboardContent() {
               View Quotes →
             </Link>
           </div>
-        )}
+        )} */}
 
         {/* MAIN CARD CONTAINER */}
         <div className="mx-10 bg-white rounded-2xl shadow-lg flex overflow-hidden h-[calc(100vh-260px)]">
@@ -425,6 +428,7 @@ function AgencyDashboardContent() {
               const isInProgress = stage.id === "IN_PROGRESS";
               const isApproved = stage.id === "APPROVED_QUOTE";
               const isBound = stage.id === "NEWLY_BOUND";
+              const iscansel = stage.id === "CANCELLED";
 
               return (
                 <div key={stage.id}>
@@ -439,6 +443,7 @@ function AgencyDashboardContent() {
           ${isInProgress && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isApproved && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isBound && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
+          ${iscansel && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
           ${isAll && isActive ? "ring-2 ring-[#9A8B7A]" : ""}
         `}
                   >
@@ -459,6 +464,10 @@ function AgencyDashboardContent() {
 
                       {isBound && (
                         <CheckCircle className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
+                      {iscansel && (
+                        <XCircle className="w-4 h-4 text-[#9A8B7A]" />
                       )}
 
                       <span
@@ -482,6 +491,7 @@ function AgencyDashboardContent() {
             ${isInProgress ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
             ${isApproved ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
             ${isBound ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
+            ${iscansel ? "bg-[#EFEAE5] text-[#9A8B7A]" : ""}
           `}
                     >
                       {stage.count}
@@ -565,7 +575,7 @@ function AgencyDashboardContent() {
                       <td className="px-6 py-4">
                         {new Date(sub.createdAt).toLocaleDateString("en-US")}
                       </td>
-                      
+
                       <td className="px-6 py-4 text-center">ⓘ</td>
                     </tr>
                   ))}
