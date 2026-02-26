@@ -11,17 +11,21 @@ interface DashboardStats {
   pendingQuotes: number;
   bindRequests: number;
   boundPolicies: number;
+  cancelledPolicies: number;
 }
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
+    
     totalSubmissions: 0,
     pendingQuotes: 0,
     bindRequests: 0,
     boundPolicies: 0,
+    cancelledPolicies: 0,
   });
+  const [cancelRequests, setCancelRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +37,7 @@ export default function AdminDashboard() {
         router.push("/agency/dashboard");
       } else {
         fetchStats();
+        fetchCancelRequests();
       }
     }
   }, [status, session, router]);
@@ -57,6 +62,7 @@ export default function AdminDashboard() {
         pendingQuotes: quotesData.quotes?.filter((q: any) => q.status === "PENDING")?.length || 0,
         bindRequests: bindData.requests?.length || 0,
         boundPolicies: boundData.policies?.length || 0,
+        cancelledPolicies: boundData.policies?.filter((p: any) => p.status === "CANCELLED")?.length || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -64,7 +70,38 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+  const fetchCancelRequests = async () => {
+  try {
+    const res = await fetch("/api/admin/cancel-requests");
+    const data = await res.json();
 
+    if (data.success) {
+      setCancelRequests(data.requests);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+const approveCancel = async (requestId: string) => {
+  try {
+    const res = await fetch("/api/admin/cancel-approve", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ requestId }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      fetchCancelRequests(); // refresh list
+      fetchStats(); // refresh counters
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -148,6 +185,12 @@ export default function AdminDashboard() {
                 <Link href="/admin/tool-requests" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition">
                   Tool Requests
                 </Link>
+                <Link
+                  href="/admin/cancel-requests"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition"
+                >
+                  Cancel Requests
+                </Link>
               </nav>
             </div>
             <div className="flex items-center gap-4">
@@ -192,12 +235,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
           {[
             { label: "Total Submissions", value: stats.totalSubmissions, icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", color: "blue", gradient: "from-blue-600 to-blue-700" },
             { label: "Pending Quotes", value: stats.pendingQuotes, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", color: "amber", gradient: "from-amber-600 to-amber-700", urgent: stats.pendingQuotes > 0 },
             { label: "Bind Requests", value: stats.bindRequests, icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", color: "orange", gradient: "from-orange-600 to-orange-700", urgent: stats.bindRequests > 0 },
-            { label: "Bound Policies", value: stats.boundPolicies, icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", color: "emerald", gradient: "from-emerald-600 to-emerald-700" }
+            { label: "Bound Policies", value: stats.boundPolicies, icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", color: "emerald", gradient: "from-emerald-600 to-emerald-700" },
+            { label: "Cancelled Policies", value: stats.cancelledPolicies, icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", color: "red", gradient: "from-red-600 to-red-700" }
           ].map((stat) => (
             <div key={stat.label} className={`group relative bg-white rounded-2xl border ${stat.urgent ? 'border-orange-200 shadow-orange-100/50' : 'border-gray-200'} p-6 hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300`}>
               <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-50/50 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300`}></div>
@@ -434,6 +478,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </main>
+      {/* ⭐ Cancel Requests Section */}
+
     </div>
   );
 }

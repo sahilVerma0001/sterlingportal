@@ -21,6 +21,8 @@ export interface StateTaxRate {
   taxRate: number; // Percentage (e.g., 2.35 = 2.35%)
   notes?: string;
   stampingFee?: number;
+  fireMarshalRate?: number;     // percentage (e.g. 0.30)
+  fireMarshalFlatFee?: number;  // flat dollar amount (e.g. 20)
 }
 
 export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
@@ -136,10 +138,10 @@ export const STATE_TAX_RATES: Record<string, StateTaxRate> = {
   OK: { state: "OK", stateName: "Oklahoma", taxRate: 6 },
 
   // Oregon
-  OR: { state: "OR", stateName: "Oregon", taxRate: 2, stampingFee: 0 },
+  OR: { state: "OR", stateName: "Oregon", taxRate: 2, stampingFee: 0, fireMarshalRate: 0.30, },
 
   // Pennsylvania
-  PA: { state: "PA", stateName: "Pennsylvania", taxRate: 3, stampingFee: 0 },
+  PA: { state: "PA", stateName: "Pennsylvania", taxRate: 3, stampingFee: 0, fireMarshalFlatFee: 20, },
 
   // Puerto Rico
   PR: { state: "PR", stateName: "Puerto Rico", taxRate: 9 },
@@ -254,5 +256,47 @@ export function calculateStampingFee(
     taxRate: stampingRate,
     taxAmount: parseFloat(stampingAmount.toFixed(2)),
     stateName: stateData?.stateName || state,
+  };
+}
+
+
+/**
+ * Calculate Fire Marshal Tax
+ */
+export function calculateFireMarshalTax(
+  premium: number,
+  state: string
+): {
+  taxRate: number;
+  taxAmount: number;
+  stateName: string;
+} {
+  const stateData = getStateTaxData(state);
+
+  if (!stateData) {
+    return {
+      taxRate: 0,
+      taxAmount: 0,
+      stateName: state,
+    };
+  }
+
+  // If flat fee exists (PA)
+  if (stateData.fireMarshalFlatFee) {
+    return {
+      taxRate: 0,
+      taxAmount: stateData.fireMarshalFlatFee,
+      stateName: stateData.stateName,
+    };
+  }
+
+  // If percentage exists (OR)
+  const rate = stateData.fireMarshalRate || 0;
+  const amount = (premium * rate) / 100;
+
+  return {
+    taxRate: rate,
+    taxAmount: parseFloat(amount.toFixed(2)),
+    stateName: stateData.stateName,
   };
 }

@@ -149,6 +149,32 @@ function SubmissionDetailsContent() {
     }
   };
 
+  const handleCancelRequest = async () => {
+    if (!submissionId) return;
+
+    if (!confirm("Send cancel request?")) return;
+
+    try {
+      const res = await fetch("/api/agency/cancel-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ submissionId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed");
+      }
+
+      toast.success("Cancel request sent");
+      fetchSubmission(); // ⭐ refresh page data
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
   // ================= ISC BUTTON STYLES =================
 
   const iscOutlineBtn =
@@ -476,7 +502,7 @@ function SubmissionDetailsContent() {
 
   return (
     <DashboardLayout>
-      
+
       {/* Sidebar - Matching Dashboard */}
 
       {/* Main Content */}
@@ -533,7 +559,7 @@ function SubmissionDetailsContent() {
             <div className="flex items-center gap-4">
 
               {/* ICON ACTIONS */}
-             {/* <div className="flex items-center gap-5"
+              {/* <div className="flex items-center gap-5"
                 <button aria-label="Favorite"
                   className="p-2 rounded-md hover:bg-gray-100">
                   <Heart className="w-[22px] h-[22px] text-gray-500 hover:text-gray-700" />
@@ -594,7 +620,7 @@ function SubmissionDetailsContent() {
                     className={iscOutlineBtn}
                   >
                     App Packet
-                  </button>               
+                  </button>
                   <button
                     onClick={() =>
                       window.open(
@@ -606,7 +632,13 @@ function SubmissionDetailsContent() {
                   >
                     View
                   </button>
-                  <button className={iscOutlineBtn}>Edit</button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `/agency/quote/${submission.programId}?mode=edit&id=${submission._id}`,
+                        "_blank"
+                      )
+                    } className={iscOutlineBtn}>Edit</button>
 
                   <button
                     onClick={handleRequestApproval}
@@ -615,7 +647,12 @@ function SubmissionDetailsContent() {
                     Request Approval
                   </button>
 
-                  <button className={iscOutlineBtn}>Cancel Quote</button>
+                  <button
+                    onClick={handleCancelRequest}
+                    className={iscOutlineBtn}
+                  >
+                    Cancel Quote
+                  </button>
                 </>
               )}
 
@@ -623,16 +660,16 @@ function SubmissionDetailsContent() {
               {isQuoted && (
                 <>
                   <button
-                    // onClick={() =>
-                    //   window.open(
-                    //     `/api/agency/applications/${submissionId}/pdf`,
-                    //     "_blank"
-                    //   )
-                    // }
+                    onClick={() =>
+                      window.open(
+                        `/api/agency/applications/${submissionId}/invoice`,
+                        "_blank"
+                      )
+                    }
                     className={iscOutlineBtn}
                   >
                     Invoice
-                  </button>                
+                  </button>
 
                   <button
                     onClick={() =>

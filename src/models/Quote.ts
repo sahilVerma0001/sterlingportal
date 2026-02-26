@@ -35,6 +35,16 @@ export interface IQuote extends Document {
   premiumTaxAmountUSD?: number;
   policyFeeUSD?: number;
   finalAmountUSD: number;
+  fireMarshalTaxPercent?: number;
+  fireMarshalTaxAmountUSD?: number;
+  depositPremiumUSD?: number;
+  depositCarrierFeesUSD?: number;
+  depositTaxUSD?: number;
+  depositStampingUSD?: number;
+  depositSterlingFeesUSD?: number;
+  depositFireMarshalUSD?: number;
+  totalDepositUSD?: number;
+  totalToRetainUSD?: number;
 
   // Policy details
   limits?: ILimits;
@@ -106,6 +116,55 @@ const QuoteSchema: Schema = new Schema(
     stampingFeeAmountUSD: {
       type: Number,
       min: 0,
+    },
+    fireMarshalTaxPercent: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    fireMarshalTaxAmountUSD: {
+      type: Number,
+      min: 0,
+    },
+    depositPremiumUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    depositCarrierFeesUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    depositTaxUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    depositStampingUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    depositSterlingFeesUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    depositFireMarshalUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    totalDepositUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    totalToRetainUSD: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
     wholesaleFeePercent: {
       type: Number,

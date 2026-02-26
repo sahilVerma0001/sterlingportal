@@ -53,6 +53,8 @@ export async function POST(
       policyFeeUSD,
       stampingFeePercent,
       stampingFeeAmountUSD,
+      fireMarshalTaxPercent,
+      fireMarshalTaxAmountUSD,
       brokerFeeAmountUSD,
       limits,
       endorsements,
@@ -116,6 +118,7 @@ export async function POST(
     const stampingAmount = parseFloat(stampingFeeAmountUSD) || 0;
     const taxAmount = parseFloat(premiumTaxAmountUSD) || 0;
     const policyFee = parseFloat(policyFeeUSD) || 0;
+    const fireMarshalAmount = parseFloat(fireMarshalTaxAmountUSD) || 0;
     const finalAmountUSD =
       carrierQuoteUSD +
       carrierFees +
@@ -123,8 +126,37 @@ export async function POST(
       brokerFee +
       taxAmount +
       stampingAmount +   // ✅ ADD THIS
+      fireMarshalAmount +
       policyFee;
-    // Create quote (admin enters carrier quote)
+
+
+    // ===============================
+    // TOTAL TO RETAIN (10% of Final)
+    // ===============================
+
+    const totalToRetainUSD = finalAmountUSD * 0.10;
+
+    // ===============================
+    // DEPOSIT CALCULATION
+    // ===============================
+
+    const depositPremiumUSD = carrierQuoteUSD * 0.25;
+    const depositCarrierFeesUSD = carrierFees; // 100%
+    const depositTaxUSD = taxAmount * 0.25;
+    const depositStampingUSD = stampingAmount * 0.25;
+    const depositSterlingFeesUSD = sterlingFees; // 100%
+    const depositFireMarshalUSD = fireMarshalAmount * 0.25;
+
+    const totalDepositUSD =
+      depositPremiumUSD +
+      depositCarrierFeesUSD +
+      depositTaxUSD +
+      depositStampingUSD +
+      depositSterlingFeesUSD +
+      depositFireMarshalUSD;
+
+
+
     const quote = await Quote.create({
       submissionId,
       carrierId,
@@ -139,6 +171,16 @@ export async function POST(
       stampingFeePercent: stampingFeePercent ? parseFloat(stampingFeePercent) : undefined,
       stampingFeeAmountUSD: stampingAmount > 0 ? stampingAmount : undefined,
       finalAmountUSD,
+      fireMarshalTaxPercent: fireMarshalTaxPercent ? parseFloat(fireMarshalTaxPercent) : undefined,
+      fireMarshalTaxAmountUSD: fireMarshalAmount > 0 ? fireMarshalAmount : undefined,
+      depositPremiumUSD,
+      depositCarrierFeesUSD,
+      depositTaxUSD,
+      depositStampingUSD,
+      depositSterlingFeesUSD,
+      depositFireMarshalUSD,
+      totalDepositUSD,
+      totalToRetainUSD,
       limits: limits || undefined,
       endorsements: endorsements || [],
       effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,

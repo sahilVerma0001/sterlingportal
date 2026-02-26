@@ -195,18 +195,30 @@ interface ApplicationPacketData {
   associationDues?: string;
   policyFee?: string;
   inspectionFee?: string;
+  fireMarshalTax?: string;
   totalCostOfPolicy?: string;
   depositPremium?: string;
   depositAssociationDues?: string;
   depositStateTax?: string;
   depositPolicyFee?: string;
   depositInspectionFee?: string;
+  depositFireMarshal?: string;
   aiProcessingFee?: string;
   totalDeposit?: string;
   totalToRetain?: string;
   totalToBeSent?: string;
   invoiceProducerSignature?: string;
 }
+
+
+const formatUSD = (value?: number | string) => {
+  if (!value) return '$0.00';
+  return `$${parseFloat(value.toString()).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+};
+
 
 /**
  * Generate QR code URL (using a QR code API service)
@@ -398,21 +410,21 @@ const sjjLogoSVG = `
 function generatePage2(data: ApplicationPacketData): string {
 
   // ⭐ PASTE HERE
-const email = data.agencyEmail?.toLowerCase() || "";
+  const email = data.agencyEmail?.toLowerCase() || "";
 
-let selectedLogo = data.capitalCoLogoSVG;
+  let selectedLogo = data.capitalCoLogoSVG;
 
-if (email === "info@blueangel.com") {
-  selectedLogo = blueAngelLogoSVG;
-}
+  if (email === "info@blueangel.com") {
+    selectedLogo = blueAngelLogoSVG;
+  }
 
-if (email === "info@sjjinsurance.com") {
-  selectedLogo = sjjLogoSVG;
-}
+  if (email === "info@sjjinsurance.com") {
+    selectedLogo = sjjLogoSVG;
+  }
 
   // existing code
-const qrCodeText = `${data.applicationId}`;
-const qrCodePageText = `00${data.applicationId}P2`;
+  const qrCodeText = `${data.applicationId}`;
+  const qrCodePageText = `00${data.applicationId}P2`;
 
 
   return `
@@ -1275,17 +1287,17 @@ function generatePage11(data: ApplicationPacketData): string {
 
 
   // ⭐ PASTE HERE
-const email = data.agencyEmail?.toLowerCase() || "";
+  const email = data.agencyEmail?.toLowerCase() || "";
 
-let selectedLogo = data.capitalCoLogoSVG;
+  let selectedLogo = data.capitalCoLogoSVG;
 
-if (email === "info@blueangel.com") {
-  selectedLogo = blueAngelLogoSVG;
-}
+  if (email === "info@blueangel.com") {
+    selectedLogo = blueAngelLogoSVG;
+  }
 
-if (email === "info@sjjinsurance.com") {
-  selectedLogo = sjjLogoSVG;
-}
+  if (email === "info@sjjinsurance.com") {
+    selectedLogo = sjjLogoSVG;
+  }
   // existing code
   const qrCodeText = `${data.applicationId}`;
   const qrCodePageText = `00${data.applicationId}P11`;
@@ -1387,18 +1399,17 @@ function generatePage12(data: ApplicationPacketData): string {
           </div>
           <!-- just for frontend yet -->
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Stamping Fee</div>
-            <div class="invoice-value-page12">$0.00</div>
-          </div>
+             <div class="invoice-label-page12">Stamping Fee</div>
+             <div class="invoice-value-page12">${data.inspectionFee || '$0.00'}</div>
+           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.policyFee || '$0.00'}</div>
           </div>
-
-          <!-- <div class="invoice-row-page12">
-             <div class="invoice-label-page12">Inspection Fee</div>
-             <div class="invoice-value-page12">${data.inspectionFee || '$0.00'}</div>
-           </div> -->
+          <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Fire Marshal Tax</div>
+            <div class="invoice-value-page12">${data.fireMarshalTax || '$0.00'}</div>
+          </div>
           <div class="invoice-row-total-page12">
             <div class="invoice-label-page12"><strong>TOTAL COST OF POLICY*</strong></div>
             <div class="invoice-value-page12"><strong>${data.totalCostOfPolicy || '$0.00'}</strong></div>
@@ -1424,6 +1435,10 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.depositPolicyFee || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
+            <div class="invoice-label-page12">Fire Marshal Tax</div>
+            <div class="invoice-value-page12">${data.depositFireMarshal || '$0.00'}</div>
+          </div>
+          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
           </div>
@@ -1441,7 +1456,7 @@ function generatePage12(data: ApplicationPacketData): string {
         <div class="invoice-section-page12">
           <div class="invoice-section-title-page12">TOTAL TO RETAIN*</div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">15% Commission on Total (${data.totalCostOfPolicy || '$0.00'})</div>
+            <div class="invoice-label-page12">10% Commission on Total (${data.totalCostOfPolicy || '$0.00'})</div>
             <div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
           </div>
           <div class="invoice-row-total-page12">
@@ -1478,8 +1493,6 @@ function generatePage12(data: ApplicationPacketData): string {
         <div class="invoice-disclaimer-page12">
           <p>*Please note that any added agency broker fee or other charge, fee or cost assessed to the insured is your sole responsibility. All such amounts added in connection with this policy shall be in compliance with all applicable state and federal law.</p>
         </div>
-        
-        <div class="page-number page-number-page12">Page 11 of 11</div>
       </div>
     </div>
   `;
@@ -3156,22 +3169,47 @@ export function mapFormDataToPacketData(
     lossWarrantySignature: formData.lossWarrantySignature,
     lossWarrantyTitle: formData.lossWarrantyTitle || formData.applicantTitle,
 
+
+    //  programName: formData.programName || submission?.programName || 'Standard GL A-Rated',
+    // premium: formData.premium || (quote?.carrierQuoteUSD ? `$${parseFloat(quote.carrierQuoteUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // stateTax: formData.stateTax || (quote?.premiumTaxAmountUSD ? `$${parseFloat(quote.premiumTaxAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // associationDues: formData.associationDues || (quote?.carrierFeesUSD ? `$${parseFloat(quote.carrierFeesUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // policyFee: formData.policyFee || (quote?.sterlingFeesUSD ? `$${parseFloat(quote.sterlingFeesUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // inspectionFee: formData.inspectionFee || (quote?.stampingFeeAmountUSD ? `$${parseFloat(quote.stampingFeeAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // totalCostOfPolicy: formData.totalCostOfPolicy || (quote?.finalAmount ? `$${parseFloat(quote.finalAmount.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // depositPremium: formData.depositPremium || (quote?.depositPremium ? `$${parseFloat(quote.depositPremium.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // depositAssociationDues: formData.depositAssociationDues || (quote?.depositAssociationDues ? `$${parseFloat(quote.depositAssociationDues.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // depositStateTax: formData.depositStateTax || (quote?.depositStateTax ? `$${parseFloat(quote.depositStateTax.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // depositPolicyFee: formData.depositPolicyFee || (quote?.depositPolicyFee ? `$${parseFloat(quote.depositPolicyFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // depositInspectionFee: formData.depositInspectionFee || (quote?.depositInspectionFee ? `$${parseFloat(quote.depositInspectionFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // aiProcessingFee: formData.aiProcessingFee || '$0.00',
+    // totalDeposit: formData.totalDeposit || (quote?.totalDeposit ? `$${parseFloat(quote.totalDeposit.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // totalToRetain: formData.totalToRetain || (quote?.totalToRetain ? `$${parseFloat(quote.totalToRetain.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // totalToBeSent: formData.totalToBeSent || (quote?.totalToBeSent ? `$${parseFloat(quote.totalToBeSent.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    // invoiceProducerSignature: formData.invoiceProducerSignature || formData.producerSignature,
+    // capitalCoLogoSVG: capitalCoLogoSVG,
+
+
     // Page 12: Invoice Statement
     programName: formData.programName || submission?.programName || 'Standard GL A-Rated',
-    premium: formData.premium || (quote?.finalAmountUSD ? `$${parseFloat(quote.finalAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    stateTax: formData.stateTax || (quote?.stateTax ? `$${parseFloat(quote.stateTax.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    associationDues: formData.associationDues || (quote?.associationDues ? `$${parseFloat(quote.associationDues.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    policyFee: formData.policyFee || (quote?.policyFee ? `$${parseFloat(quote.policyFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    inspectionFee: formData.inspectionFee || (quote?.inspectionFee ? `$${parseFloat(quote.inspectionFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    totalCostOfPolicy: formData.totalCostOfPolicy || (quote?.totalCost ? `$${parseFloat(quote.totalCost.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    depositPremium: formData.depositPremium || (quote?.depositPremium ? `$${parseFloat(quote.depositPremium.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    depositAssociationDues: formData.depositAssociationDues || (quote?.depositAssociationDues ? `$${parseFloat(quote.depositAssociationDues.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    depositStateTax: formData.depositStateTax || (quote?.depositStateTax ? `$${parseFloat(quote.depositStateTax.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    depositPolicyFee: formData.depositPolicyFee || (quote?.depositPolicyFee ? `$${parseFloat(quote.depositPolicyFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    depositInspectionFee: formData.depositInspectionFee || (quote?.depositInspectionFee ? `$${parseFloat(quote.depositInspectionFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    aiProcessingFee: formData.aiProcessingFee || '$0.00',
-    totalDeposit: formData.totalDeposit || (quote?.totalDeposit ? `$${parseFloat(quote.totalDeposit.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    totalToRetain: formData.totalToRetain || (quote?.totalToRetain ? `$${parseFloat(quote.totalToRetain.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    premium: formData.premium || formatUSD(quote?.carrierQuoteUSD),
+    stateTax: formData.stateTax || formatUSD(quote?.premiumTaxAmountUSD),
+    associationDues: formData.associationDues || formatUSD(quote?.carrierFeesUSD),
+    policyFee: formatUSD(quote?.sterlingInsuranceServicesFeesUSD),
+    inspectionFee: formatUSD(quote?.stampingFeeAmountUSD),
+    fireMarshalTax: formatUSD(quote?.fireMarshalTaxAmountUSD),
+    totalCostOfPolicy: formatUSD(quote?.finalAmountUSD),
+
+
+    depositPremium: formatUSD(quote?.depositPremiumUSD),
+    depositAssociationDues: formatUSD(quote?.depositCarrierFeesUSD),
+    depositStateTax: formatUSD(quote?.depositTaxUSD),
+    depositPolicyFee: formatUSD(quote?.depositStampingUSD),
+    depositInspectionFee: formatUSD(quote?.depositSterlingFeesUSD),
+    depositFireMarshal: formatUSD(quote?.depositFireMarshalUSD),
+    totalDeposit: formatUSD(quote?.totalDepositUSD),
+
+    totalToRetain: formatUSD(quote?.totalToRetainUSD),
     totalToBeSent: formData.totalToBeSent || (quote?.totalToBeSent ? `$${parseFloat(quote.totalToBeSent.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
     invoiceProducerSignature: formData.invoiceProducerSignature || formData.producerSignature,
     capitalCoLogoSVG: capitalCoLogoSVG,

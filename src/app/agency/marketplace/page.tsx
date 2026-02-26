@@ -1,10 +1,12 @@
 "use client";
 import MarketplaceSidebar from "@/components/layout/MarketplaceSidebar";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Home, Search, ArrowLeft } from "lucide-react";
+
 
 interface Program {
   id: string;
@@ -159,55 +161,59 @@ export default function MarketplacePage() {
 
             {/* RIGHT SIDE */}
             <div className="flex items-center gap-5 relative">
-
               <button
-                title="Home"
+                type="button"
                 onClick={() => router.push("/agency/dashboard")}
-                className="m-3 rounded-xl hover:bg-gray-100 transition-all duration-200"
+                className="
+            h-11 w-11
+            rounded-full
+            bg-[#9A8B7A]
+            flex items-center justify-center
+            shadow-md
+            hover:bg-[#7A6F64]
+            hover:shadow-lg
+            hover:-translate-y-[1px]
+            active:scale-95
+            transition-all duration-200
+          "
               >
-                <svg
-                  className="w-[22px] h-[22px] text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                  />
-                </svg>
+                <Home className="w-5 h-5 text-white" />
               </button>
-              <span className="absolute left-1/2 -translate-x-1/2 mt-2 scale-0 group-hover:scale-100 transition-transform bg-black text-white text-xs rounded px-2 py-1">
-                Home
-              </span>
-              {/* PROFILE */}
-              <div className="relative">
+
+              {/* ⭐ PROFILE */}
+              <button
+                type="button"
+                onClick={() => setProfileOpen(prev => !prev)}
+                className="h-11 w-11 rounded-full bg-[rgb(154,139,122)] text-white flex items-center justify-center font-semibold hover:bg-[#7A6F64] hover:shadow-lg hover:-translate-y-[1px] active:scale-95 transition-all duration-200"
+              >
+                {session?.user?.name?.[0] || "U"}
+              </button>
+
+              {/* ⭐ DROPDOWN */}
+              <div
+                className={`absolute right-0 top-14 w-64 bg-white rounded-full shadow-lg border border-[#E5E7EB] z-50
+          transition-all duration-150 ease-out
+          ${profileOpen
+                    ? "opacity-100 scale-100 translate-y-0"
+                    : "opacity-0 scale-95 translate-y-1 pointer-events-none"
+                  }`}
+              >
+                <div className="px-4 py-3 border-b border-[#E5E7EB]">
+                  <p className="font-medium text-sm text-gray-900">
+                    {session?.user?.name || "User"}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    {session?.user?.email || "email@example.com"}
+                  </p>
+                </div>
+
                 <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold text-sm shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                  type="button"
+                  onClick={() => signOut()}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#F3F0ED] transition"
                 >
-                  {session?.user?.name?.[0] || "U"}
+                  Logout
                 </button>
-
-                {profileOpen && (
-                  <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-
-                    <div className="px-4 py-3 border-b bg-gray-50">
-                      <p className="text-sm font-semibold">{session?.user?.name}</p>
-                      <p className="text-xs text-gray-500">{session?.user?.email}</p>
-                    </div>
-
-                    <button
-                      onClick={() => router.push("/api/auth/signout")}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-
-                  </div>
-                )}
               </div>
 
             </div>

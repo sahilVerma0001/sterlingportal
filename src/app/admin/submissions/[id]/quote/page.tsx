@@ -53,6 +53,10 @@ export default function AdminQuotePage() {
   const [stampingFeePercent, setStampingFeePercent] = useState("");
   const [stampingFeeAmountUSD, setStampingFeeAmountUSD] = useState("");
 
+  // 🔥 Fire Marshal Tax
+  const [fireMarshalTaxPercent, setFireMarshalTaxPercent] = useState("");
+  const [fireMarshalTaxAmountUSD, setFireMarshalTaxAmountUSD] = useState("");
+
   // Policy details (will be auto-populated from application form)
   const [generalLiabilityLimit, setGeneralLiabilityLimit] = useState("");
   const [aggregateLimit, setAggregateLimit] = useState("");
@@ -306,6 +310,37 @@ export default function AdminQuotePage() {
     calculateStamping();
   }, [combinedPremium, submission]);
 
+  // calculate fire marshal
+  useEffect(() => {
+    const calculateFireMarshal = async () => {
+      if (!combinedPremium || !submission) return;
+
+      const stateRaw =
+        (submission as any).state ||
+        (submission as any).clientContact?.businessAddress?.state ||
+        "CA";
+
+      const state = getStateCode(stateRaw);
+
+      try {
+        const response = await fetch(
+          `/api/tax/calculate?state=${state}&premium=${combinedPremium}&type=firemarshal`
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          setFireMarshalTaxPercent(data.taxRate?.toFixed(2) || "0");
+          setFireMarshalTaxAmountUSD(data.taxAmount?.toString() || "0");
+        }
+      } catch (err) {
+        console.error("Fire Marshal calculation error:", err);
+      }
+    };
+
+    calculateFireMarshal();
+  }, [combinedPremium, submission]);
+
   // Auto-calculate expiration date when effective date or duration changes (Change 5: Duration Tabs)
   useEffect(() => {
     if (effectiveDate && policyDuration) {
@@ -327,21 +362,34 @@ export default function AdminQuotePage() {
   const calculateBreakdown = () => {
     if (!carrierQuoteUSD || !selectedCarrier) return null;
 
-    const carrierQuote = combinedPremium;
-    if (isNaN(carrierQuote) || carrierQuote <= 0) return null;
+    const basePremium = parseCurrency(carrierQuoteUSD) || 0;
+    const carrierFees = parseCurrency(carrierFeesUSD) || 0;
+    const sterlingFees = parseCurrency(sterlingFeesUSD) || 0;
 
-    const brokerFee = brokerFeeFromForm; // From application form
+    const brokerFee = brokerFeeFromForm;
     const taxAmount = parseCurrency(premiumTaxAmountUSD) || 0;
-    const policyFee = parseCurrency(policyFeeUSD) || 0;
     const stampingAmount = parseFloat(stampingFeeAmountUSD) || 0;
-    // No wholesale fee - removed per user request
-    const finalAmount = carrierQuote + brokerFee + taxAmount + stampingAmount + policyFee;
+    const fireMarshalAmount = parseFloat(fireMarshalTaxAmountUSD) || 0;
+    const policyFee = parseCurrency(policyFeeUSD) || 0;
+
+    const finalAmount =
+      basePremium +
+      carrierFees +
+      sterlingFees +
+      brokerFee +
+      taxAmount +
+      stampingAmount +
+      fireMarshalAmount +
+      policyFee;
 
     return {
-      carrierQuote,
+      basePremium,
+      carrierFees,
+      sterlingFees,
       brokerFeeAmount: brokerFee,
       premiumTaxAmount: taxAmount,
       stampingFeeAmount: stampingAmount,
+      fireMarshalAmount,
       policyFeeAmount: policyFee,
       finalAmount,
     };
@@ -360,6 +408,8 @@ export default function AdminQuotePage() {
     sterlingFeesUSD,
     stampingFeePercent,
     stampingFeeAmountUSD,
+    fireMarshalTaxPercent,
+    fireMarshalTaxAmountUSD,
     generalLiabilityLimit,
     aggregateLimit,
     fireLegalLimit,
@@ -381,6 +431,8 @@ export default function AdminQuotePage() {
     policyFeeUSD,
     carrierFeesUSD,
     sterlingFeesUSD,
+    fireMarshalTaxPercent,
+    fireMarshalTaxAmountUSD,
     generalLiabilityLimit,
     aggregateLimit,
     fireLegalLimit,
@@ -454,6 +506,12 @@ export default function AdminQuotePage() {
             draftData.stampingFeeAmountUSD !== ""
           ) {
             setStampingFeeAmountUSD(String(draftData.stampingFeeAmountUSD));
+          }
+          if (draftData.fireMarshalTaxPercent) {
+            setFireMarshalTaxPercent(String(draftData.fireMarshalTaxPercent));
+          }
+          if (draftData.fireMarshalTaxAmountUSD) {
+            setFireMarshalTaxAmountUSD(String(draftData.fireMarshalTaxAmountUSD));
           }
           if (draftData.policyFeeUSD !== undefined && draftData.policyFeeUSD !== null && draftData.policyFeeUSD !== "") {
             setPolicyFeeUSD(String(draftData.policyFeeUSD));
@@ -550,6 +608,10 @@ export default function AdminQuotePage() {
           stampingFeePercent: stampingFeePercent || undefined,
           stampingFeeAmountUSD: stampingFeeAmountUSD
             ? parseCurrency(stampingFeeAmountUSD)
+            : undefined,
+          fireMarshalTaxPercent: fireMarshalTaxPercent || undefined,
+          fireMarshalTaxAmountUSD: fireMarshalTaxAmountUSD
+            ? parseCurrency(fireMarshalTaxAmountUSD)
             : undefined,
           policyFeeUSD: policyFeeUSD ? parseCurrency(policyFeeUSD) : undefined,
           carrierFeesUSD: carrierFeesUSD ? parseCurrency(carrierFeesUSD) : undefined,
@@ -908,20 +970,20 @@ export default function AdminQuotePage() {
 
             {/* Premium Breakdown Section */}
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200/60">
-              <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              {/* <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
                 Premium Breakdown
-              </h3>
+              </h3> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Premium Tax - Auto-calculated from API */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    Premium Tax (%)
+                    Surplus Lines Tax (%)
                     {calculatingTax && (
                       <span className="text-xs text-blue-600 flex items-center gap-1">
                         <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -964,7 +1026,7 @@ export default function AdminQuotePage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Premium Tax Amount (USD)
+                    Surplus Lines Tax Amount (USD)
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
@@ -1035,6 +1097,43 @@ export default function AdminQuotePage() {
                       value={
                         stampingFeeAmountUSD
                           ? formatCurrency(parseFloat(stampingFeeAmountUSD), 2)
+                          : ""
+                      }
+                      readOnly
+                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold"
+                      placeholder="Auto-calculated"
+                    />
+                  </div>
+                </div>
+
+                {/* Fire Marshal Tax */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Fire Marshal Tax (%)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={fireMarshalTaxPercent}
+                      readOnly
+                      className="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 font-semibold"
+                      placeholder="Auto-calculated"
+                    />
+                    <span className="text-gray-600 font-semibold self-center px-3">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Fire Marshal Tax Amount (USD)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 font-semibold">$</span>
+                    <input
+                      type="text"
+                      value={
+                        fireMarshalTaxAmountUSD
+                          ? formatCurrency(parseFloat(fireMarshalTaxAmountUSD), 2)
                           : ""
                       }
                       readOnly
@@ -1343,12 +1442,38 @@ export default function AdminQuotePage() {
                   Quote Summary
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                  {/* <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
                     <span className="text-gray-700 font-medium">Carrier Quote:</span>
                     <span className="font-bold text-gray-900 text-lg">
                       {formatCurrency(breakdown.carrierQuote, 2)}
                     </span>
+                  </div> */}
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <span className="text-gray-700 font-medium">Premium:</span>
+                    <span className="font-bold text-gray-900 text-lg">
+                      {formatCurrency(breakdown.basePremium, 2)}
+                    </span>
                   </div>
+
+                  {breakdown.carrierFees > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                      <span className="text-gray-700 font-medium">Carrier Fees:</span>
+                      <span className="font-bold text-gray-900">
+                        {formatCurrency(breakdown.carrierFees, 2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {breakdown.sterlingFees > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                      <span className="text-gray-700 font-medium">
+                        Sterling Insurance Services Fees:
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        {formatCurrency(breakdown.sterlingFees, 2)}
+                      </span>
+                    </div>
+                  )}
                   {breakdown.premiumTaxAmount > 0 && (
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
                       <span className="text-gray-700 font-medium">Premium Tax:</span>
@@ -1357,6 +1482,7 @@ export default function AdminQuotePage() {
                       </span>
                     </div>
                   )}
+
                   {breakdown.stampingFeeAmount > 0 && (
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
                       <span className="text-gray-700 font-medium">
@@ -1364,6 +1490,16 @@ export default function AdminQuotePage() {
                       </span>
                       <span className="font-bold text-gray-900">
                         {formatCurrency(breakdown.stampingFeeAmount, 2)}
+                      </span>
+                    </div>
+                  )}
+                  {breakdown.fireMarshalAmount > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                      <span className="text-gray-700 font-medium">
+                        Fire Marshal Tax:
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        {formatCurrency(breakdown.fireMarshalAmount, 2)}
                       </span>
                     </div>
                   )}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   calculatePremiumTax,
   calculateStampingFee,
+  calculateFireMarshalTax,
 } from "@/lib/data/stateTaxRates";
 
 /**
@@ -39,6 +40,8 @@ export async function GET(request: NextRequest) {
 
     if (type === "stamping") {
       result = calculateStampingFee(premium, state);
+    } else if (type === "firemarshal") {
+      result = calculateFireMarshalTax(premium, state);
     } else {
       result = calculatePremiumTax(premium, state);
     }
