@@ -134,7 +134,23 @@ export async function POST(
     // TOTAL TO RETAIN (10% of Final)
     // ===============================
 
-    const totalToRetainUSD = finalAmountUSD * 0.10;
+    const totalToRetainUSD = carrierQuoteUSD * 0.10;
+
+    // ===============================
+    // TOTAL TO BE SENT (Agency Check)
+    // ===============================
+
+    console.log("Payment Option:", submission.paymentOption);
+    console.log("Payload Payment Option:", submission.payload?.paymentOption);
+
+    const paymentOption =
+      submission?.paymentOption ||
+      submission?.payload?.paymentOption;
+
+    const totalToBeSentUSD =
+      paymentOption == "Full Pay"
+        ? Math.max(0, finalAmountUSD - totalToRetainUSD)
+        : 0;
 
     // ===============================
     // DEPOSIT CALCULATION
@@ -155,7 +171,14 @@ export async function POST(
       depositSterlingFeesUSD +
       depositFireMarshalUSD;
 
+    // ===============================
+    // TOTAL TO BE SENT (finance Check)
+    // ===============================
 
+    const totalToFinanceCompanyUSD =
+      paymentOption == "Premium Financial Partners Co."
+        ? Math.max(0, totalDepositUSD - totalToRetainUSD)
+        : 0;
 
     const quote = await Quote.create({
       submissionId,
@@ -181,6 +204,8 @@ export async function POST(
       depositFireMarshalUSD,
       totalDepositUSD,
       totalToRetainUSD,
+      totalToBeSentUSD,
+      totalToFinanceCompanyUSD,
       limits: limits || undefined,
       endorsements: endorsements || [],
       effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,

@@ -26,6 +26,8 @@ interface SubmissionDetails {
   submission: {
     submissionNumber?: string;
     _id: string;
+
+    submitedAt?: string;
     agencyId: string;
     templateId: any;
     payload: Record<string, any>;
@@ -35,6 +37,10 @@ interface SubmissionDetails {
       fileName: string;
       fileSize: number;
       mimeType: string;
+      bindDate?: string;
+      effectiveDate?: string;
+      expiryDate?: string;
+      status: string
     }>;
     status: string;
     clientContact: {
@@ -86,6 +92,16 @@ interface SubmissionDetails {
     binderPdfUrl?: string;
     proposalPdfUrl?: string;
   }>;
+  boundPolicy?: {
+    _id: string;
+    submissionId: string;
+    status: string;
+    policyNumber?: string;
+    carrierId?: string;
+    bindDate?: string;
+    effectiveDate?: string;
+    expiryDate?: string;
+  };
 }
 
 function SubmissionDetailsContent() {
@@ -193,6 +209,7 @@ function SubmissionDetailsContent() {
       );
 
       const result = await res.json();
+
       if (!res.ok) throw new Error(result.error);
 
       toast.success("Bind request sent!");
@@ -263,6 +280,7 @@ function SubmissionDetailsContent() {
       setLoading(true);
 
       const res = await fetch(
+
         `/api/agency/submissions/${submissionId}`
       );
 
@@ -436,7 +454,7 @@ function SubmissionDetailsContent() {
     );
   }
 
-  const { submission, routingLogs, quotes } = data;
+  const { submission, routingLogs, quotes, boundPolicy } = data;
 
 
   // ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
@@ -744,31 +762,21 @@ function SubmissionDetailsContent() {
                   </button>
                 </>
               )}
-
-              {/* ================= BOUND ================= */}
-              {isBound && (
-                <>
-                  <button className={iscOutlineBtn}>View Policy</button>
-                  <button
-                    onClick={handleCancelRequest}
-                    className={iscOutlineBtn}
-                  >
-                    Cancel Quote
-                  </button>
-                </>
-              )}
-
             </div>
 
             {/* ================= BOUND (NEWLY BOUND) ================= */}
             {submission.status === "BOUND" && (
               <>
-                <button className={iscOutlineBtn}>View</button>
                 <button
-                  onClick={handleCancelRequest}
+                  onClick={() =>
+                    window.open(
+                      `/agency/quote/${submission.programId}?mode=view&id=${submission._id}`,
+                      "_blank"
+                    )
+                  }
                   className={iscOutlineBtn}
                 >
-                  Cancel Quote
+                  View
                 </button>
               </>
             )}
@@ -817,15 +825,17 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Payment Option:</p>
               <p className="font-semibold text-gray-900">
-                3rd Party Finance
+                {submission.payload?.paymentOption || "—"}
               </p>
             </div>
 
             {/* Bind Date */}
-            <div>
-              <p className="text-gray-500 mb-1">Bind Date:</p>
-              <p className="font-semibold text-gray-900">—</p>
-            </div>
+            <p className="text-gray-500 mb-1">Bind Date:</p>
+            <p className="font-semibold text-gray-900">
+              {boundPolicy?.bindDate
+                ? new Date(boundPolicy.bindDate).toLocaleDateString()
+                : "—"}
+            </p>
 
           </div>
         </div>

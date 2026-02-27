@@ -71,6 +71,7 @@ export interface ISubmission extends Document {
   esignCompletedAt?: Date;
 
   // Payment fields
+  paymentOption?: "Full Pay" | "Premium Financial Partners Co.";
   paymentStatus: "PENDING" | "PAID" | "FAILED";
   paymentDate?: Date;
   paymentMethod?: string;
@@ -232,6 +233,10 @@ const SubmissionSchema: Schema = new Schema(
     paymentDate: Date,
     paymentMethod: String,
     paymentAmount: Number,
+    paymentOption: {
+      type: String,
+      enum: ["Full Pay", "Premium Financial Partners Co."],
+    },
     // Bind Request fields
     // Bind Request only after e-sign + payment
     // Admin must bind manually

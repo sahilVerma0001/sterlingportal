@@ -43,8 +43,10 @@ export interface IQuote extends Document {
   depositStampingUSD?: number;
   depositSterlingFeesUSD?: number;
   depositFireMarshalUSD?: number;
+  totalToBeSentUSD?: number;
   totalDepositUSD?: number;
   totalToRetainUSD?: number;
+  totalToFinanceCompanyUSD?: number;
 
   // Policy details
   limits?: ILimits;
@@ -165,6 +167,14 @@ const QuoteSchema: Schema = new Schema(
       type: Number,
       min: 0,
       default: 0,
+    },
+    totalToBeSentUSD: {
+      type: Number,
+      min: 0,
+    },
+    totalToFinanceCompanyUSD: {
+      type: Number,
+      min: 0,
     },
     wholesaleFeePercent: {
       type: Number,

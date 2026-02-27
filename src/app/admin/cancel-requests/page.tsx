@@ -23,15 +23,23 @@ export default function CancelRequestsPage() {
   };
 
   const approve = async (id: string) => {
-    await fetch("/api/admin/cancel-approve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId: id }),
-    });
+    console.log("APPROVE CLICKED:", id);   // ⭐ add this
 
-    fetchRequests();
+    try {
+      const res = await fetch("/api/admin/cancel-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: id }),
+      });
+
+      const data = await res.json();
+      console.log("API RESPONSE:", data);   // ⭐ add this
+
+      fetchRequests();
+    } catch (err) {
+      console.error(err);
+    }
   };
-
   return (
     <div className="min-h-screen bg-slate-50 p-8">
       {/* Header */}
@@ -72,7 +80,9 @@ export default function CancelRequestsPage() {
 
             {requests.map((r) => (
               <tr key={r._id} className="border-t hover:bg-slate-50">
-                <td className="p-4 font-medium">{r.submissionId}</td>
+                <td className="p-4 font-medium">
+                  {r.submissionId?.clientContact?.name || "N/A"}
+                </td>
 
                 <td className="p-4 text-gray-500">
                   {new Date(r.createdAt).toLocaleString()}
@@ -86,8 +96,12 @@ export default function CancelRequestsPage() {
 
                 <td className="p-4 text-right">
                   <button
-                    onClick={() => approve(r._id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      approve(r._id);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer"
                   >
                     Approve Cancel
                   </button>

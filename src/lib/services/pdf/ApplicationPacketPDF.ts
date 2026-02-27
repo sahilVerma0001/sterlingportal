@@ -40,7 +40,7 @@ interface ApplicationPacketData {
   statesOfOperation: string;
   workIn5Boroughs: boolean;
   otherBusinessNames?: string;
-  paymentOption: string;
+  paymentOption?: string;
 
   // Loss History
   generalLiabilityLosses?: {
@@ -190,11 +190,16 @@ interface ApplicationPacketData {
 
   // Page 12: Invoice Statement
   programName?: string;
+  submissionNumber?: string;
   premium?: string;
   stateTax?: string;
   associationDues?: string;
   policyFee?: string;
   inspectionFee?: string;
+  surplusLinesTax?: string;
+  carrierPolicyFee?: string;
+  sterlingFees?: string;
+  stampingFee?: string;
   fireMarshalTax?: string;
   totalCostOfPolicy?: string;
   depositPremium?: string;
@@ -205,6 +210,7 @@ interface ApplicationPacketData {
   depositFireMarshal?: string;
   aiProcessingFee?: string;
   totalDeposit?: string;
+  totalToFinanceCompany?: string;
   totalToRetain?: string;
   totalToBeSent?: string;
   invoiceProducerSignature?: string;
@@ -449,7 +455,7 @@ function generatePage2(data: ApplicationPacketData): string {
 
             <!-- Application ID -->
             <div class="application-id-large-page2">
-                General Liability Application ID: ${data.applicationId}
+                General Liability Application ID: ${data.submissionNumber}
             </div>
 
             <!-- 3 Column Layout -->
@@ -1378,9 +1384,15 @@ function generatePage12(data: ApplicationPacketData): string {
     <div class="page page12-isc" style="page-break-after: always;">
       <div class="main-content main-content-page12">
         <div class="invoice-header-page12">
-          <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
-          <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div>
-          <div class="invoice-field-page12"><strong>Application ID:</strong> ${data.applicationId}</div>
+          <div>
+            <div class="invoice-field-page12"><strong>Program:</strong> ${data.programName || 'Standard GL A-Rated'}</div>
+            <div class="invoice-field-page12"><strong>Applicant Name:</strong> ${data.companyName}</div>
+            <div class="invoice-field-page12"><strong>Application ID:</strong> ${data.submissionNumber}</div>
+          </div>
+          <div>
+            <strong>Sterling Insurance Services</strong>
+            <p>5455 Wilshire Blvd. #1816 Los Angeles CA 90036</p>
+          </div>
         </div>
         
         <div class="invoice-section-page12">
@@ -1391,28 +1403,33 @@ function generatePage12(data: ApplicationPacketData): string {
           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Surplus Lines Tax</div>
-            <div class="invoice-value-page12">${data.stateTax || '$0.00'}</div>
+            <div class="invoice-value-page12">${data.surplusLinesTax || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Carrier Policy Fee</div>
-            <div class="invoice-value-page12">${data.associationDues || '$0.00'}</div>
+            <div class="invoice-value-page12">${data.carrierPolicyFee || '$0.00'}</div>
           </div>
-          <!-- just for frontend yet -->
-          <div class="invoice-row-page12">
-             <div class="invoice-label-page12">Stamping Fee</div>
-             <div class="invoice-value-page12">${data.inspectionFee || '$0.00'}</div>
-           </div>
           <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
-            <div class="invoice-value-page12">${data.policyFee || '$0.00'}</div>
+            <div class="invoice-value-page12">${data.sterlingFees || '$0.00'}</div>
           </div>
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Fire Marshal Tax</div>
-            <div class="invoice-value-page12">${data.fireMarshalTax || '$0.00'}</div>
-          </div>
+          ${data.stampingFee && parseFloat(data.stampingFee.replace(/[$,]/g, "")) > 0 ? `
+            <div class="invoice-row-page12">
+              <div class="invoice-label-page12">Stamping Fee</div>
+              <div class="invoice-value-page12">${data.stampingFee}</div>
+            </div>
+          ` : ''}
+
+          ${data.fireMarshalTax && parseFloat(data.fireMarshalTax.replace(/[$,]/g, "")) > 0 ? `
+            <div class="invoice-row-page12">
+              <div class="invoice-label-page12">Fire Marshal Tax</div>
+              <div class="invoice-value-page12">${data.fireMarshalTax}</div>
+            </div>
+          ` : ''}
+
           <div class="invoice-row-total-page12">
-            <div class="invoice-label-page12"><strong>TOTAL COST OF POLICY*</strong></div>
-            <div class="invoice-value-page12"><strong>${data.totalCostOfPolicy || '$0.00'}</strong></div>
+            <div class="invoice-label-page12">TOTAL COST OF POLICY*</div>
+            <div class="invoice-value-page12">${data.totalCostOfPolicy || '$0.00'}</div>
           </div>
         </div>
         
@@ -1431,70 +1448,74 @@ function generatePage12(data: ApplicationPacketData): string {
             <div class="invoice-value-page12">${data.depositStateTax || '$0.00'}</div>
           </div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Stamping Fee</div>
-            <div class="invoice-value-page12">${data.depositPolicyFee || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12">Fire Marshal Tax</div>
-            <div class="invoice-value-page12">${data.depositFireMarshal || '$0.00'}</div>
-          </div>
-          <div class="invoice-row-page12">
             <div class="invoice-label-page12">Sterling Insurance Services Fees</div>
             <div class="invoice-value-page12">${data.depositInspectionFee || '$0.00'}</div>
           </div>
+          ${data.depositPolicyFee && parseFloat(data.depositPolicyFee.replace(/[$,]/g, "")) > 0 ? `
+            <div class="invoice-row-page12">
+              <div class="invoice-label-page12">Stamping Fee</div>
+              <div class="invoice-value-page12">${data.depositPolicyFee}</div>
+            </div>`
+      : ''}
+
+          ${data.depositFireMarshal && parseFloat(data.depositFireMarshal.replace(/[$,]/g, "")) > 0 ? `
+            <div class="invoice-row-page12">
+              <div class="invoice-label-page12">Fire Marshal Tax</div>
+              <div class="invoice-value-page12">${data.depositFireMarshal}</div>
+            </div>`
+      : ''}
           <!--<div class="invoice-row-page12">
                 <div class="invoice-label-page12">15% AI Processing Fee</div>
                 <div class="invoice-value-page12">${data.aiProcessingFee || '$0.00'}</div>
               </div>-->
 
           <div class="invoice-row-total-page12">
-            <div class="invoice-label-page12"><strong>TOTAL DEPOSIT*</strong></div>
-            <div class="invoice-value-page12"><strong>${data.totalDeposit || '$0.00'}</strong></div>
+            <div class="invoice-label-page12">TOTAL DEPOSIT*</div>
+            <div class="invoice-value-page12">${data.totalDeposit || '$0.00'}</div>
           </div>
         </div>
         
         <div class="invoice-section-page12">
           <div class="invoice-section-title-page12">TOTAL TO RETAIN*</div>
           <div class="invoice-row-page12">
-            <div class="invoice-label-page12">10% Commission on Total (${data.totalCostOfPolicy || '$0.00'})</div>
+            <div class="invoice-label-page12">10% Commission on Premium (${data.premium || '$0.00'})</div>
             <div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
           </div>
           <div class="invoice-row-total-page12">
-            <div class="invoice-label-page12"><strong>TOTAL TO RETAIN*</strong></div>
-            <div class="invoice-value-page12"><strong>${data.totalToRetain || '$0.00'}</strong></div>
+            <div class="invoice-label-page12">TOTAL TO RETAIN*</div>
+            <div class="invoice-value-page12">${data.totalToRetain || '$0.00'}</div>
           </div>
         </div>
         
         <div class="invoice-section-page12">
           <div class="invoice-section-title-page12">TOTAL TO BE SENT</div>
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12"><strong>MAKE CHECK PAYABLE FOR </strong>from agency</div>
-            <div class="invoice-value-page12"><strong>${data.totalToBeSent || '$0.00'}</strong></div>
+          <div class="invoice-row-total-page12">
+            <div class="invoice-label-page12">MAKE CHECK PAYABLE FOR from agency</div>
+            <div class="invoice-value-page12">${data.totalToBeSent || '$0.00'}</div>
           </div>
-
-
-          <!-- just for frontend yet -->
-          <div class="invoice-row-page12">
-            <div class="invoice-label-page12"><strong>MAKE CHECK PAYABLE FOR</strong>finance company</div>
-            <div class="invoice-value-page12"><strong>$0.00</strong></div>
+          <div class="invoice-row-total-page12">
+            <div class="invoice-label-page12"><finance>MAKE CHECK PAYABLE FOR finance company</div>
+            <div class="invoice-value-page12">${data.totalToFinanceCompany || '$0.00'}</div>
           </div>
         </div>
         
-        <div class="payment-option-page12"><strong>Payment Option:</strong> ${data.paymentOption || '3rd Party Finance'}</div>
+        <div class="bottom-section">
+          <div class="payment-option-page12"><strong>Payment Option:</strong> ${data.paymentOption}</div>
         
-        <div class="binding-statement-page12">
-          <p>The binding of this insurance policy is an agreement to the above-referenced prices and its terms and conditions</p>
-          <div class="signature-field-page12">
-            <div class="signature-label-page12">Signature of Producer (Agent or Broker):</div>
-            <div class="signature-line-page12">${data.invoiceProducerSignature || '_________________________'}</div>
+          <div class="binding-statement-page12">
+            <p>The binding of this insurance policy is an agreement to the above-referenced prices and its terms and conditions</p>
+            <div class="signature-field-page12">
+              <div class="signature-label-page12">Signature of Producer (Agent or Broker):______________________________________</div>
+              <div class="signature-line-page12">${data.invoiceProducerSignature || ' '}</div>
+            </div>
           </div>
-        </div>
         
-        <div class="invoice-disclaimer-page12">
-          <p>*Please note that any added agency broker fee or other charge, fee or cost assessed to the insured is your sole responsibility. All such amounts added in connection with this policy shall be in compliance with all applicable state and federal law.</p>
+          <div class="invoice-disclaimer-page12">
+            <p>*Please note that any added agency broker fee or other charge, fee or cost assessed to the insured is your sole responsibility. All such amounts added in connection with this policy shall be in compliance with all applicable state and federal law.</p>
+          </div>
+          </div>
         </div>
       </div>
-    </div>
   `;
 }
 
@@ -3013,7 +3034,7 @@ export function mapFormDataToPacketData(
     statesOfOperation: statesOfOperation,
     workIn5Boroughs: formData.workIn5Boroughs || false,
     otherBusinessNames: formData.otherBusinessNames || 'No',
-    paymentOption: formData.paymentOption || '3rd Party Finance',
+    paymentOption: formData.paymentOption,
 
     // Loss History
     generalLiabilityLosses: Array.isArray(formData.generalLiabilityLosses)
@@ -3170,28 +3191,9 @@ export function mapFormDataToPacketData(
     lossWarrantyTitle: formData.lossWarrantyTitle || formData.applicantTitle,
 
 
-    //  programName: formData.programName || submission?.programName || 'Standard GL A-Rated',
-    // premium: formData.premium || (quote?.carrierQuoteUSD ? `$${parseFloat(quote.carrierQuoteUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // stateTax: formData.stateTax || (quote?.premiumTaxAmountUSD ? `$${parseFloat(quote.premiumTaxAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // associationDues: formData.associationDues || (quote?.carrierFeesUSD ? `$${parseFloat(quote.carrierFeesUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // policyFee: formData.policyFee || (quote?.sterlingFeesUSD ? `$${parseFloat(quote.sterlingFeesUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // inspectionFee: formData.inspectionFee || (quote?.stampingFeeAmountUSD ? `$${parseFloat(quote.stampingFeeAmountUSD.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // totalCostOfPolicy: formData.totalCostOfPolicy || (quote?.finalAmount ? `$${parseFloat(quote.finalAmount.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // depositPremium: formData.depositPremium || (quote?.depositPremium ? `$${parseFloat(quote.depositPremium.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // depositAssociationDues: formData.depositAssociationDues || (quote?.depositAssociationDues ? `$${parseFloat(quote.depositAssociationDues.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // depositStateTax: formData.depositStateTax || (quote?.depositStateTax ? `$${parseFloat(quote.depositStateTax.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // depositPolicyFee: formData.depositPolicyFee || (quote?.depositPolicyFee ? `$${parseFloat(quote.depositPolicyFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // depositInspectionFee: formData.depositInspectionFee || (quote?.depositInspectionFee ? `$${parseFloat(quote.depositInspectionFee.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // aiProcessingFee: formData.aiProcessingFee || '$0.00',
-    // totalDeposit: formData.totalDeposit || (quote?.totalDeposit ? `$${parseFloat(quote.totalDeposit.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // totalToRetain: formData.totalToRetain || (quote?.totalToRetain ? `$${parseFloat(quote.totalToRetain.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // totalToBeSent: formData.totalToBeSent || (quote?.totalToBeSent ? `$${parseFloat(quote.totalToBeSent.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
-    // invoiceProducerSignature: formData.invoiceProducerSignature || formData.producerSignature,
-    // capitalCoLogoSVG: capitalCoLogoSVG,
-
-
     // Page 12: Invoice Statement
     programName: formData.programName || submission?.programName || 'Standard GL A-Rated',
+    submissionNumber: submission?.submissionNumber,
     premium: formData.premium || formatUSD(quote?.carrierQuoteUSD),
     stateTax: formData.stateTax || formatUSD(quote?.premiumTaxAmountUSD),
     associationDues: formData.associationDues || formatUSD(quote?.carrierFeesUSD),
@@ -3199,6 +3201,11 @@ export function mapFormDataToPacketData(
     inspectionFee: formatUSD(quote?.stampingFeeAmountUSD),
     fireMarshalTax: formatUSD(quote?.fireMarshalTaxAmountUSD),
     totalCostOfPolicy: formatUSD(quote?.finalAmountUSD),
+
+    surplusLinesTax: formatUSD(quote?.premiumTaxAmountUSD),
+    carrierPolicyFee: formatUSD(quote?.carrierFeesUSD),
+    sterlingFees: formatUSD(quote?.sterlingInsuranceServicesFeesUSD),
+    stampingFee: formatUSD(quote?.stampingFeeAmountUSD),
 
 
     depositPremium: formatUSD(quote?.depositPremiumUSD),
@@ -3208,9 +3215,10 @@ export function mapFormDataToPacketData(
     depositInspectionFee: formatUSD(quote?.depositSterlingFeesUSD),
     depositFireMarshal: formatUSD(quote?.depositFireMarshalUSD),
     totalDeposit: formatUSD(quote?.totalDepositUSD),
+    totalToFinanceCompany: formatUSD(quote?.totalToFinanceCompanyUSD),
 
     totalToRetain: formatUSD(quote?.totalToRetainUSD),
-    totalToBeSent: formData.totalToBeSent || (quote?.totalToBeSent ? `$${parseFloat(quote.totalToBeSent.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'),
+    totalToBeSent: formatUSD(quote?.totalToBeSentUSD),
     invoiceProducerSignature: formData.invoiceProducerSignature || formData.producerSignature,
     capitalCoLogoSVG: capitalCoLogoSVG,
   };
@@ -5553,172 +5561,115 @@ const cssContent = `
       font-weight: 400;
     }
     
-    /* ============================================
-       PAGE 12 - ISC FORMAT: INVOICE STATEMENT
-       ============================================ */
-    .page12-isc .sidebar-page12 {
-      background: #e5e7eb;
-      width: 1.8in;
-      padding: 0.35in 0.2in;
-      border-right: 1px solid #d1d5db;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
     
-    .page12-isc .logo-sterling-page12 {
-      width: 0.6in;
-      height: 0.6in;
-      background: linear-gradient(135deg, #1A1F2E 0%, #2A3240 50%, #1A1F2E 100%);
-      border-radius: 8px;
-      border: 1px solid rgba(0, 188, 212, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      margin-bottom: 0.25in;
-    }
-    
-    .page12-isc .logo-sterling-page12 svg {
-      width: 100% !important;
-      height: 100% !important;
-    }
-    
-    .page12-isc .page12-title {
-      font-size: 24pt;
-      font-weight: 600;
-      color: #374151;
-      letter-spacing: 2px;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      white-space: nowrap;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(180deg);
-      margin: 0;
-    }
-    
-    .page12-isc .main-content-page12 {
-      padding: 0.25in 0.35in;
-      font-size: 10pt;
-      line-height: 1.3;
-      max-height: 10.5in;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .page12-isc .invoice-header-page12 {
-      margin-bottom: 0.15in;
-    }
-    
-    .page12-isc .invoice-field-page12 {
-      font-size: 10pt;
-      line-height: 1.3;
-      margin-bottom: 0.04in;
-      color: #1f2937;
-    }
-    
+     /* ============================================
+   PAGE 12 - ISC FORMAT (OPTIMIZED FIT)
+   ============================================ */
+
     .page12-isc .invoice-section-page12 {
-      margin-top: 0.12in;
-      margin-bottom: 0.1in;
+        margin-top: 0.06in;
+        margin-bottom: 0.12in;
+        /* reduced from 0.6in */
     }
-    
+    .page12-isc .extra-space {
+      margin-bottom: 0.3in;
+      margin-top: 0.5in;
+    }
+
+    /* Section Title */
     .page12-isc .invoice-section-title-page12 {
-      font-size: 11pt;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-bottom: 0.06in;
-      color: #1f2937;
-      border-bottom: 1.5px solid #1f2937;
-      padding-bottom: 0.02in;
+        font-size: 11pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #1f2937;
+        border-bottom: 1px solid #1f2937;
+        padding-bottom: 0.04in;
+        margin-bottom: 0.06in;
     }
-    
+
+    /* Rows */
     .page12-isc .invoice-row-page12 {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.03in 0;
-      border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        padding: 0.025in 0;
+        /* tighter */
+        border-bottom: none;
     }
-    
+
+    .page12-isc .invoice-header-page12 {
+      margin-bottom: 0.2in;
+      font-size: 11pt;
+      display: flex;
+      gap: 1.5in;
+    }
+
+    /* Labels */
     .page12-isc .invoice-label-page12 {
-      font-size: 10pt;
-      color: #1f2937;
+        font-size: 10pt;
+        color: #1f2937;
+        font-weight: 400;
     }
-    
+
+    /* Values */
     .page12-isc .invoice-value-page12 {
-      font-size: 10pt;
-      font-weight: 600;
-      text-align: right;
-      color: #1f2937;
+        font-size: 10pt;
+        font-weight: 400;
+        text-align: right;
+        min-width: 1.3in;
+        color: #1f2937;
     }
-    
+
+    /* TOTAL ROW (Accounting Style) */
     .page12-isc .invoice-row-total-page12 {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.05in 0;
-      margin-top: 0.05in;
-      border-top: 2px solid #1f2937;
-      border-bottom: 2px solid #1f2937;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.7in;
+        padding-top: 0.04in;
+        margin-top: 0.06in;
     }
-    
-    .page12-isc .payment-option-page12 {
-      font-size: 10pt;
-      margin-top: 0.12in;
-      margin-bottom: 0.1in;
-      color: #1f2937;
+
+    .page12-isc .invoice-row-total-page12 .invoice-label-page12 {
+        font-weight: 700;
+        font-size: 10pt;
+        text-transform: uppercase;
     }
-    
+
+    .page12-isc .invoice-row-total-page12 .invoice-value-page12 {
+        font-weight: 800;
+        font-size: 10pt;
+        min-width: 1.3in;
+        text-align: right;
+    }
+
+    /* Binding / Payment area tighter */
     .page12-isc .binding-statement-page12 {
-      margin-top: 0.1in;
-      font-size: 9pt;
+        margin-top: 0.04in;
+        font-size: 9pt;
     }
-    
-    .page12-isc .binding-statement-page12 p {
-      margin-bottom: 0.05in;
-      color: #1f2937;
-    }
-    
+
     .page12-isc .signature-field-page12 {
-      margin-top: 0.05in;
+      margin-bottom: 0.2in;
+      margin-top: 0.5in;
     }
-    
-    .page12-isc .signature-label-page12 {
-      font-size: 9pt;
-      font-weight: 600;
-      margin-bottom: 0.02in;
-      color: #1f2937;
+
+    .page12-isc .bottom-section{
+      margin-top: 1.5in;
     }
-    
-    .page12-isc .signature-line-page12 {
-      font-size: 9pt;
-      border-bottom: 1px solid #1f2937;
-      min-height: 0.2in;
-      color: #1f2937;
-    }
-    
+
+    /* Disclaimer — FIXED HUGE GAP */
     .page12-isc .invoice-disclaimer-page12 {
-      margin-top: 0.1in;
-      font-size: 8pt;
-      font-style: italic;
+        margin-top: 0.1in;
+        /* reduced from 0.6in */
+        font-size: 8pt;
+        font-style: italic;
     }
-    
+
     .page12-isc .invoice-disclaimer-page12 p {
-      margin: 0;
-      color: #6b7280;
+        margin: 0;
+        color: #6b7280;
     }
-    
-    .page12-isc .page-number-page12 {
-      position: absolute;
-      bottom: 0.35in;
-      right: 0.35in;
-      font-size: 10pt;
-      color: #6b7280;
-      font-weight: 400;
-    }
+
+
     
     .state-forms-isc .main-content-page12.state-forms-content {
       padding: 0.25in 0.35in;

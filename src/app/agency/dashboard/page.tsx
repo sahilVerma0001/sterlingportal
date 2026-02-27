@@ -32,6 +32,7 @@ interface DashboardStats {
   activeQuotes: number;
   postedQuotes: number;
   boundPolicies: number;
+  cancelledPolicies: number;
 }
 
 interface PipelineStage {
@@ -54,6 +55,7 @@ function AgencyDashboardContent() {
     activeQuotes: 0,
     postedQuotes: 0,
     boundPolicies: 0,
+    cancelledPolicies: 0,
   });
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -129,15 +131,21 @@ function AgencyDashboardContent() {
 
   const fetchStats = async () => {
     try {
-      const [submissionsRes, quotesRes, boundRes] = await Promise.all([
+      const [submissionsRes, quotesRes, boundRes, cancelRes] = await Promise.all([
         fetch("/api/agency/submissions"),
         fetch("/api/agency/quotes?status=POSTED"),
         fetch("/api/agency/bound-policies"),
+        fetch("/api/agency/cancel-requests"),
+        fetch("/api/admin/cancel-requests"),
+
       ]);
 
       const submissionsData = submissionsRes.ok ? await submissionsRes.json() : { submissions: [] };
       const quotesData = quotesRes.ok ? await quotesRes.json() : { quotes: [] };
       const boundData = boundRes.ok ? await boundRes.json() : { policies: [] };
+      const cancelData = cancelRes.ok ? await cancelRes.json() : { requests: [] };
+
+
 
       // Filter new quotes (POSTED status, created in last 7 days)
       const sevenDaysAgo = new Date();
@@ -153,6 +161,8 @@ function AgencyDashboardContent() {
         activeQuotes: quotesData.quotes?.length || 0,
         postedQuotes: quotesData.quotes?.length || 0,
         boundPolicies: boundData.policies?.length || 0,
+        cancelledPolicies: cancelData.requests?.filter((r: any) => r.status === "APPROVED").length || 0,
+
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -180,6 +190,7 @@ function AgencyDashboardContent() {
         "QUOTED": 0,
         "BIND_REQUESTED": 0,
         "BOUND": 0,
+        "CANCELLED": 0,
       };
 
       fetchedSubmissions.forEach((sub: Submission) => {
@@ -470,12 +481,17 @@ function AgencyDashboardContent() {
                         <XCircle className="w-4 h-4 text-[#9A8B7A]" />
                       )}
 
+                      {iscansel && (
+                        <XCircle className="w-4 h-4 text-[#9A8B7A]" />
+                      )}
+
                       <span
                         className={`
               ${isAll ? "text-[#9A8B7A]" : ""}
               ${isInProgress ? "text-[#9A8B7A]" : ""}
               ${isApproved ? "text-[#9A8B7A]" : ""}
               ${isBound ? "text-[#9A8B7A]" : ""}
+              ${iscansel ? "text-[#9A8B7A]" : ""}
             `}
                       >
                         {stage.label}

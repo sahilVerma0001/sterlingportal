@@ -1210,8 +1210,8 @@ const isSJJ = email === "admin@sjjinsurance.com";
                         {/* ⭐ CAPCO */}
                         {isCapco && (
                           <>
-                            <option value="Eidan gamaty">Eidan gamaty</option>
-                            <option value="Moshe gamety">Moshe gamety</option>
+                            <option value="Eidan gamaty">Eidan Gamaty</option>
+                            <option value="Moshe gamety">Moshe Gamaty</option>
                             <option value="Michael Gamaty">Michael Gamaty</option>
                             <option value="Yoav Anatian ">Yoav Anatian</option>
                             <option value="Jake Weiner ">Jake Weiner</option>
