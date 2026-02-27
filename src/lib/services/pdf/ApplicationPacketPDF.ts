@@ -415,12 +415,15 @@ const sjjLogoSVG = `
 
 function generatePage2(data: ApplicationPacketData): string {
 
+  console.log("Mail of agency:", data.agencyEmail);
+
   // ⭐ PASTE HERE
   const email = data.agencyEmail?.toLowerCase() || "";
 
+  // let selectedLogo = data.capitalCoLogoSVG;
   let selectedLogo = data.capitalCoLogoSVG;
 
-  if (email === "info@blueangel.com") {
+  if (email === "max@blueangelins.com") {
     selectedLogo = blueAngelLogoSVG;
   }
 
@@ -1297,7 +1300,7 @@ function generatePage11(data: ApplicationPacketData): string {
 
   let selectedLogo = data.capitalCoLogoSVG;
 
-  if (email === "info@blueangel.com") {
+  if (email === "max@blueangelins.com") {
     selectedLogo = blueAngelLogoSVG;
   }
 
@@ -1391,7 +1394,8 @@ function generatePage12(data: ApplicationPacketData): string {
           </div>
           <div>
             <strong>Sterling Insurance Services</strong>
-            <p>5455 Wilshire Blvd. #1816 Los Angeles CA 90036</p>
+            <p>5455 Wilshire Blvd. #1816<br>Los Angeles CA 90036</p>
+
           </div>
         </div>
         
@@ -5436,11 +5440,13 @@ const cssContent = `
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
+      margin-bottom: 0.06in !important;
     }
     
     .page11-isc .logo-capital-co-page11-right {
       width: 1.5in;
       height: 1.5in;
+      margin-top: -0.15in; 
       background: transparent;
       border-radius: 0;
       display: flex;
@@ -5600,7 +5606,8 @@ const cssContent = `
       margin-bottom: 0.2in;
       font-size: 11pt;
       display: flex;
-      gap: 1.5in;
+      justify-content: space-between; 
+      align-items: flex-start;
     }
 
     /* Labels */
