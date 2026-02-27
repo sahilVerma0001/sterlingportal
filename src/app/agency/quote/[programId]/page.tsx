@@ -3475,10 +3475,10 @@ const isSJJ = email === "admin@sjjinsurance.com";
                   <h3 className="text-[18px] font-semibold tracking-tight">
                     Add Excess Liability
                   </h3>
-                  <p className="text-sm font-semibold text-gray-700 mb-1">
+                  {/* <p className="text-sm font-semibold text-gray-700 mb-1">
                     Sutton – A-, VII Rated
                   </p>
-                  <p className="text-sm text-gray-600 mb-1">Non-Admitted</p>
+                  <p className="text-sm text-gray-600 mb-1">Non-Admitted</p> */}
                   <p className="text-sm text-gray-600">
                     Covers General Liability, Auto, Employers Liability
                   </p>

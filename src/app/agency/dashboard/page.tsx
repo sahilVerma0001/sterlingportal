@@ -90,7 +90,7 @@ function AgencyDashboardContent() {
     { id: "ALL", label: "All Applications", count: 0 },
     { id: "IN_PROGRESS", label: "In Progress", count: 0 },
     // { id: "REQUIRES_REVIEW", label: "Requires Review", count: 0 },
-    { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
+    // { id: "APPROVAL_REQUESTED", label: "Approval Requested", count: 0 },
     // { id: "CONDITIONALLY_APPROVED", label: "Quote Conditionally Approved", count: 0 },
     { id: "APPROVED_QUOTE", label: "Approved Quote", count: 0, color: "teal" },
     // { id: "PENDING_BIND", label: "Pending Bind", count: 0 },

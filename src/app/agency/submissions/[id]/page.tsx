@@ -105,8 +105,27 @@ interface SubmissionDetails {
 }
 
 function SubmissionDetailsContent() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const submissionId = params?.id as string;
 
+  const [data, setData] = useState<SubmissionDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const [noteText, setNoteText] = useState("");
+  const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
+  const [emailHistory, setEmailHistory] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("Notes");
+  const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
+
 
   const handleFileUpload = async (file: File) => {
     if (!submissionId) return;
@@ -124,14 +143,6 @@ function SubmissionDetailsContent() {
           body: formData,
         }
       );
-      const toggleNoteFilter = (filter: string) => {
-        setNoteFilters((prev) =>
-          prev.includes(filter)
-            ? prev.filter((f) => f !== filter)
-            : [...prev, filter]
-        );
-      };
-
       if (!res.ok) throw new Error("Upload failed");
 
       toast.success("Document uploaded successfully");
@@ -235,25 +246,7 @@ function SubmissionDetailsContent() {
 
 
 
-  const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const submissionId = params?.id as string;
 
-  const [data, setData] = useState<SubmissionDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
-  const [loadingActivity, setLoadingActivity] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-
-  const [noteText, setNoteText] = useState("");
-  const [noteFilters, setNoteFilters] = useState<string[]>(["Underwriter"]);
-  const [emailHistory, setEmailHistory] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState("Notes");
 
   // Check for success message from edit
   useEffect(() => {
@@ -308,35 +301,6 @@ function SubmissionDetailsContent() {
       const response = await fetch(`/api/agency/submissions/${submissionId}/activity`);
 
       if (response.ok) {
-        const statusHistory = [
-          {
-            _id: submission._id + "-created",
-            program: submission.programName || "General Liability",
-            changedAt: submission.createdAt,
-            user: session?.user?.name || "System",
-            status: "Submission Created",
-          },
-
-          ...routingLogs.map((log) => ({
-            _id: log._id,
-            program: log.carrierId?.name || "Carrier",
-            changedAt: log.createdAt,
-            user: log.carrierId?.name || "Underwriter",
-            status: log.status,
-          })),
-
-          ...activityLogs.map((log) => ({
-            _id: log._id,
-            program: "Activity",
-            changedAt: log.createdAt,
-            user: log.performedBy?.userName || "System",
-            status: log.description,
-          })),
-        ].sort(
-          (a, b) =>
-            new Date(b.changedAt).getTime() -
-            new Date(a.changedAt).getTime()
-        );
         const data = await response.json();
         setActivityLogs(data.logs || []);
       }
@@ -458,17 +422,17 @@ function SubmissionDetailsContent() {
 
 
   // ✅ STATUS FLAGS (YAHAN ADD KARNA HAI)
-  const isSubmitted = submission.status === "SUBMITTED";
-  const isQuoted = submission.status === "QUOTED";
-  const isBindRequested = submission.status === "BIND_REQUESTED";
-  const isBound = submission.status === "BOUND";
+  const isSubmitted = submission?.status === "SUBMITTED";
+  const isQuoted = submission?.status === "QUOTED";
+  const isBindRequested = submission?.status === "BIND_REQUESTED";
+  const isBound = submission?.status === "BOUND";
 
   const statusHistory = [
     {
       _id: submission._id + "-created",
       program: submission.programName || "General Liability",
       changedAt: submission.createdAt,
-      user: session?.user?.name || "System",
+      user: (session?.user as any)?.agencyName || "System",
       status: "Submission Created",
     },
 
@@ -532,17 +496,19 @@ function SubmissionDetailsContent() {
 
             {/* LEFT SIDE */}
             <div className="bg-white px-8 py-3">
-              <Link href="/agency/dashboard" className="mt-1">
+              {/* <Link href="/agency/dashboard" className="mt-1">
                 <ArrowLeft className="w-5 h-5 text-gray-500 hover:text-black" />
-              </Link>
+              </Link> */}
 
               <div>
                 {/* Title */}
                 <h1 className="flex items-center gap-3 text-[24px] font-semibold text-gray-900 leading-[28px] leading-tight">
-                  {submission.clientContact.name}
-                  <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
-                    {submission.status.replace("_", " ")}
-                  </span>
+                  <div>
+                    {(submission?.clientContact?.name || "???")}
+                    <span className="inline-flex items-center rounded-md bg-gray-100 px-3 py-[4px] text-[13px] font-medium text-gray-700 ">
+                      {(submission?.status || "").replace(/_/g, " ")}
+                    </span>
+                  </div>
                 </h1>
 
                 {/* Meta Row */}
@@ -550,23 +516,23 @@ function SubmissionDetailsContent() {
 
                   <span className="flex items-center gap-1.5">
                     <User className="w-[18px] h-[18px] text-gray-500 text-gray-400" />
-                    {submission.clientContact.name}
+                    {(submission?.clientContact?.name || "???")}
                   </span>
 
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4" />
-                    {submission.clientContact.businessAddress.city},{" "}
-                    {submission.clientContact.businessAddress.state}
+                    {(submission?.clientContact?.businessAddress?.city || "???")},{" "}
+                    {(submission?.clientContact?.businessAddress?.state || "???")}
                   </span>
 
                   <span className="flex items-center gap-1.5">
                     <Phone className="w-4 h-4" />
-                    {submission.clientContact.phone}
+                    {(submission?.clientContact?.phone || "???")}
                   </span>
 
                   <span className="flex items-center gap-1.5">
                     <Mail className="w-4 h-4" />
-                    {submission.clientContact.email}
+                    {(submission?.clientContact?.email || "???")}
                   </span>
 
                 </div>
@@ -606,7 +572,7 @@ function SubmissionDetailsContent() {
               </div>*/}
               {/* APP ID */}
               <span className="text-[14px] text-gray-500 ml-2">
-                App ID {submission.submissionNumber || submission._id.slice(-6)}
+                App ID {submission.submissionNumber || (submission?._id || "").slice(-6)}
               </span>
             </div>
           </div>
@@ -618,7 +584,7 @@ function SubmissionDetailsContent() {
             <div className="flex items-center gap-4">
               <h2 className="text-[16px] font-semibold text-gray-900">App Info</h2>
               <span className="px-3 py-[4px] rounded-md bg-gray-100 text-[13px] text-gray-700">
-                {submission.status.replace("_", " ")}
+                {(submission?.status || "").replace(/_/g, " ")}
               </span>
             </div>
 
@@ -765,7 +731,7 @@ function SubmissionDetailsContent() {
             </div>
 
             {/* ================= BOUND (NEWLY BOUND) ================= */}
-            {submission.status === "BOUND" && (
+            {submission?.status === "BOUND" && (
               <>
                 <button
                   onClick={() =>
@@ -801,7 +767,7 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Create Date:</p>
               <p className="font-semibold text-gray-900">
-                {new Date(submission.createdAt).toLocaleString()}
+                {(submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleString()}
               </p>
             </div>
 
@@ -817,7 +783,7 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Agent:</p>
               <p className="font-semibold text-gray-900">
-                {session?.user?.name || "—"}
+                {submission?.payload?.agentName || "—"}
               </p>
             </div>
 
@@ -825,17 +791,19 @@ function SubmissionDetailsContent() {
             <div>
               <p className="text-gray-500 mb-1">Payment Option:</p>
               <p className="font-semibold text-gray-900">
-                {submission.payload?.paymentOption || "—"}
+                {submission?.payload?.paymentOption || "—"}
               </p>
             </div>
-
-            {/* Bind Date */}
-            <p className="text-gray-500 mb-1">Bind Date:</p>
-            <p className="font-semibold text-gray-900">
-              {boundPolicy?.bindDate
-                ? new Date(boundPolicy.bindDate).toLocaleDateString()
-                : "—"}
-            </p>
+            <div>
+              <p className="text-gray-500 mb-1">Bind Date:</p>
+              <p className="font-semibold text-gray-900">
+                {submission.status !== "BOUND"
+                  ? "Not Bound"
+                  : boundPolicy?.bindDate
+                    ? new Date(boundPolicy.bindDate).toLocaleDateString()
+                    : "—"}
+              </p>
+            </div>
 
           </div>
         </div>
@@ -884,7 +852,7 @@ function SubmissionDetailsContent() {
               <div className="flex">
                 <span className="w-36 text-gray-500">Effective Date:</span>
                 <span className="font-medium text-gray-900 leading-[18px] tracking-tight">
-                  {new Date(submission.createdAt).toLocaleDateString()}
+                  {(submission?.createdAt ? new Date(submission.createdAt) : new Date()).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -946,7 +914,7 @@ function SubmissionDetailsContent() {
                   </span>
 
                   <span className="text-gray-500">
-                    {new Date(submission.updatedAt).toLocaleDateString()}
+                    {(submission?.updatedAt ? new Date(submission.updatedAt) : new Date()).toLocaleDateString()}
                   </span>
 
                   <a
@@ -1070,7 +1038,7 @@ function SubmissionDetailsContent() {
                 <div className="flex gap-4 items-start">
                   {/* Avatar */}<div className="w-10 h-10 rounded-full bg-[#9A8B7A] text-white flex items-center justify-center font-semibold">
 
-                    {session?.user?.name?.[0] || "U"}
+                    {(session?.user as any)?.agencyName?.[0] || "U"}
                   </div>
 
                   {/* Textarea */}
@@ -1177,10 +1145,10 @@ function SubmissionDetailsContent() {
 
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {session?.user?.name || "—"}
+                            {submission?.payload?.agentName || "—"}
                           </p>
                           <p className="text-gray-500">
-                            {(session?.user as any)?.agencyName || "Agency Name"}
+                            {(session?.user as any)?.agencyName || "—"}
                           </p>
                         </div>
 
@@ -1188,21 +1156,21 @@ function SubmissionDetailsContent() {
                           <div className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-gray-400" />
                             <span>
-                              {submission.clientContact.businessAddress.street},{" "}
-                              {submission.clientContact.businessAddress.city},{" "}
-                              {submission.clientContact.businessAddress.state}{" "}
-                              {submission.clientContact.businessAddress.zip}
+                              {(session?.user as any)?.agencyAddress || "—"},{" "}
+                              {(session?.user as any)?.agencyCity || "—"},{" "}
+                              {(session?.user as any)?.agencyState || "—"}{" "}
+                              {(session?.user as any)?.agencyZip || "—"}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4 text-gray-400" />
-                            <span>{submission.clientContact.phone}</span>
+                            <span>{(session?.user as any)?.agencyPhone || "—"}</span>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Mail className="w-4 h-4 text-gray-400" />
-                            <span>{submission.clientContact.email}</span>
+                            <span>{((session?.user as any)?.agencyEmail || "—")}</span>
                           </div>
                         </div>
                       </div>
@@ -1218,7 +1186,7 @@ function SubmissionDetailsContent() {
 
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {quotes[0]?.carrierId?.name || "Sterling nsurance Services"}
+                            {quotes[0]?.carrierId?.name || "Sterling Insurance Services"}
                           </p>
                         </div>
 
@@ -1226,19 +1194,19 @@ function SubmissionDetailsContent() {
                           <div className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-gray-400" />
                             <span>
-                              1811 Aston Ave. Ste. 200 Carlsbad, CA 92008
+                              5455 Wilshire Blvd, Los Angeles, CA 90036, United States
                             </span>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4 text-gray-400" />
-                            <span>(760) 599-7242</span>
+                            <span>(310) 492-2007</span>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Mail className="w-4 h-4 text-gray-400" />
                             <span>
-                              {quotes[0]?.carrierId?.email || "info@sterling.com"}
+                              {quotes[0]?.carrierId?.email || "info@sterlinginsurancepartners.com"}
                             </span>
                           </div>
                         </div>

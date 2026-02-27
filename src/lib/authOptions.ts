@@ -40,12 +40,23 @@ export const authOptions: NextAuthOptions = {
               ? (user.agencyId as any)._id?.toString() || (user.agencyId as any).toString()
               : (user.agencyId as any).toString();
 
+          const agency: any = typeof user.agencyId === "object" && user.agencyId !== null ? user.agencyId : {};
+
           return {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
             role: user.role,
             agencyId: agencyId,
+
+              // ⭐ NEW AGENCY FIELDS
+              agencyName: agency.name,
+              agencyAddress: agency.address?.street,
+              agencyCity: agency.address?.city,
+              agencyState: agency.address?.state,
+              agencyZip: agency.address?.zip,
+              agencyPhone: agency.phone,
+              agencyEmail: agency.email,    
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -63,14 +74,28 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.agencyId = (user as any).agencyId;
+        token.agencyName = (user as any).agencyName;
+        token.agencyAddress = (user as any).agencyAddress;
+        token.agencyCity = (user as any).agencyCity;
+        token.agencyState = (user as any).agencyState;
+        token.agencyZip = (user as any).agencyZip;
+        token.agencyPhone = (user as any).agencyPhone;
+        token.agencyEmail = (user as any).agencyEmail;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).agencyId = token.agencyId;
+        (session.user as any).agencyName = token.agencyName;
+        (session.user as any).agencyAddress = token.agencyAddress;
+        (session.user as any).agencyCity = token.agencyCity;
+        (session.user as any).agencyState = token.agencyState;
+        (session.user as any).agencyZip = token.agencyZip;
+        (session.user as any).agencyPhone = token.agencyPhone;
+        (session.user as any).agencyEmail = token.agencyEmail;
       }
       return session;
     },
@@ -94,4 +119,3 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
