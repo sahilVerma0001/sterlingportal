@@ -481,10 +481,6 @@ function AgencyDashboardContent() {
                         <XCircle className="w-4 h-4 text-[#9A8B7A]" />
                       )}
 
-                      {iscansel && (
-                        <XCircle className="w-4 h-4 text-[#9A8B7A]" />
-                      )}
-
                       <span
                         className={`
               ${isAll ? "text-[#9A8B7A]" : ""}
