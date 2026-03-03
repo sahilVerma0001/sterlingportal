@@ -50,25 +50,18 @@ export async function GET(
       );
     }
 
-    // Get routing logs
-    const routingLogs = await RoutingLog.find({
-      submissionId: params.id,
-    })
-      .populate("carrierId", "name email")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // Get quotes for this submission
-
-    const quotes = await Quote.find({
-      submissionId: params.id,
-    })
-      .populate("carrierId", "name email")
-      .sort({ createdAt: -1 })
-      .lean();
-    const boundPolicy = await (BoundPolicy as any).findOne({
-      submissionId: params.id,
-    }).lean();
+    // Fetch related records concurrently to improve load times
+    const [routingLogs, quotes, boundPolicy] = await Promise.all([
+      RoutingLog.find({ submissionId: params.id })
+        .populate("carrierId", "name email")
+        .sort({ createdAt: -1 })
+        .lean(),
+      Quote.find({ submissionId: params.id })
+        .populate("carrierId", "name email")
+        .sort({ createdAt: -1 })
+        .lean(),
+      (BoundPolicy as any).findOne({ submissionId: params.id }).lean(),
+    ]);
 
     return NextResponse.json({
       submission: {

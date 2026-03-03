@@ -53,21 +53,17 @@ export async function GET(
       );
     }
 
-    // Get routing logs
-    const routingLogs = await RoutingLog.find({
-      submissionId: params.id,
-    })
-      .populate("carrierId", "name email")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // Get quotes
-    const quotes = await Quote.find({
-      submissionId: params.id,
-    })
-      .populate("carrierId", "name email")
-      .sort({ createdAt: -1 })
-      .lean();
+    // Fetch routing logs and quotes concurrently
+    const [routingLogs, quotes] = await Promise.all([
+      RoutingLog.find({ submissionId: params.id })
+        .populate("carrierId", "name email")
+        .sort({ createdAt: -1 })
+        .lean(),
+      Quote.find({ submissionId: params.id })
+        .populate("carrierId", "name email")
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
 
     return NextResponse.json({
       submission: {
@@ -87,7 +83,7 @@ export async function GET(
               subtype: (submission.templateId as any).subtype,
               title: (submission.templateId as any).title,
             }
-          : null,
+           : null,
         programId: (submission as any).programId || null,
         programName: (submission as any).programName || null,
       },

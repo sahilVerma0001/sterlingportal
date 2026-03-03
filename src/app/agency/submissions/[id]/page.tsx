@@ -14,7 +14,8 @@ import {
   Share2,
 } from "lucide-react";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
+
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -104,6 +105,23 @@ interface SubmissionDetails {
   };
 }
 
+const formatCurrency = (val: any) => {
+  if (val === undefined || val === null) return "—";
+  const num = Number(val);
+  if (isNaN(num)) return "—";
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(num);
+};
+
+const RatingRow = ({ label, value }: { label: string; value: string | number }) => (
+  <div className="flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+    <span className="text-gray-500 text-[14px]">{label}</span>
+    <span className="font-medium text-gray-900 text-[14px] text-right">{value}</span>
+  </div>
+);
+
 function SubmissionDetailsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -126,32 +144,47 @@ function SubmissionDetailsContent() {
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
 
+  const [ratingData, setRatingData] = useState<any>(null);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [ratingError, setRatingError] = useState("");
 
   const handleFileUpload = async (file: File) => {
     if (!submissionId) return;
 
+    // Check file size (10MB max)
+    const MAX_MB = 10;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      toast.error(`File size cannot exceed ${MAX_MB}MB`);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("submissionId", submissionId as string);
 
     try {
       setUploading(true);
 
       const res = await fetch(
-        `/api/agency/submissions/${submissionId}/upload`,
+        `/api/upload`,
         {
           method: "POST",
           body: formData,
         }
       );
-      if (!res.ok) throw new Error("Upload failed");
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Upload failed");
+      }
 
       toast.success("Document uploaded successfully");
 
       // 🔁 refresh submission data
       fetchSubmission();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to upload document");
+      toast.error(err.message || "Failed to upload document");
     } finally {
       setUploading(false);
     }
@@ -287,6 +320,43 @@ function SubmissionDetailsContent() {
       setLoading(false);
     }
   };
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (activeTab === "Notes") {
+      scrollToBottom();
+    }
+  }, [activityLogs, activeTab]);
+
+  const handleAddNote = async () => {
+    if (!noteText.trim() || !submissionId) return;
+    
+    try {
+      const res = await fetch(`/api/agency/submissions/${submissionId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: noteText, notifyList: noteFilters })
+      });
+      
+      if (!res.ok) throw new Error("Failed to add note");
+      
+      const data = await res.json();
+      
+      if (data.note) {
+         setActivityLogs(prev => [data.note, ...prev]);
+         setNoteText("");
+         setTimeout(scrollToBottom, 100);
+      }
+    } catch(err: any) {
+      toast.error(err.message || "Failed to add note");
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated" && submissionId) {
       fetchSubmission();
@@ -310,6 +380,28 @@ function SubmissionDetailsContent() {
       setLoadingActivity(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "Rating Information" && !ratingData && !ratingLoading) {
+      const fetchRating = async () => {
+        setRatingLoading(true);
+        try {
+          const res = await fetch(`/api/admin/submissions/${submissionId}/quote`);
+          if (!res.ok) {
+            throw new Error("Failed to load rating information");
+          }
+          const result = await res.json();
+          setRatingData(result.quote || result.data || result || {});
+        } catch (err: any) {
+          // Graceful fallback to 0/empty fields on fetch failure
+          setRatingData({});
+        } finally {
+          setRatingLoading(false);
+        }
+      };
+      fetchRating();
+    }
+  }, [activeTab, submissionId, ratingData, ratingLoading]);
 
 
   const formatFileSize = (bytes: number) => {
@@ -918,9 +1010,8 @@ function SubmissionDetailsContent() {
                   </span>
 
                   <a
-                    href={file.fileUrl}
-                    download
-                    target="_blank"
+                    href={`/api/download?url=${encodeURIComponent(file.fileUrl)}`}
+                    download={file.fileName}
                     className="text-[#9A8B7A] hover:text-[#7A6F64] font-medium hover:underline transition-colors"
                   >
                     Download
@@ -1052,38 +1143,64 @@ function SubmissionDetailsContent() {
                     />
 
                     <div className="mt-3 flex justify-end">
-                      <button
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-                      >
-                        <span className="text-base">+</span>
-                        Add Note
-                      </button>
+                      <button onClick={handleAddNote} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#9A8B7A] hover:bg-[#7A6F64] text-white rounded-md text-[14px] font-semibold transition-all duration-200 shadow-sm hover:shadow-md"><span className="text-base">+</span>Add Note</button>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* RIGHT – NOTES THREAD */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col h-[500px]">
+                <div className="flex items-center justify-between mb-4 flex-shrink-0">
                   <h3 className="text-[15px] font-semibold text-gray-900">
                     Notes Thread
                   </h3>
-
-                  <div className="flex gap-2">
-
-                  </div>
                 </div>
 
-                {/* Empty State */}
-                <div className="border rounded-md p-8 flex flex-col items-center justify-center text-center bg-gray-50">
-                  <div className="w-20 h-16 bg-gray-300 rounded mb-4" />
-                  <p className="font-medium text-gray-700 mb-1">
-                    No notes added yet
-                  </p>
-                  <p className="text-[13px] text-gray-500">
-                    Drop in questions or comments to help us assist you.
-                  </p>
+                {/* Chat Container */}
+                <div className="border rounded-xl bg-gray-50 flex-1 overflow-y-auto p-4 flex flex-col gap-4 shadow-inner relative">
+                  
+                  {activityLogs.filter(log => log.activityType === "ADMIN_NOTE_ADDED").length === 0 ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="w-16 h-12 bg-gray-200 rounded-lg mb-4 opacity-70" />
+                      <p className="font-medium text-gray-500 mb-1">No notes added yet</p>
+                      <p className="text-[13px] text-gray-400">Drop in questions or comments to help us assist you.</p>
+                    </div>
+                  ) : (
+                    activityLogs
+                      .filter(log => log.activityType === "ADMIN_NOTE_ADDED")
+                      .sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                      .map((note) => {
+                        const isMe = note.performedBy?.userId === (session?.user as any)?.id;
+                        return (
+                          <div key={note._id} className={`flex ${isMe ? "justify-end" : "justify-start"} w-full`}>
+                            <div className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
+                              
+                              <div className={`px-4 py-2.5 rounded-2xl shadow-sm text-[14px] leading-relaxed relative ${
+                                isMe 
+                                ? "bg-[#9A8B7A] text-white rounded-tr-sm" 
+                                : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
+                              }`}>
+                                {!isMe && (
+                                  <div className="text-[11px] font-bold text-gray-400 mb-1 tracking-tight">
+                                    {note.performedBy?.userName || "Admin"}
+                                  </div>
+                                )}
+                                <span className="whitespace-pre-wrap break-words">{note.description}</span>
+                              </div>
+                              
+                              <div className="text-[10px] text-gray-400 mt-1.5 px-1 font-medium select-none">
+                                {new Date(note.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                                {' • '}
+                                {new Date(note.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                              </div>
+
+                            </div>
+                          </div>
+                        );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
             </div>
@@ -1110,28 +1227,6 @@ function SubmissionDetailsContent() {
               ))}
             </div>
           )}
-          {activeTab === "Contact Information" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-              {/* LEFT SIDE – PREMIUM INFO */}
-              <div className="border rounded-md p-6">
-                <h3 className="text-[15px] font-semibold mb-4">
-                  Contact Information
-                </h3>
-
-                {quotes.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    No Contact information available.
-                  </p>
-                ) : (
-                  <>
-                    <div className="space-y-3 text-sm">
-
-
-
-                    </div>
-                  </>
-                )}
                 {activeTab === "Contact Information" && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
@@ -1215,33 +1310,74 @@ function SubmissionDetailsContent() {
 
                   </div>
                 )}
-              </div>
 
-
-
-            </div>
-          )}
-          {activeTab === "Contact Information" && (
-            <div className="border rounded-md bg-white">
-
-              {quotes.length === 0 ? (
-                <div className="py-20 flex flex-col items-center justify-center text-center">
-                  <div className="w-20 h-16 bg-gray-200 rounded mb-4" />
-                  <p className="text-[15px] font-medium text-gray-700 mb-1">
-                    No Contact information available
-                  </p>
-                  <p className="text-[13px] text-gray-500">
-                    Rating details will appear here once a quote is generated.
-                  </p>
+          {activeTab === "Rating Information" && (
+            <div className="space-y-6">
+              {ratingLoading ? (
+                <div className="animate-pulse space-y-6">
+                  {/* Skeleton loader */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+                    <div className="bg-white rounded-lg border border-gray-200 p-6 h-[400px]"></div>
+                    <div className="bg-white rounded-lg border border-gray-200 p-6 h-[400px]"></div>
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
+                <>
+                  <div className="flex flex-col lg:flex-row gap-6 w-full items-stretch">
+                    {/* Rate Breakdown */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col flex-1 h-full min-h-[450px]">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                          <span className="text-white font-bold text-[18px]">$</span>
+                        </div>
+                        <h3 className="text-[17px] font-semibold text-gray-900 tracking-tight">
+                          Rate Breakdown
+                        </h3>
+                      </div>
+                      <div className="flex flex-col gap-5 flex-grow mb-8">
+                        <RatingRow label="Total Premium" value={formatCurrency(ratingData?.totalPremium || 0)} />
+                        <RatingRow label="Carrier Fees" value={formatCurrency(ratingData?.carrierFees || 0)} />
+                        <RatingRow label="Sterling Insurance Services Fees" value={formatCurrency(ratingData?.sterlingFees || 0)} />
+                        <RatingRow label="Surplus Lines Tax (%)" value={formatCurrency(ratingData?.surplusLinesTax || 0)} />
+                        <RatingRow label="Stamping Fee (%)" value={formatCurrency(ratingData?.stampingFee || 0)} />
+                        <RatingRow label="Fire Marshal Tax (%)" value={formatCurrency(ratingData?.fireMarshalTax || 0)} />
+                      </div>
+                      
+                      {/* Total Cost inside the Left Card pinned to bottom */}
+                      <div className="mt-auto pt-6 border-t flex justify-between items-center">
+                        <span className="text-[16px] font-bold text-gray-900">Total Cost:</span>
+                        <span className="text-[22px] font-bold text-gray-900">
+                          {formatCurrency(ratingData?.totalCost || 0)}
+                        </span>
+                      </div>
+                    </div>
 
-
-                  {/* RIGHT – POLICY INFO */}
-
-
-                </div>
+                    {/* Broker Breakdown */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col flex-1 h-full min-h-[450px]">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                          <User className="w-[20px] h-[20px] text-white" />
+                        </div>
+                        <h3 className="text-[17px] font-semibold text-gray-900 tracking-tight">
+                          Broker Breakdown
+                        </h3>
+                      </div>
+                      <div className="flex flex-col gap-5 flex-grow mb-8">
+                        <RatingRow label="Commission (10%)" value={formatCurrency(ratingData?.commission || 0)} />
+                        <RatingRow label="Broker Fee" value={formatCurrency(ratingData?.commissionTax || 0)} />
+                       {/* <RatingRow label="Excess Commission" value={formatCurrency(ratingData?.excessCommission || 0)} />*/}
+                      </div>
+                      
+                      {/* Total for Broker inside the Right Card pinned to bottom */}
+                      <div className="mt-auto pt-6 border-t flex justify-between items-center">
+                        <span className="text-[16px] font-bold text-gray-900">Total for Broker:</span>
+                        <span className="text-[22px] font-bold text-gray-900">
+                          {formatCurrency(ratingData?.brokerTotal || 0)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}

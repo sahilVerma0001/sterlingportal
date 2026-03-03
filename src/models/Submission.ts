@@ -16,6 +16,7 @@ export interface IFileUpload {
   fileName: string;
   fileSize: number;
   mimeType: string;
+  uploadedAt?: Date;
 }
 
 export interface ISignedDocument {
@@ -110,6 +111,7 @@ const FileUploadSchema: Schema = new Schema({
   fileName: { type: String, required: true },
   fileSize: { type: Number, required: true },
   mimeType: { type: String, required: true },
+  uploadedAt: { type: Date, default: Date.now },
 });
 
 const SignedDocumentSchema: Schema = new Schema({
