@@ -83,6 +83,9 @@ export async function GET(
     // Load Capital & Co logo SVG
     const capitalCoLogoSVG = await loadCapitalCoLogo();
 
+
+    const excludePages8910 = submission.status === "SUBMITTED";
+
     // Map form data to packet data format
     const formData = submission.payload || {};
     const packetData = mapFormDataToPacketData(
@@ -91,7 +94,8 @@ export async function GET(
       agency,
       quote,
       submission,
-      capitalCoLogoSVG
+      capitalCoLogoSVG,
+      excludePages8910
     );
 
     // Generate 12-page application packet HTML

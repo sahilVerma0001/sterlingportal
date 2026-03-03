@@ -3662,7 +3662,7 @@ function generatePage2(data: ApplicationPacketData): string {
     selectedLogo = blueAngelLogoSVG;
   }
 
-  if (email === "info@sjjinsurance.com") {
+  if (email === "office@sjinsuranceservices.com") {
     selectedLogo = sjjLogoSVG;
   }
 
@@ -4070,36 +4070,6 @@ function generatePage4(data: ApplicationPacketData): string {
                 </div>
 
                 <div class="section-title-uppercase-page"></div>
-
-                <!-- LOSS HISTORY -->
-                ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
-                <div class="loss-history-section">
-                    <strong>General Liability Loss Information</strong>
-
-                    <table class="loss-table">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Date of Loss</th>
-                                <th>Amount of Loss</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.generalLiabilityLosses.map(loss => `
-                            <tr>
-                                <td>General Liability</td>
-                                <td>${loss.dateOfLoss || "-"}</td>
-                                <td>${loss.amountOfLoss || "-"}</td>
-                            </tr>
-                            `).join("")}
-                        </tbody>
-                    </table>
-                </div>
-                ` : `
-                <div class="loss-history-section">
-                    <strong>Loss History:</strong> No losses reported
-                </div>
-                `}
 
             </div>
         </div>
@@ -4539,7 +4509,7 @@ function generatePage11(data: ApplicationPacketData): string {
     selectedLogo = blueAngelLogoSVG;
   }
 
-  if (email === "info@sjjinsurance.com") {
+  if (email === "office@sjinsuranceservices.com") {
     selectedLogo = sjjLogoSVG;
   }
   // existing code
@@ -4576,6 +4546,35 @@ function generatePage11(data: ApplicationPacketData): string {
             <li>Have not been denied coverage or had coverage canceled by an insurance company</li>
             <li>Have no knowledge or a reason to anticipate a claims or loss.</li>
           </ol>
+
+          <!-- LOSS HISTORY -->
+            ${data.generalLiabilityLosses && data.generalLiabilityLosses.length > 0 ? `
+            <div class="loss-history-section">
+              <strong>General Liability Loss Information</strong>
+                <table class="loss-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Date of Loss</th>
+                      <th>Amount of Loss</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.generalLiabilityLosses.map(loss => `
+                      <tr>
+                        <td>General Liability</td>
+                        <td>${loss.dateOfLoss || "-"}</td>
+                        <td>${loss.amountOfLoss || "-"}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+            </div>
+              ` : `
+              <div class="loss-history-section">
+                <strong>Loss History:</strong> No losses reported
+              </div>
+            `}
           
           <p>If my business is less than five (5) years old, the above referenced warranty applies to work performed through all my prior business entities whether as an owner or an employee. The undersigned Applicant understands and agrees that all of the statements, information and responses provided in the Application for this policy are material to the risk sought to be insured, and that the entirety of the information provided in the Application forms a basis for the insurer to provide the requested insurance, and that said insurance is provided in reliance on such material representations.</p>
           
@@ -6346,13 +6345,13 @@ export function mapFormDataToPacketData(
     workOver5000SqFt: formData.workOver5000SqFt,
     workOver5000SqFtPercent: formData.workOver5000SqFtPercent,
     workOver5000SqFtExplanation: formData.workOver5000SqFtExplanation,
-    workCommercialOver20000SqFt: formData.workCommercialOver20000SqFt,
-    commercialOver20000SqFtPercent: formData.commercialOver20000SqFtPercent,
-    commercialOver20000SqFtExplanation: formData.commercialOver20000SqFtExplanation,
+    workCommercialOver20000SqFt: formData.workCommercialOver20000SqFt ?? formData.workOver20000SqFt,
+    commercialOver20000SqFtPercent: formData.commercialOver20000SqFtPercent ?? formData.over20000SqFtPercent,
+    commercialOver20000SqFtExplanation: formData.commercialOver20000SqFtExplanation ?? formData.over20000SqFtExplanation,
     licensingActionTaken: formData.licensingActionTaken,
     licensingActionExplanation: formData.licensingActionExplanation,
-    allowedLicenseUseByOthers: formData.allowedLicenseUseByOthers,
-    allowedLicenseUseByOthersExplanation: formData.allowedLicenseUseByOthersExplanation,
+    allowedLicenseUseByOthers: formData.allowedLicenseUseByOthers ?? formData.licenseSharedWithOthers,
+    allowedLicenseUseByOthersExplanation: formData.allowedLicenseUseByOthersExplanation ?? formData.licenseSharedWithOthersExplanation,
     judgementsOrLiens: formData.judgementsOrLiens,
     judgementsExplanation: formData.judgementsExplanation,
     lawsuitsOrClaims: formData.lawsuitsOrClaims,
@@ -7888,6 +7887,7 @@ const cssContent = `
 
     .loss-history-section {
       margin-top: 16px;
+      margin-bottom: 16px;
       font-size: 12px;
     }
 
@@ -8679,8 +8679,8 @@ const cssContent = `
     }
     
     .page11-isc .logo-capital-co-page11-right {
-      width: 1.5in;
-      height: 1.5in;
+      width: 2in;
+      // height: 2in;
       margin-top: -0.15in; 
       background: transparent;
       border-radius: 0;
@@ -11873,4 +11873,3 @@ function minifyHTML(html: string): string {
     .replace(/(<stop[^>]*>)/gi, (match) => match.replace(/\s+/g, ' ').replace(/\s*=\s*/g, '='))
     .trim();
 }
-
