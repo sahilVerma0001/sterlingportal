@@ -68,11 +68,11 @@ const YesNoRadio = ({
 
 export default function QuoteFormPage() {
   const { data: session, status } = useSession();
-const email = session?.user?.email || "";
+  const email = session?.user?.email || "";
 
-const isCapco = email === "admin@agency1.com";
-const isBlueAngel = email === "admin@blueangel.com";
-const isSJJ = email === "admin@sjjinsurance.com";
+  const isCapco = email === "admin@agency1.com";
+  const isBlueAngel = email === "admin@blueangel.com";
+  const isSJJ = email === "admin@sjjinsurance.com";
   const router = useRouter();
   const params = useParams();
   const programId = params.programId as string;
@@ -809,16 +809,59 @@ const isSJJ = email === "admin@sjjinsurance.com";
     "Welding (Non-Structural)": "- Non-Structural welding. No stairs, handrails, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities, pressurized pipes, oil/gas related, or anything deemed structural.",
   };
 
-  const autoDescription = useMemo(() => {
-    const classCodes = Object.keys(formData.classCodeWork || {});
-    if (classCodes.length === 0) return "";
+// this is for when description remember old changes
+  // useEffect(() => {
+  //   const classCodes = Object.keys(formData.classCodeWork || {});
 
-    return classCodes
+  //   const generatedDescriptions = classCodes
+  //     .map((code) => classCodeDescriptionMap[code])
+  //     .filter(Boolean)
+  //     .join("\n\n");
+
+  //   setFormData((prev: any) => {
+  //     const currentText = prev.carrierApprovedDescription || "";
+
+  //     // Extract user custom text by removing generated descriptions
+  //     let customText = currentText;
+
+  //     Object.values(classCodeDescriptionMap).forEach((desc) => {
+  //       customText = customText.replace(desc, "").trim();
+  //     });
+
+  //     const finalText = [generatedDescriptions, customText]
+  //       .filter(Boolean)
+  //       .join("\n\n");
+
+  //     return {
+  //       ...prev,
+  //       carrierApprovedDescription: finalText,
+  //     };
+  //   });
+
+  // }, [formData.classCodeWork]);
+
+  useEffect(() => {
+    const classCodes = Object.keys(formData.classCodeWork || {});
+    if (classCodes.length === 0) return;
+
+    const generatedDescription = classCodes
       .map((code) => classCodeDescriptionMap[code])
       .filter(Boolean)
       .join("\n\n");
-  }, [formData.classCodeWork]);
 
+    setFormData((prev: any) => {
+      // if user already typed something, don't overwrite it
+      if (prev.carrierApprovedDescription?.trim()) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        carrierApprovedDescription: generatedDescription
+      };
+    });
+
+  }, [formData.classCodeWork]);
 
   // Derive the description based solely on the selected class code.
   const effectiveDescription = useMemo(() => {
@@ -1850,13 +1893,6 @@ const isSJJ = email === "admin@sjjinsurance.com";
                 <h2 className="text-lg font-semibold">Description of operations</h2>
               </div>
 
-              {/* Auto Description (Read Only) */}
-              {autoDescription && (
-                <div className="bg-gray-50 px-4 py-3 border-b text-sm text-gray-700 whitespace-pre-line">
-                  {autoDescription}
-                </div>
-              )}
-
               {/* User Custom Text */}
               <textarea
                 value={formData.carrierApprovedDescription}
@@ -1864,7 +1900,7 @@ const isSJJ = email === "admin@sjjinsurance.com";
                 onChange={(e) =>
                   handleInputChange("carrierApprovedDescription", e.target.value)
                 }
-                rows={4}
+                rows={8}
                 className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
               />
             </div>
