@@ -51,7 +51,7 @@ export async function GET(
     const agency = await Agency.findById(submission.agencyId);
 
     // Get quote if available (for invoice page)
-    const quote = await Quote.findOne({ submissionId: submission._id });
+    const quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
 
     // Load Capital & Co logo SVG
     const capitalCoLogoSVG = await loadCapitalCoLogo();

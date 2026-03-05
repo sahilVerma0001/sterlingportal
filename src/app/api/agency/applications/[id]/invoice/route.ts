@@ -71,7 +71,7 @@ export async function GET(
     // Get quote if available (for invoice page)
     let quote: any = null;
     try {
-      quote = await Quote.findOne({ submissionId: submission._id });
+      quote = await Quote.findOne({ submissionId: submission._id }).populate("carrierId", "name");
       if (quote) {
         quote = quote.toObject();
       }
