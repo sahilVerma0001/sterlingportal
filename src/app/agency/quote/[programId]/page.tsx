@@ -503,6 +503,7 @@ export default function QuoteFormPage() {
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [calculatedPremium, setCalculatedPremium] = useState<number | null>(null);
   const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [isDescriptionEdited, setIsDescriptionEdited] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -685,6 +686,8 @@ export default function QuoteFormPage() {
     const total = calculateTotalClassCodePercent();
     const remaining = Math.max(0, 100 - total);
 
+    setIsDescriptionEdited(false);
+
     setFormData((prev: any) => ({
       ...prev,
       classCodeWork: {
@@ -809,7 +812,7 @@ export default function QuoteFormPage() {
     "Welding (Non-Structural)": "- Non-Structural welding. No stairs, handrails, trailers, autos, boats, boilers, conveyors, production/manufacturing/industrial facilities, pressurized pipes, oil/gas related, or anything deemed structural.",
   };
 
-// this is for when description remember old changes
+  // this is for when description remember old changes
   // useEffect(() => {
   //   const classCodes = Object.keys(formData.classCodeWork || {});
 
@@ -842,7 +845,6 @@ export default function QuoteFormPage() {
 
   useEffect(() => {
     const classCodes = Object.keys(formData.classCodeWork || {});
-    if (classCodes.length === 0) return;
 
     const generatedDescription = classCodes
       .map((code) => classCodeDescriptionMap[code])
@@ -850,47 +852,62 @@ export default function QuoteFormPage() {
       .join("\n\n");
 
     setFormData((prev: any) => {
-      // if user already typed something, don't overwrite it
-      if (prev.carrierApprovedDescription?.trim()) {
+      // If user already typed something different, keep it
+      if (
+        prev.carrierApprovedDescription &&
+        !generatedDescription.includes(prev.carrierApprovedDescription)
+      ) {
         return prev;
       }
 
       return {
         ...prev,
-        carrierApprovedDescription: generatedDescription
+        carrierApprovedDescription: generatedDescription,
       };
     });
 
   }, [formData.classCodeWork]);
 
   // Derive the description based solely on the selected class code.
-  const effectiveDescription = useMemo(() => {
-    const classCodes = Object.keys(formData.classCodeWork || {});
-    if (classCodes.length === 0) return "";
-    const firstClassCode = classCodes[0];
-    return classCodeDescriptionMap[firstClassCode] || "";
-  }, [formData.classCodeWork]);
+  // const effectiveDescription = useMemo(() => {
+  //   const classCodes = Object.keys(formData.classCodeWork || {});
+  //   if (classCodes.length === 0) return "";
+  //   const firstClassCode = classCodes[0];
+  //   return classCodeDescriptionMap[firstClassCode] || "";
+  // }, [formData.classCodeWork]);
+
+  // const handleClassCodeChange = (code: string, percentage: string) => {
+  //   // Only allow ONE class code at a time - replace previous if exists
+  //   const newClassCodeWork: Record<string, string> = {
+  //     [code]: percentage
+  //   };
+
+  //   // Get carrier description for the selected class code
+  //   const description = classCodeDescriptionMap[code] || "";
+
+  //   // Debug logging
+  //   console.log("[Class Code Change] Code:", code);
+  //   console.log("[Class Code Change] Description found:", description ? "Yes" : "No");
+  //   console.log("[Class Code Change] Description:", description);
+  //   console.log("[Class Code Change] Available keys:", Object.keys(classCodeDescriptionMap).slice(0, 5));
+
+  //   // Force update description immediately
+  //   setFormData((prev: any) => ({
+  //     ...prev,
+  //     classCodeWork: newClassCodeWork,
+  //   }));
+  //   triggerAnimation();
+  // };
 
   const handleClassCodeChange = (code: string, percentage: string) => {
-    // Only allow ONE class code at a time - replace previous if exists
-    const newClassCodeWork: Record<string, string> = {
-      [code]: percentage
-    };
-
-    // Get carrier description for the selected class code
-    const description = classCodeDescriptionMap[code] || "";
-
-    // Debug logging
-    console.log("[Class Code Change] Code:", code);
-    console.log("[Class Code Change] Description found:", description ? "Yes" : "No");
-    console.log("[Class Code Change] Description:", description);
-    console.log("[Class Code Change] Available keys:", Object.keys(classCodeDescriptionMap).slice(0, 5));
-
-    // Force update description immediately
     setFormData((prev: any) => ({
       ...prev,
-      classCodeWork: newClassCodeWork,
+      classCodeWork: {
+        ...prev.classCodeWork,   // keep existing class codes
+        [code]: percentage       // update only this one
+      }
     }));
+
     triggerAnimation();
   };
 
@@ -1584,7 +1601,6 @@ export default function QuoteFormPage() {
                             carrierApprovedDescription: ""
                           }));
                         }
-                        handleAddClassCode(e.target.value);
                       }}
                     >
                       <option value="">Select Class Code</option>
@@ -1640,6 +1656,8 @@ export default function QuoteFormPage() {
                                 const updated = { ...formData.classCodeWork };
                                 delete updated[code];
 
+                                setIsDescriptionEdited(false);
+                                
                                 setFormData((prev: any) => ({
                                   ...prev,
                                   classCodeWork: updated,
@@ -1897,10 +1915,14 @@ export default function QuoteFormPage() {
               <textarea
                 value={formData.carrierApprovedDescription}
                 placeholder="Add additional description here..."
-                onChange={(e) =>
-                  handleInputChange("carrierApprovedDescription", e.target.value)
-                }
-                rows={8}
+                onChange={(e) => {
+                  setIsDescriptionEdited(true);
+                  handleInputChange("carrierApprovedDescription", e.target.value);
+                }}
+                // onChange={(e) =>
+                //   handleInputChange("carrierApprovedDescription", e.target.value)
+                // }
+                rows={10}
                 className="w-full px-4 py-3 text-sm border-0 focus:ring-0 resize-none"
               />
             </div>
