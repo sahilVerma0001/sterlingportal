@@ -735,6 +735,18 @@ function SubmissionDetailsContent() {
               {/* ================= QUOTED (APPROVED QUOTE) ================= */}
               {isQuoted && (
                 <>
+                                  <button
+                    onClick={() =>
+                      window.open(
+                        `/api/agency/applications/${submissionId}/invoice`,
+                        "_blank"
+                      )
+                    }
+                    className={iscOutlineBtn}
+                  >
+                    Proposal
+                  </button>
+
                   <button
                     onClick={() =>
                       window.open(
@@ -1078,7 +1090,7 @@ function SubmissionDetailsContent() {
         <div className="bg-white px-8 py-6 border-t border-gray-200">
           {/* Tabs */}
           <div className="flex items-center gap-10 text-[14px] mb-6 border-b">
-            {["Notes", "Status History", "Email History", "Contact Information", "Rating Information"].map(
+            {["Notes", "Status History", , "Contact Information", "Rating Information"].map(
               (tab) => (
                 <button
                   key={tab}
